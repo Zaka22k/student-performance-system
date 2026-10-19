@@ -1,0 +1,125 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Leading: назад + сайдбар, затем заголовок. Не сжимается, кроме заголовка. */
+.leading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Center: занимает свободное место и центрирует содержимое. */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Trailing: всегда у правого края и всегда видим при любой ширине. */
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+/* Содержимое группы: кнопки в ряд, без собственных рамок. */
+.group {
+  gap: 2px;
+  padding: 0 2px;
+  flex: 0 0 auto;
+  background-color: color-mix(
+    in srgb,
+    var(--ControlFillColorDefaultBrush) 20%,
+    transparent
+  );
+}
+
+/* Прозрачная кнопка внутри группы: без собственного стекла, только hover и нажатие. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 32px;
+  /* Высота следует за группой с отступом 2 px сверху и снизу. */
+  height: calc(100% - 4px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--CircularCornerRadius);
+  background: transparent;
+  color: var(--TextFillColorPrimaryBrush);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.button > svg {
+  flex: none;
+}
+
+.button:hover {
+  background: color-mix(
+    in srgb,
+    var(--ControlFillColorSecondaryBrush) 20%,
+    transparent
+  );
+}
+
+.button:active {
+  color: var(--TextFillColorSecondaryBrush);
+  background: color-mix(
+    in srgb,
+    var(--ControlFillColorTertiaryBrush) 20%,
+    transparent
+  );
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--AccentFillColorSelectedTextBackgroundBrush);
+  outline-offset: -2px;
+}
+
+.button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Разделитель между кнопками группы. */
+.divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--DividerStrokeColorDefaultBrush);
+}
+
+.fixedSpacer {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+}
+
+.flexibleSpacer {
+  display: inline-block;
+  flex: 1 1 0;
+}

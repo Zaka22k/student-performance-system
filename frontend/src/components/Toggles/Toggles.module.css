@@ -1,0 +1,260 @@
+/* ───────────── Общее для Checkbox и Switch ───────────── */
+
+/* Корень: <label>, поэтому клик по подписи тоже переключает элемент. */
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+  color: var(--TextFillColorPrimaryBrush);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Подпись перед элементом. Порядок Tab не меняется: в DOM элемент идёт первым. */
+.labelStart {
+  flex-direction: row-reverse;
+}
+
+.disabled {
+  color: var(--TextFillColorDisabledBrush);
+  cursor: not-allowed;
+}
+
+.control {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.label {
+  min-width: 0;
+  color: inherit;
+}
+
+/* ───────────── 1. Чекбокс (Checkbox) ───────────── */
+
+.checkboxRoot {
+  --CheckboxSize: 20px;
+
+  --fill: var(--ControlFillColorDefaultBrush);
+  --stroke: var(--TextFillColorTertiaryBrush);
+  --glyph: var(--TextOnAccentFillColorPrimaryBrush);
+}
+
+.checkboxRoot:not(.disabled):hover {
+  --fill: var(--ControlFillColorSecondaryBrush);
+}
+
+.checkboxRoot:not(.disabled):active {
+  --fill: var(--ControlFillColorTertiaryBrush);
+}
+
+.checkboxRoot:has(.input:checked),
+.checkboxRoot:has(.input:indeterminate) {
+  --fill: var(--AccentFillColorDefaultBrush);
+  --stroke: var(--AccentFillColorDefaultBrush);
+}
+
+.checkboxRoot:not(.disabled):hover:has(.input:checked),
+.checkboxRoot:not(.disabled):hover:has(.input:indeterminate) {
+  --fill: var(--AccentFillColorSecondaryBrush);
+  --stroke: var(--AccentFillColorSecondaryBrush);
+}
+
+.checkboxRoot:not(.disabled):active:has(.input:checked),
+.checkboxRoot:not(.disabled):active:has(.input:indeterminate) {
+  --fill: var(--AccentFillColorTertiaryBrush);
+  --stroke: var(--AccentFillColorTertiaryBrush);
+}
+
+.checkboxRoot.disabled {
+  --fill: var(--ControlFillColorDisabledBrush);
+  --stroke: var(--TextFillColorDisabledBrush);
+  --glyph: var(--TextOnAccentFillColorDisabledBrush);
+}
+
+.checkboxRoot.disabled:has(.input:checked),
+.checkboxRoot.disabled:has(.input:indeterminate) {
+  --fill: var(--AccentFillColorDisabledBrush);
+  --stroke: var(--AccentFillColorDisabledBrush);
+}
+
+.checkboxRoot .control {
+  width: var(--CheckboxSize);
+  height: var(--CheckboxSize);
+}
+
+.box {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: var(--ControlCornerRadius);
+  background-color: var(--fill);
+  color: var(--glyph);
+  transition:
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing),
+    border-color var(--ControlAnimationDuration) var(--ControlAnimationEasing);
+}
+
+.input:focus-visible ~ .box {
+  outline: 2px solid var(--AccentFillColorSelectedTextBackgroundBrush);
+  outline-offset: 2px;
+}
+
+.glyph {
+  width: 14px;
+  height: 14px;
+}
+
+.check,
+.dash {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+.input:checked ~ .box .check {
+  stroke-dashoffset: 0;
+}
+
+.input:indeterminate ~ .box .check {
+  stroke-dashoffset: 1;
+}
+
+.input:indeterminate ~ .box .dash {
+  stroke-dashoffset: 0;
+}
+
+/* ───────────── 2. Свичер (Switch) ───────────── */
+
+.switchRoot {
+  --SwitchThumbSwitchingOpacity: 8%;
+
+  --track-fill: var(--ControlFillColorDefaultBrush);
+  --track-stroke: var(--TextFillColorTertiaryBrush);
+  --thumb-fill: var(--TextFillColorPrimaryBrush);
+}
+
+.switchRoot:not(.disabled):hover {
+  --track-fill: var(--ControlFillColorSecondaryBrush);
+}
+
+.switchRoot:not(.disabled):active {
+  --track-fill: var(--ControlFillColorTertiaryBrush);
+}
+
+.switchRoot:has(.input:checked) {
+  --track-fill: var(--AccentFillColorDefaultBrush);
+  --track-stroke: var(--AccentFillColorDefaultBrush);
+}
+
+.switchRoot:not(.disabled):hover:has(.input:checked) {
+  --track-fill: var(--AccentFillColorSecondaryBrush);
+  --track-stroke: var(--AccentFillColorSecondaryBrush);
+}
+
+.switchRoot:not(.disabled):active:has(.input:checked) {
+  --track-fill: var(--AccentFillColorTertiaryBrush);
+  --track-stroke: var(--AccentFillColorTertiaryBrush);
+}
+
+.switchRoot.disabled {
+  --track-fill: var(--ControlFillColorDisabledBrush);
+  --track-stroke: var(--TextFillColorDisabledBrush);
+  --thumb-fill: var(--TextFillColorDisabledBrush);
+}
+
+.switchRoot.disabled:has(.input:checked) {
+  --track-fill: var(--AccentFillColorDisabledBrush);
+  --track-stroke: var(--AccentFillColorDisabledBrush);
+}
+
+.switchRoot.switching {
+  --thumb-fill: color-mix(
+    in srgb,
+    var(--TextFillColorPrimaryBrush) var(--SwitchThumbSwitchingOpacity),
+    transparent
+  );
+}
+
+.switchRoot .control {
+  width: var(--switch-width);
+  height: var(--switch-height);
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--track-stroke);
+  border-radius: var(--CircularCornerRadius);
+  background-color: var(--track-fill);
+  transition:
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing),
+    border-color var(--ControlAnimationDuration) var(--ControlAnimationEasing);
+}
+
+.input:focus-visible ~ .track {
+  outline: 2px solid var(--AccentFillColorSelectedTextBackgroundBrush);
+  outline-offset: 2px;
+}
+
+.thumbSlot {
+  position: absolute;
+  top: var(--switch-inset);
+  left: var(--switch-inset);
+  display: inline-flex;
+  pointer-events: none;
+  transform: translateX(0);
+  transition: transform var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+.input:checked ~ .thumbSlot {
+  transform: translateX(
+    calc(
+      var(--switch-width) - var(--switch-thumb-width) - 2 * var(--switch-inset)
+    )
+  );
+}
+
+.thumb {
+  background-color: var(--thumb-fill);
+  transition: background-color var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .check,
+  .dash,
+  .track,
+  .thumbSlot,
+  .thumb {
+    transition: none;
+  }
+}

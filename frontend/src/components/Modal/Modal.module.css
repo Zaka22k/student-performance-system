@@ -1,0 +1,180 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ZIndexModal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.overlayOpen {
+  animation: fadeIn var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing) forwards;
+}
+
+.overlayClose {
+  pointer-events: none;
+  animation: fadeOut var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing) forwards;
+}
+
+.modal {
+  transform: translateZ(0);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  max-height: 70%;
+  background-color: var(--ControlOnImageFillColorDefaultBrush);
+  border: 1px solid var(--SurfaceStrokeColorDefaultBrush);
+  border-radius: 36px;
+  color: var(--TextFillColorPrimaryBrush);
+  overflow: hidden;
+}
+
+/* Окно получает фокус программно (tabIndex=-1): рамка фокуса не нужна. */
+.modal:focus {
+  outline: none;
+}
+
+.modalOpen {
+  animation: scaleIn var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing) forwards;
+}
+
+.modalClose {
+  animation: scaleOut var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing) forwards;
+}
+
+/* 1. Сектор заголовка */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(
+    to bottom,
+    var(--ControlOnImageFillColorDefaultBrush) 0%,
+    var(--ControlOnImageFillColorDefaultBrush) 35%,
+    color-mix(
+        in srgb,
+        var(--ControlOnImageFillColorDefaultBrush) 92%,
+        transparent
+      )
+      55%,
+    color-mix(
+        in srgb,
+        var(--ControlOnImageFillColorDefaultBrush) 65%,
+        transparent
+      )
+      75%,
+    color-mix(
+        in srgb,
+        var(--ControlOnImageFillColorDefaultBrush) 25%,
+        transparent
+      )
+      90%,
+    color-mix(
+        in srgb,
+        var(--ControlOnImageFillColorDefaultBrush) 0%,
+        transparent
+      )
+      100%
+  );
+  pointer-events: none;
+}
+
+.header > * {
+  pointer-events: auto;
+}
+
+.title {
+  font-weight: 600;
+  color: var(--TextFillColorPrimaryBrush);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 2. Сектор тела */
+.body {
+  padding: 78px 16px 16px 16px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  color: var(--TextFillColorSecondaryBrush);
+}
+
+.bodyNoFooter {
+  padding-bottom: 20px;
+}
+
+/* 3. Сектор кнопки действия */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 16px 16px 16px;
+  background-color: var(--ControlOnImageFillColorDefaultBrush);
+}
+
+.footer > :not(.footerError) {
+  flex: none;
+}
+
+/* Сообщение об ошибке действия слева от кнопки */
+.footerError {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--SystemFillColorCriticalBrush);
+  overflow-wrap: anywhere;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translateZ(0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateZ(0) scale(0.96);
+  }
+}

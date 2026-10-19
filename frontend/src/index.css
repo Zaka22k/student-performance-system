@@ -1,0 +1,182 @@
+:root {
+  /* CornerRadius */
+  --CircularCornerRadius: 9999px;
+  --ControlCornerRadius: 8px;
+
+  /* Size: общие размеры полей ввода (TextField, ComboBox) */
+  --ControlHeight: 32px;
+  --ControlPaddingInline: 10px;
+  --ControlLabelGap: 6px;
+  --ControlLabelInlineGap: 12px;
+
+  --ZIndexModal: 1000;
+  --ZIndexPopup: 1100;
+
+  /* Animation */
+  --ControlAnimationDuration: 200ms;
+  --ControlAnimationEasing: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    /* Text */
+    --TextFillColorPrimaryBrush: rgb(26, 26, 26);
+    --TextFillColorSecondaryBrush: rgb(92, 92, 92);
+    --TextFillColorTertiaryBrush: rgb(134, 134, 134);
+    --TextFillColorDisabledBrush: rgb(155, 155, 155);
+
+    --AccentTextFillColorPrimaryBrush: rgb(34, 64, 102);
+    --AccentTextFillColorSecondaryBrush: rgb(12, 28, 64);
+    --AccentTextFillColorTertiaryBrush: rgb(53, 96, 136);
+    --AccentTextFillColorDisabledBrush: rgb(155, 155, 155);
+
+    --TextOnAccentFillColorPrimaryBrush: rgb(255, 255, 255);
+    --TextOnAccentFillColorSecondaryBrush: rgb(251, 251, 251);
+    --TextOnAccentFillColorDisabledBrush: rgb(255, 255, 255);
+
+    /* Background */
+    --SolidBackgroundFillColorBaseBrush: rgb(243, 243, 243);
+    --LayerFillColorDefaultBrush: rgb(249, 249, 249);
+
+    /* Fill */
+    --ControlFillColorDefaultBrush: rgb(251, 251, 251);
+    --ControlFillColorSecondaryBrush: rgb(246, 246, 246);
+    --ControlFillColorTertiaryBrush: rgb(245, 245, 245);
+    --ControlFillColorDisabledBrush: rgb(245, 245, 245);
+
+    --AccentFillColorDefaultBrush: rgb(53, 96, 136);
+    --AccentFillColorSecondaryBrush: rgb(72, 111, 147);
+    --AccentFillColorTertiaryBrush: rgb(91, 125, 157);
+    --AccentFillColorDisabledBrush: rgb(191, 191, 191);
+    --AccentFillColorSelectedTextBackgroundBrush: rgb(68, 121, 162);
+
+    --ControlOnImageFillColorDefaultBrush: rgb(252, 252, 252);
+
+    /* Stroke */
+    --ControlElevationBorderBrush: rgb(229, 229, 229);
+    --DividerStrokeColorDefaultBrush: rgb(229, 229, 229);
+    --SurfaceStrokeColorDefaultBrush: rgb(193, 193, 193);
+
+    /* Signal */
+    --SystemFillColorCriticalBrush: rgb(196, 43, 28);
+    --SystemFillColorCriticalBackgroundBrush: rgb(253, 231, 233);
+
+    /* Glass */
+    --edgeShadowOpacity: 0.3;
+    --outerShadowOpacity: 0.15;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Text */
+    --TextFillColorPrimaryBrush: rgb(255, 255, 255);
+    --TextFillColorSecondaryBrush: rgb(204, 204, 204);
+    --TextFillColorTertiaryBrush: rgb(150, 150, 150);
+    --TextFillColorDisabledBrush: rgb(113, 113, 113);
+
+    --AccentTextFillColorPrimaryBrush: rgb(184, 231, 238);
+    --AccentTextFillColorSecondaryBrush: rgb(184, 231, 238);
+    --AccentTextFillColorTertiaryBrush: rgb(150, 199, 216);
+    --AccentTextFillColorDisabledBrush: rgb(113, 113, 113);
+
+    --TextOnAccentFillColorPrimaryBrush: rgb(0, 0, 0);
+    --TextOnAccentFillColorSecondaryBrush: rgb(16, 16, 16);
+    --TextOnAccentFillColorDisabledBrush: rgb(150, 150, 150);
+
+    /* Background */
+    --SolidBackgroundFillColorBaseBrush: rgb(32, 32, 32);
+    --LayerFillColorDefaultBrush: rgb(39, 39, 39);
+
+    /* Fill */
+    --ControlFillColorDefaultBrush: rgb(45, 45, 45);
+    --ControlFillColorSecondaryBrush: rgb(50, 50, 50);
+    --ControlFillColorTertiaryBrush: rgb(39, 39, 39);
+    --ControlFillColorDisabledBrush: rgb(42, 42, 42);
+
+    --AccentFillColorDefaultBrush: rgb(150, 199, 216);
+    --AccentFillColorSecondaryBrush: rgb(138, 182, 197);
+    --AccentFillColorTertiaryBrush: rgb(126, 165, 178);
+    --AccentFillColorDisabledBrush: rgb(67, 67, 67);
+    --AccentFillColorSelectedTextBackgroundBrush: rgb(68, 121, 162);
+
+    --ControlOnImageFillColorDefaultBrush: rgb(30, 30, 30);
+
+    /* Stroke */
+    --ControlElevationBorderBrush: rgb(53, 53, 53);
+    --DividerStrokeColorDefaultBrush: rgb(50, 50, 50);
+    --SurfaceStrokeColorDefaultBrush: rgb(66, 66, 66);
+
+    /* Signal */
+    --SystemFillColorCriticalBrush: rgb(255, 153, 164);
+    --SystemFillColorCriticalBackgroundBrush: rgb(68, 39, 38);
+
+    /* Glass */
+    --edgeShadowOpacity: 0;
+    --outerShadowOpacity: 0;
+  }
+}
+
+/* Нормализация */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--DividerStrokeColorDefaultBrush) transparent;
+}
+
+body {
+  color: var(--TextFillColorPrimaryBrush);
+  background-color: var(--SolidBackgroundFillColorBaseBrush);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Tahoma,
+    Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Типография */
+.CaptionTextBlockStyle {
+  font-size: 12px;
+}
+
+.BodyTextBlockStyle {
+  font-size: 14px;
+  &.BodyStrongTextBlockStyle {
+    font-weight: 600;
+  }
+}
+
+.BodyLargeTextBlockStyle {
+  font-size: 18px;
+  &.BodyLargeStrongTextBlockStyle {
+    font-weight: 600;
+  }
+}
+
+.SubtitleTextBlockStyle {
+  font-size: 20px;
+}
+
+.TitleTextBlockStyle {
+  font-size: 28px;
+}
+
+.TitleLargeTextBlockStyle {
+  font-size: 40px;
+}

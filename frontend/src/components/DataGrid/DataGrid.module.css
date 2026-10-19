@@ -1,0 +1,341 @@
+/*
+ * Таблица без границ: единственная линия — разделитель между строками.
+ * У полосатой таблицы (striped) разделителей нет, строки различаются заливкой.
+ *
+ * Фон шапки можно переопределить: --DataGridHeaderBackground.
+ */
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 160px;
+  overflow: hidden;
+  color: var(--TextFillColorPrimaryBrush);
+}
+
+/* Единственный прокручиваемый элемент: и вертикально, и горизонтально. */
+.scroller {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  outline: none;
+}
+
+/* Холст: не уже суммы ширин колонок, иначе растягивается на всё окно. */
+.canvas {
+  position: relative;
+  width: 100%;
+  min-width: var(--dg-min-width);
+}
+
+/* ───────────── Шапка ───────────── */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: var(--dg-columns);
+  height: var(--dg-header-height);
+  background-color: var(
+    --DataGridHeaderBackground,
+    var(--LayerFillColorDefaultBrush)
+  );
+  box-shadow: inset 0 -1px 0 var(--DividerStrokeColorDefaultBrush);
+}
+
+.striped .header {
+  box-shadow: none;
+}
+
+.headerCell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 12px;
+  color: var(--TextFillColorSecondaryBrush);
+  user-select: none;
+}
+
+.headerText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ручка изменения ширины: у правого края ячейки шапки, линия видна при наведении. */
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  width: 2px;
+  height: 16px;
+  border-radius: var(--CircularCornerRadius);
+  background-color: var(--TextFillColorTertiaryBrush);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition:
+    opacity var(--ControlAnimationDuration) var(--ControlAnimationEasing),
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing);
+}
+
+.headerCell:hover .resizeHandle::after,
+.resizeHandle:focus-visible::after,
+.resizing::after {
+  opacity: 1;
+}
+
+.resizeHandle:focus-visible::after {
+  background-color: var(--AccentFillColorSelectedTextBackgroundBrush);
+}
+
+.resizing::after {
+  background-color: var(--AccentFillColorDefaultBrush);
+}
+
+/* ───────────── Строки ───────────── */
+
+.body {
+  position: relative;
+}
+
+/*
+ * Строка стоит на своём месте через transform: когда у неё меняется индекс, в режиме .moving
+ * она плавно съезжает. Строки, которые впервые попали в окно при прокрутке, не анимируются.
+ */
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: var(--dg-columns);
+  height: var(--dg-row-height);
+  box-shadow: inset 0 -1px 0 var(--DividerStrokeColorDefaultBrush);
+  transition: background-color var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+.striped .row {
+  box-shadow: none;
+}
+
+.striped .rowOdd {
+  background-color: var(--ControlFillColorDefaultBrush);
+}
+
+.row:hover {
+  background-color: var(--ControlFillColorSecondaryBrush);
+}
+
+.striped .rowOdd:hover {
+  background-color: var(--ControlFillColorSecondaryBrush);
+}
+
+/* Выделенная строка: акцентная заливка и плашка слева, как у выбранного пункта ComboBox. */
+.row.rowSelected {
+  background-color: color-mix(
+    in srgb,
+    var(--AccentFillColorDefaultBrush) 14%,
+    transparent
+  );
+}
+
+.striped .row.rowSelected {
+  background-color: color-mix(
+    in srgb,
+    var(--AccentFillColorDefaultBrush) 14%,
+    var(--ControlFillColorDefaultBrush)
+  );
+}
+
+.row.rowSelected:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--AccentFillColorDefaultBrush) 22%,
+    transparent
+  );
+}
+
+.striped .row.rowSelected:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--AccentFillColorDefaultBrush) 22%,
+    var(--ControlFillColorSecondaryBrush)
+  );
+}
+
+.rowSelected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  border-radius: var(--CircularCornerRadius);
+  background-color: var(--AccentFillColorDefaultBrush);
+  transform: translateY(-50%);
+}
+
+/* Курсор клавиатуры виден только когда таблица в фокусе с клавиатуры. */
+.scroller:focus-visible .rowActive {
+  outline: 2px solid var(--AccentFillColorSelectedTextBackgroundBrush);
+  outline-offset: -2px;
+}
+
+/* ───────────── Ячейки ───────────── */
+
+.cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+/* Текст не переносится, лишнее обрезается многоточием. */
+.cellContent {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectCell {
+  justify-content: center;
+  padding: 0;
+  user-select: none;
+}
+
+/* ───────────── Появление и исчезновение строк ───────────── */
+
+.moving .row {
+  transition:
+    transform var(--ControlAnimationDuration) var(--ControlAnimationEasing),
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing);
+}
+
+/* Новая строка: проявляется и коротко подсвечивается акцентным цветом. */
+.rowNew {
+  animation: rowIn var(--ControlAnimationDuration) ease-out;
+}
+
+.rowNew::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(
+    in srgb,
+    var(--AccentFillColorDefaultBrush) 20%,
+    transparent
+  );
+  pointer-events: none;
+  animation: rowHighlight 1500ms ease-out forwards;
+}
+
+/* Исчезающая строка: «призрак» с прежними данными тает на месте. */
+.rowExit {
+  z-index: 0;
+  pointer-events: none;
+  animation: rowOut 150ms ease-out forwards;
+}
+
+@keyframes rowIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rowHighlight {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rowOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ───────────── Подгрузка и пустая таблица ───────────── */
+
+/* Липнет к левому краю: по центру видимой области, даже когда есть горизонтальная прокрутка. */
+.footer {
+  position: sticky;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: var(--dg-row-height);
+}
+
+.footerError {
+  color: var(--SystemFillColorCriticalBrush, var(--TextFillColorSecondaryBrush));
+}
+
+.empty {
+  position: absolute;
+  top: var(--dg-header-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--TextFillColorSecondaryBrush);
+  text-align: center;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .moving .row {
+    transition: background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing);
+  }
+
+  .rowNew,
+  .rowExit {
+    animation: none;
+  }
+
+  /* Подсветка новой строки остаётся: это не движение. */
+  .rowExit {
+    display: none;
+  }
+
+  .resizeHandle::after {
+    transition: none;
+  }
+}

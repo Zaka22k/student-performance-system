@@ -1,0 +1,106 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model marks {
+  idmark    Int  @id
+  lowballs  Int?
+  highballs Int?
+}
+
+model reyting {
+  idstudent  BigInt   @id
+  summ_balls Int?
+  students   students @relation(fields: [idstudent], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_reyting")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model semesters {
+  semester_id         BigInt                @id @default(autoincrement())
+  academic_year_start Int                   @db.SmallInt
+  term_number         Int                   @db.SmallInt
+  start_date          DateTime              @db.Date
+  end_date            DateTime              @db.Date
+  student_performance student_performance[]
+
+  @@unique([academic_year_start, term_number], map: "uq_semesters_year_term")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model student_groups {
+  group_id          BigInt     @id @default(autoincrement())
+  group_code        String     @unique(map: "uq_student_groups_code") @db.VarChar(20)
+  group_name        String     @db.VarChar(100)
+  education_program String     @db.VarChar(200)
+  admission_year    Int        @db.SmallInt
+  students          students[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model student_performance {
+  performance_id  BigInt    @id @default(autoincrement())
+  student_id      BigInt
+  subject_id      BigInt
+  teacher_id      BigInt
+  semester_id     BigInt
+  assessment_type String    @db.VarChar(30)
+  grade           Int?      @db.SmallInt
+  passed          Boolean?
+  attempt_number  Int       @default(1) @db.SmallInt
+  assessment_date DateTime  @db.Date
+  semesters       semesters @relation(fields: [semester_id], references: [semester_id], onUpdate: NoAction)
+  students        students  @relation(fields: [student_id], references: [student_id], onUpdate: NoAction)
+  subjects        subjects  @relation(fields: [subject_id], references: [subject_id], onUpdate: NoAction)
+  teachers        teachers  @relation(fields: [teacher_id], references: [teacher_id], onUpdate: NoAction)
+
+  @@unique([student_id, subject_id, semester_id, assessment_type, attempt_number], map: "uq_student_performance")
+  @@index([semester_id], map: "idx_performance_semester_id")
+  @@index([student_id, semester_id], map: "idx_performance_student_semester")
+  @@index([subject_id, semester_id], map: "idx_performance_subject_semester")
+  @@index([teacher_id], map: "idx_performance_teacher_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model students {
+  student_id          BigInt                @id @default(autoincrement())
+  student_number      String                @unique(map: "uq_students_number") @db.VarChar(20)
+  last_name           String                @db.VarChar(50)
+  first_name          String                @db.VarChar(50)
+  middle_name         String?               @db.VarChar(50)
+  birth_date          DateTime              @db.Date
+  email               String?               @db.VarChar(254)
+  status              String                @default("active") @db.VarChar(30)
+  group_id            BigInt
+  reyting             reyting?
+  student_performance student_performance[]
+  student_groups      student_groups        @relation(fields: [group_id], references: [group_id], onUpdate: NoAction)
+
+  @@index([group_id], map: "idx_students_group_id")
+  @@index([last_name, first_name], map: "idx_students_name")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subjects {
+  subject_id          BigInt                @id @default(autoincrement())
+  subject_code        String                @unique(map: "uq_subjects_code") @db.VarChar(20)
+  subject_name        String                @unique(map: "uq_subjects_name") @db.VarChar(150)
+  total_hours         Int                   @db.SmallInt
+  credits             Decimal               @db.Decimal(4, 1)
+  student_performance student_performance[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model teachers {
+  teacher_id          BigInt                @id @default(autoincrement())
+  last_name           String                @db.VarChar(50)
+  first_name          String                @db.VarChar(50)
+  middle_name         String?               @db.VarChar(50)
+  email               String?               @unique(map: "uq_teachers_email") @db.VarChar(254)
+  student_performance student_performance[]
+}
