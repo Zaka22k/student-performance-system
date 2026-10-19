@@ -6,6 +6,8 @@ import {
   TeachersPage,
   SubjectsPage,
   SemestersPage,
+  PerformancePage,
+  EditPerformancePage,
 } from "@pages";
 
 export default function AppRoutes() {
@@ -15,10 +17,9 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="/performance" replace />} />
 
         <Route path="performance">
-          <Route index />
-          <Route path="new" />
-          <Route path=":id" />
-          <Route path=":id/edit" />
+          <Route index element={<PerformancePage />} />
+          <Route path="new" element={<EditPerformancePage />} />
+          <Route path=":id/edit" element={<EditPerformancePage />} />
         </Route>
 
         <Route path="groups" element={<GroupsPage />} />

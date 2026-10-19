@@ -1,0 +1,60 @@
+/* Страница записи: форма из карточек, цвета и скругления только из токенов index.css */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 24px 32px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--LayerFillColorDefaultBrush);
+  border: 1px solid var(--DividerStrokeColorDefaultBrush);
+  border-radius: var(--ControlCornerRadius);
+}
+
+.sectionTitle {
+  color: var(--TextFillColorSecondaryBrush);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Поле на всю ширину карточки */
+.field {
+  width: 100%;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.hint {
+  color: var(--TextFillColorTertiaryBrush);
+}
+
+.error {
+  padding: 10px 12px;
+  color: var(--SystemFillColorCriticalBrush);
+  background-color: var(--SystemFillColorCriticalBackgroundBrush);
+  border-radius: var(--ControlCornerRadius);
+}
+
+@media (max-width: 640px) {
+  .form {
+    padding: 12px 16px 24px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

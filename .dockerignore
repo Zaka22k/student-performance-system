@@ -1,4 +1,7 @@
 **/node_modules
 **/dist
+**/.env
+backend/public
 .git
-.env
+Dockerfile
+docker-compose.yml
