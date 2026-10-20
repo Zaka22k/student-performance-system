@@ -5,3 +5,4 @@ export { default as SubjectsPage } from "./subjects";
 export { default as TeachersPage } from "./teachers";
 export * from "./performance";
 export * from "./session";
+export * from "./analytics";

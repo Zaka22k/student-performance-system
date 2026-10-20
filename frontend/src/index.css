@@ -40,6 +40,10 @@
     --SolidBackgroundFillColorBaseBrush: rgb(243, 243, 243);
     --LayerFillColorDefaultBrush: rgb(249, 249, 249);
 
+    --CardBackgroundFillColorDefaultBrush: rgb(251, 251, 251);
+    --CardBackgroundFillColorSecondaryBrush: rgb(244, 244, 244);
+    --CardBackgroundFillColorTertiaryBrush: rgb(255, 255, 255);
+
     /* Fill */
     --ControlFillColorDefaultBrush: rgb(251, 251, 251);
     --ControlFillColorSecondaryBrush: rgb(246, 246, 246);
@@ -56,12 +60,19 @@
 
     /* Stroke */
     --ControlElevationBorderBrush: rgb(229, 229, 229);
+    --CardStrokeColorDefaultBrush: rgb(229, 229, 229);
     --DividerStrokeColorDefaultBrush: rgb(229, 229, 229);
     --SurfaceStrokeColorDefaultBrush: rgb(193, 193, 193);
 
     /* Signal */
     --SystemFillColorCriticalBrush: rgb(196, 43, 28);
     --SystemFillColorCriticalBackgroundBrush: rgb(253, 231, 233);
+
+    --SystemFillColorSuccessBrush: rgb(15, 123, 15);
+    --SystemFillColorSuccessBackgroundBrush: rgb(223, 246, 221);
+
+    --SystemFillColorCautionBrush: rgb(157, 93, 0);
+    --SystemFillColorCautionBackgroundBrush: rgb(255, 244, 206);
 
     /* Glass */
     --edgeShadowOpacity: 0.3;
@@ -92,6 +103,10 @@
     --SolidBackgroundFillColorBaseBrush: rgb(32, 32, 32);
     --LayerFillColorDefaultBrush: rgb(39, 39, 39);
 
+    --CardBackgroundFillColorDefaultBrush: rgb(43, 43, 43);
+    --CardBackgroundFillColorSecondaryBrush: rgb(39, 39, 39);
+    --CardBackgroundFillColorTertiaryBrush: rgb(48, 48, 48);
+
     /* Fill */
     --ControlFillColorDefaultBrush: rgb(45, 45, 45);
     --ControlFillColorSecondaryBrush: rgb(50, 50, 50);
@@ -108,12 +123,19 @@
 
     /* Stroke */
     --ControlElevationBorderBrush: rgb(53, 53, 53);
+    --CardStrokeColorDefaultBrush: rgb(29, 29, 29);
     --DividerStrokeColorDefaultBrush: rgb(50, 50, 50);
     --SurfaceStrokeColorDefaultBrush: rgb(66, 66, 66);
 
     /* Signal */
     --SystemFillColorCriticalBrush: rgb(255, 153, 164);
     --SystemFillColorCriticalBackgroundBrush: rgb(68, 39, 38);
+
+    --SystemFillColorSuccessBrush: rgb(108, 203, 95);
+    --SystemFillColorSuccessBackgroundBrush: rgb(57, 61, 27);
+
+    --SystemFillColorCautionBrush: rgb(252, 225, 0);
+    --SystemFillColorCautionBackgroundBrush: rgb(67, 53, 25);
 
     /* Glass */
     --edgeShadowOpacity: 0;

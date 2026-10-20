@@ -1,0 +1,45 @@
+/* Раскладка страниц «Успеваемость по...»: параметры, диаграмма, таблица. Только токены index.css */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.param {
+  width: 240px;
+  max-width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--LayerFillColorDefaultBrush);
+  border: 1px solid var(--DividerStrokeColorDefaultBrush);
+  border-radius: var(--ControlCornerRadius);
+}
+
+.cardTitle {
+  color: var(--TextFillColorSecondaryBrush);
+}
+
+.hint {
+  color: var(--TextFillColorTertiaryBrush);
+}
+
+/* Таблице нужна высота: она занимает остаток, но не меньше 280px */
+.grid {
+  flex: 1 0 280px;
+  min-height: 280px;
+}

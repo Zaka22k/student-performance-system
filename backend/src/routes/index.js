@@ -5,6 +5,7 @@ import subjects from "./subjects.js";
 import semesters from "./semesters.js";
 import performance from "./performance.js";
 import session from "./session.js";
+import analytics from "./analytics.js";
 
 export default async function routes(app) {
   app.get("/health", async () => {
@@ -24,4 +25,7 @@ export default async function routes(app) {
 
   // Сессия: расписание и формирование ведомости
   await app.register(session, { prefix: "/session" });
+
+  // Аналитика: рейтинг, успеваемость по группам и дисциплинам
+  await app.register(analytics, { prefix: "/analytics" });
 }

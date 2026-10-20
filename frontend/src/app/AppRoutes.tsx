@@ -10,6 +10,9 @@ import {
   EditPerformancePage,
   SchedulePage,
   SheetPage,
+  RatingPage,
+  GroupsAnalyticsPage,
+  SubjectsAnalyticsPage,
 } from "@pages";
 
 export default function AppRoutes() {
@@ -38,9 +41,9 @@ export default function AppRoutes() {
 
         {/* Аналитика */}
         <Route path="analytics">
-          <Route path="rating" />
-          <Route path="groups" />
-          <Route path="subjects" />
+          <Route path="rating" element={<RatingPage />} />
+          <Route path="groups" element={<GroupsAnalyticsPage />} />
+          <Route path="subjects" element={<SubjectsAnalyticsPage />} />
         </Route>
 
         {/* Отчёты */}

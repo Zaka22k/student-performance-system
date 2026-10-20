@@ -9,3 +9,4 @@ export * from "./Toolbar";
 export { ProgressRing } from "./ProgressRing";
 export * from "./Toggles";
 export * from "./DataGrid";
+export { BarChart } from "./BarChart";
