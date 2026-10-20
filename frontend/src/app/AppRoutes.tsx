@@ -8,6 +8,8 @@ import {
   SemestersPage,
   PerformancePage,
   EditPerformancePage,
+  SchedulePage,
+  SheetPage,
 } from "@pages";
 
 export default function AppRoutes() {
@@ -30,8 +32,8 @@ export default function AppRoutes() {
 
         {/* Сессия */}
         <Route path="session">
-          <Route path="schedule" />
-          <Route path="sheet" />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="sheet" element={<SheetPage />} />
         </Route>
 
         {/* Аналитика */}

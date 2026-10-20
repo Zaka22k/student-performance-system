@@ -4,16 +4,13 @@ import teachers from "./teachers.js";
 import subjects from "./subjects.js";
 import semesters from "./semesters.js";
 import performance from "./performance.js";
+import session from "./session.js";
 
 export default async function routes(app) {
   app.get("/health", async () => {
-    const [{ count }] = await app.prisma
-      .$queryRaw`SELECT COUNT(*)::int AS count FROM student_performance`;
+    const [{ count }] = await app.prisma.$queryRaw`SELECT COUNT(*)::int AS count FROM student_performance`;
     return { status: "ok", performanceRows: count };
   });
-
-  // Успеваемость
-  await app.register(performance, { prefix: "/performance" });
 
   // Справочники
   await app.register(groups, { prefix: "/groups" });
@@ -21,4 +18,10 @@ export default async function routes(app) {
   await app.register(teachers, { prefix: "/teachers" });
   await app.register(subjects, { prefix: "/subjects" });
   await app.register(semesters, { prefix: "/semesters" });
+
+  // Журнал успеваемости
+  await app.register(performance, { prefix: "/performance" });
+
+  // Сессия: расписание и формирование ведомости
+  await app.register(session, { prefix: "/session" });
 }
