@@ -21,7 +21,13 @@ import { ComboBox } from "./ComboBox";
 ## Быстрый старт
 
 ```tsx
-<ComboBox "Берлин"]} "София", defaultValue="София" hint="Выберите из списка или введите свой вариант" label="Город:" onChange="{(value)" options="{[" placeholder="Введите город" Москва","> console.log(value)}
+<ComboBox
+  defaultValue="София"
+  hint="Выберите из списка или введите свой вариант"
+  label="Город:"
+  onChange={(value) => console.log(value)}
+  options={["Москва", "София", "Берлин"]}
+  placeholder="Введите город"
 />
 ```
 
@@ -46,6 +52,8 @@ import { ComboBox } from "./ComboBox";
 | `className`, `style` |                                                |                       | Применяются к корневому элементу                                                             |
 | остальные            | атрибуты `<input>`                             |                       | `placeholder`, `disabled`, `name`, `id`, `onFocus`, `onBlur`, `onKeyDown`… идут на `<input>` |
 
+`label` и `hint` со значением `null`, `undefined` или `false` не выводятся.
+
 `ref` указывает на `<input>`.
 
 ## Что считается значением
@@ -67,7 +75,7 @@ import { ComboBox } from "./ComboBox";
 ```tsx
 const cities = ["Москва", "София", "Берлин", "Париж"];
 
-<ComboBox defaultValue="София" label="Город:" options="{cities}" />;
+<ComboBox defaultValue="София" label="Город:" options={cities} />;
 ```
 
 ### 2. С подсказкой снизу (`hint`)
@@ -77,11 +85,11 @@ const cities = ["Москва", "София", "Берлин", "Париж"];
   defaultValue="София"
   hint="Можно выбрать город из списка или вписать вручную"
   label="Город:"
-  options="{cities}"
+  options={cities}
 />
 ```
 
-При `labelPlacement="start"` подпись выравнивается по центру самого поля ввода, а подсказка располагается строго под полем. Выпадающий список открывается сразу под полем ввода (поверх подсказки).
+Подсказка не влияет на ширину поля: она переносится по ширине поля, а не растягивает его. При `labelPlacement="start"` подпись выравнивается по центру самого поля ввода, а подсказка располагается строго под полем. Выпадающий список открывается сразу под полем ввода (поверх подсказки).
 
 ### 3. Объекты: значение — `id`, отображение — `name`
 
@@ -98,18 +106,26 @@ const cities: City[] = [
   { id: "ber", name: "Берлин", country: "Германия" },
 ];
 
-<ComboBox defaultValue="sof" label="Город:" labelKey="name" onChange="{(value," options="{cities}" valueKey="id"> {
+<ComboBox
+  defaultValue="sof"
+  label="Город:"
+  labelKey="name"
+  onChange={(value, option) => {
     // value === "sof", option === { id: "sof", ... }
     // свой текст: option === null, value — введённая строка
   }}
+  options={cities}
+  valueKey="id"
 />;
 ```
 
 ### 4. Значение и подпись функциями
 
 ```tsx
-<ComboBox getOptionValue="{(c)" options="{cities}"> c.id}
+<ComboBox
   getOptionLabel={(c) => `${c.name}, ${c.country}`}
+  getOptionValue={(c) => c.id}
+  options={cities}
 />
 ```
 
@@ -118,7 +134,13 @@ const cities: City[] = [
 ```tsx
 const [cityId, setCityId] = useState("sof");
 
-<ComboBox label="Город:" labelKey="name" onChange="{(value)" options="{cities}" value="{cityId}" valueKey="id"> setCityId(value)}
+<ComboBox
+  label="Город:"
+  labelKey="name"
+  onChange={(value) => setCityId(value)}
+  options={cities}
+  value={cityId}
+  valueKey="id"
 />;
 ```
 
@@ -136,7 +158,11 @@ onChange={(value, option) => {
 `renderOption` заменяет содержимое пункта. Оболочка (подсветка, клик, клавиатура, `aria-selected`) остаётся стандартной.
 
 ```tsx
-<ComboBox label="Город:" labelKey="name" options="{cities}" renderOption="{(city," selected valueKey="id" {> (
+<ComboBox
+  label="Город:"
+  labelKey="name"
+  options={cities}
+  renderOption={(city, { selected }) => (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
       <span style={{ fontWeight: selected ? 600 : 400 }}>{city.name}</span>
       <span
@@ -147,6 +173,7 @@ onChange={(value, option) => {
       </span>
     </div>
   )}
+  valueKey="id"
 />
 ```
 
@@ -155,36 +182,40 @@ onChange={(value, option) => {
 ### 7. Подпись слева, как в macOS
 
 ```tsx
-<ComboBox label="Город:" labelPlacement="start" options="{cities}" />
+<ComboBox label="Город:" labelPlacement="start" options={cities} />
 ```
 
 ### 8. Без фильтрации или со своим фильтром
 
 ```tsx
 // Список всегда показывает все варианты:
-<ComboBox filter="{false}" options="{cities}"/>
+<ComboBox filter={false} options={cities} />
 
 // Поиск ещё и по стране:
-<ComboBox filter="{(c," labelKey="name" options="{cities}" valueKey="id">
+<ComboBox
+  filter={(c, query) =>
     `${c.name} ${c.country}`.toLowerCase().includes(query.toLowerCase())
   }
+  labelKey="name"
+  options={cities}
+  valueKey="id"
 />
 ```
 
 ### 9. Ширина
 
-Ширина по умолчанию `auto`: её определяет само поле ввода (около 20 символов, она не зависит от длины выбранного значения), но не шире контейнера. Ширина списка всегда равна ширине поля. Так же устроен `TextField`. Чтобы поля одной формы выстроились в одну колонку, задайте им одинаковую ширину.
+Ширина по умолчанию `auto`: её определяет само поле ввода (около 20 символов, она не зависит ни от длины выбранного значения, ни от длины подсказки), но не шире контейнера. Ширина списка всегда равна ширине поля. Так же устроен `TextField`. Чтобы поля одной формы выстроились в одну колонку, задайте им одинаковую ширину.
 
 ```tsx
-<ComboBox 320 options="{cities}" style="{{" width: }}/>
-<ComboBox "100%" options="{cities}" style="{{" width: }}/>
+<ComboBox options={cities} style={{ width: 320 }} />
+<ComboBox options={cities} style={{ width: "100%" }} />
 ```
 
 ### 10. В форме
 
 ```tsx
 <form onSubmit={handleSubmit}>
-  <ComboBox label="Город:" name="city" options="{cities}" />
+  <ComboBox label="Город:" name="city" options={cities} />
 </form>
 ```
 

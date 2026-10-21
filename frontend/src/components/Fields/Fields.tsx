@@ -1,21 +1,15 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useId, useRef, useState } from "react";
 import type {
+  ChangeEvent,
   CSSProperties,
-  FocusEvent,
   InputHTMLAttributes,
-  KeyboardEvent,
   MouseEvent,
   ReactNode,
 } from "react";
 import { GlassPanel } from "../GlassPanel";
 import styles from "./Fields.module.css";
+
+/* ───────────── Типы ───────────── */
 
 export type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   /** Icon before the text. / Иконка перед текстом. */
@@ -40,29 +34,37 @@ export type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   style?: CSSProperties;
 };
 
-export type SearchFieldMode = "auto" | "default" | "compact";
-
-export type GlassSearchInputProps = Omit<
+export type SearchFieldProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "size" | "type"
 > & {
+  /** Height of the field in pixels. / Высота строки в пикселях. */
   size?: number;
+  /** Width of the field. / Ширина строки. */
   width?: number | string;
-  /**
-   * Режим отображения:
-   * - "default" — поле всегда развёрнуто на свою ширину
-   * - "compact" — свёрнуто до иконки поиска, но разворачивается при фокусе или наличии текста
-   * - "auto" — автоматически переключается между "default" и "compact" в зависимости от доступного места
-   */
-  mode?: SearchFieldMode;
+  /** Called after the clear button is pressed. / Вызывается после нажатия на кнопку очистки. */
   onClear?: () => void;
+  /**
+   * Accessible name and tooltip of the clear button.
+   * Доступное имя и всплывающая подсказка кнопки очистки.
+   */
   clearLabel?: string;
+  /** Class of the glass panel. / Класс стеклянной панели. */
+  className?: string;
+  /** Style of the glass panel. / Стиль стеклянной панели. */
+  style?: CSSProperties;
 };
+
+/* ───────────── Утилиты ───────────── */
 
 const cx = (...classes: Array<string | false | null | undefined>): string =>
   classes.filter(Boolean).join(" ");
 
-/* ───────────── Встроенные SVG-иконки для поиска ───────────── */
+/** Есть ли что показывать: `null`, `undefined` и `false` считаются пустыми. */
+const hasContent = (node: ReactNode): boolean =>
+  node !== undefined && node !== null && node !== false;
+
+/* ───────────── Иконки ───────────── */
 
 function SearchIcon() {
   return (
@@ -132,9 +134,10 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
     ref,
   ) {
     const baseId = useId();
-    const inputId = id ?? `\${baseId}-input`;
-    const hintId = `\${baseId}-hint`;
-    const hasHint = hint !== undefined && hint !== null;
+    const inputId = id ?? `${baseId}-input`;
+    const hintId = `${baseId}-hint`;
+    const hasLabel = hasContent(label);
+    const hasHint = hasContent(hint);
 
     const describedBy =
       [ariaDescribedBy, hasHint ? hintId : undefined]
@@ -151,7 +154,7 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
         )}
         style={style}
       >
-        {label !== undefined && label !== null && (
+        {hasLabel && (
           <label
             className={cx(styles.label, "BodyTextBlockStyle")}
             htmlFor={inputId}
@@ -190,34 +193,30 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
   },
 );
 
-/* ───────────── 2. Стеклянная строка поиска (GlassSearchInput) ───────────── */
+/* ───────────── 2. Стеклянная строка поиска (SearchField) ───────────── */
 
-export const SearchField = forwardRef<HTMLInputElement, GlassSearchInputProps>(
+export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
   function SearchField(
     {
       className,
       style,
       size = 36,
       width = 280,
-      mode = "default",
       value,
       defaultValue,
       onChange,
-      onFocus,
-      onBlur,
-      onKeyDown,
-      onClick,
       onClear,
       clearLabel = "Очистить поиск",
       placeholder = "Поиск…",
       disabled,
+      "aria-label": ariaLabel,
       ...props
     },
     forwardedRef,
   ) {
     const innerRef = useRef<HTMLInputElement | null>(null);
-    const innerWrapRef = useRef<HTMLDivElement | null>(null);
 
+    // Один и тот же узел нужен и нам (очистка, фокус), и родителю через ref.
     const setRefs = useCallback(
       (node: HTMLInputElement | null) => {
         innerRef.current = node;
@@ -227,163 +226,53 @@ export const SearchField = forwardRef<HTMLInputElement, GlassSearchInputProps>(
       [forwardedRef],
     );
 
+    // Кнопка очистки зависит от того, есть ли в поле текст. В управляемом режиме
+    // это видно по `value`, в неуправляемом — отслеживаем сами.
     const isControlled = value !== undefined;
     const [uncontrolledHasValue, setUncontrolledHasValue] = useState(() =>
       Boolean(defaultValue && String(defaultValue).length > 0),
     );
-    const [isFocused, setIsFocused] = useState(false);
-    const [autoCompact, setAutoCompact] = useState(false);
-
     const hasValue = isControlled
       ? String(value).length > 0
       : uncontrolledHasValue;
 
-    // В режиме "auto" следим за доступным местом в родительском контейнере и шириной экрана:
-    // если места меньше требуемой ширины поля (или экран <= 768px), переключаемся в "compact".
-    useEffect(() => {
-      if (mode !== "auto") {
-        setAutoCompact(false);
-        return;
-      }
-
-      const panelEl = innerWrapRef.current?.parentElement;
-      const containerEl = panelEl?.parentElement;
-      const targetWidth =
-        typeof width === "number" ? width : parseFloat(String(width)) || 280;
-
-      const checkSpace = () => {
-        if (window.innerWidth <= 768) {
-          setAutoCompact(true);
-          return;
-        }
-        if (!containerEl || !panelEl) {
-          setAutoCompact(false);
-          return;
-        }
-
-        // Вычисляем, сколько места занято соседними элементами в том же контейнере
-        const containerStyle = window.getComputedStyle(containerEl);
-        const paddingInline =
-          (parseFloat(containerStyle.paddingLeft) || 0) +
-          (parseFloat(containerStyle.paddingRight) || 0);
-        const gap =
-          parseFloat(containerStyle.columnGap || containerStyle.gap) || 0;
-
-        let siblingsWidth = 0;
-        let visibleChildrenCount = 0;
-
-        for (const child of Array.from(containerEl.children)) {
-          if (child === panelEl) {
-            visibleChildrenCount++;
-            continue;
-          }
-          const childEl = child as HTMLElement;
-          const childStyle = window.getComputedStyle(childEl);
-          if (
-            childStyle.display === "none" ||
-            childStyle.position === "absolute" ||
-            childStyle.position === "fixed"
-          ) {
-            continue;
-          }
-          visibleChildrenCount++;
-          siblingsWidth += childEl.getBoundingClientRect().width;
-        }
-
-        const totalGaps = Math.max(0, visibleChildrenCount - 1) * gap;
-        const availableWidth =
-          containerEl.clientWidth - paddingInline - siblingsWidth - totalGaps;
-
-        setAutoCompact(availableWidth < targetWidth);
-      };
-
-      checkSpace();
-
-      const observer = new ResizeObserver(checkSpace);
-      if (containerEl) {
-        observer.observe(containerEl);
-      }
-      window.addEventListener("resize", checkSpace);
-
-      return () => {
-        observer.disconnect();
-        window.removeEventListener("resize", checkSpace);
-      };
-    }, [mode, width]);
-
-    const effectiveMode: "default" | "compact" =
-      mode === "auto" ? (autoCompact ? "compact" : "default") : mode;
-
-    // В режиме compact поле свёрнуто до иконки, но разворачивается при фокусе или наличии текста
-    const isCollapsed = effectiveMode === "compact" && !isFocused && !hasValue;
-
-    const effectiveWidth = isCollapsed ? size : width;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!isControlled) {
-        setUncontrolledHasValue(e.target.value.length > 0);
-      }
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      if (!isControlled) setUncontrolledHasValue(e.target.value.length > 0);
       onChange?.(e);
     };
 
-    const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
-      setIsFocused(true);
-      onFocus?.(e);
-    };
-
-    const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
-      setIsFocused(false);
-      onBlur?.(e);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Escape" && effectiveMode === "compact" && !hasValue) {
-        e.currentTarget.blur();
-      }
-      onKeyDown?.(e);
-    };
-
-    const handleInnerClick = (e: MouseEvent<HTMLDivElement>) => {
-      if (disabled) return;
-      if (e.target !== innerRef.current) {
-        innerRef.current?.focus();
-      }
-    };
-
-    const handleClear = (e: MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
+    const handleClear = () => {
       const input = innerRef.current;
       if (!input || disabled) return;
 
-      // Вызываем нативный сеттер, чтобы React корректно отследил событие input/change
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      // Нативный сеттер обходит отслеживание значения в React, поэтому событие
+      // `input` доходит до `onChange` как при обычном вводе (и в управляемом,
+      // и в неуправляемом режиме).
+      const setNativeValue = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
         "value",
       )?.set;
-      nativeInputValueSetter?.call(input, "");
+      setNativeValue?.call(input, "");
       input.dispatchEvent(new Event("input", { bubbles: true }));
 
-      if (!isControlled) setUncontrolledHasValue(false);
       onClear?.();
       input.focus();
     };
 
+    // Не даём кнопке перехватить фокус у поля при нажатии мышью.
+    const keepInputFocus = (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+    };
+
     return (
       <GlassPanel
-        className={cx(
-          styles.glassPanel,
-          isCollapsed && styles.glassPanelCollapsed,
-          className,
-        )}
+        className={cx(styles.searchPanel, className)}
         style={style}
-        width={effectiveWidth}
+        width={width}
         height={size}
       >
-        <div
-          ref={innerWrapRef}
-          className={styles.glassInner}
-          onClick={handleInnerClick}
-        >
+        {/* <label>: клик по иконке и отступам тоже фокусирует input */}
+        <label className={styles.searchInner}>
           <span className={styles.searchIcon}>
             <SearchIcon />
           </span>
@@ -394,27 +283,24 @@ export const SearchField = forwardRef<HTMLInputElement, GlassSearchInputProps>(
             value={value}
             defaultValue={defaultValue}
             onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            onClick={onClick}
             placeholder={placeholder}
             disabled={disabled}
-            aria-label={props["aria-label"] ?? placeholder}
-            className={cx(styles.glassInput, "BodyTextBlockStyle")}
+            aria-label={ariaLabel ?? placeholder}
+            className={cx(styles.searchInput, "BodyTextBlockStyle")}
           />
-          {!isCollapsed && hasValue && !disabled && (
+          {hasValue && !disabled && (
             <button
               type="button"
               aria-label={clearLabel}
               title={clearLabel}
+              onMouseDown={keepInputFocus}
               onClick={handleClear}
               className={styles.clearButton}
             >
               <ClearIcon />
             </button>
           )}
-        </div>
+        </label>
       </GlassPanel>
     );
   },

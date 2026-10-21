@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../Button";
-import { ChevronLeftIcon } from "../icons";
 import { ProgressRing } from "../ProgressRing";
 import { Toolbar } from "../Toolbar";
 import type { ToolbarProps } from "../Toolbar";
@@ -18,6 +17,24 @@ export interface PageProps {
 }
 
 type NavigateStatus = "loading" | "ready" | "error";
+
+const ChevronLeftIcon = () => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+};
 
 const Page = ({
   title,

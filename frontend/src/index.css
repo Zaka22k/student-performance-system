@@ -90,8 +90,8 @@
     --SystemFillColorCautionBackgroundBrush: rgb(255, 244, 206);
 
     /* Glass */
-    --edgeShadowOpacity: 0.3;
-    --outerShadowOpacity: 0.15;
+    --edgeShadowOpacity: 0.4;
+    --outerShadowOpacity: 0.1;
   }
 }
 
@@ -185,6 +185,15 @@ textarea,
 select {
   font-family: inherit;
   color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
 }
 
 /* Типография */

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 100px);
   overflow-y: auto;
   padding-bottom: 16px;
 }
@@ -32,14 +32,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
-  background-color: var(--LayerFillColorDefaultBrush);
-  border: 1px solid var(--DividerStrokeColorDefaultBrush);
-  border-radius: var(--ControlCornerRadius);
 }
 
 .reportTitle {
-  color: var(--TextFillColorSecondaryBrush);
+  color: var(--TextFillColorPrimaryBrush);
 }
 
 .params,

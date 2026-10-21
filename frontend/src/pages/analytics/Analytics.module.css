@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 100px);
   overflow-y: auto;
   padding-bottom: 16px;
 }
@@ -25,8 +25,8 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background-color: var(--LayerFillColorDefaultBrush);
-  border: 1px solid var(--DividerStrokeColorDefaultBrush);
+  background-color: var(--CardBackgroundFillColorDefaultBrush);
+  border: 1px solid var(--ControlElevationBorderBrush);
   border-radius: var(--ControlCornerRadius);
 }
 
@@ -42,4 +42,7 @@
 .grid {
   flex: 1 0 280px;
   min-height: 280px;
+  background-color: var(--CardBackgroundFillColorDefaultBrush);
+  border: 1px solid var(--ControlElevationBorderBrush);
+  border-radius: var(--ControlCornerRadius);
 }

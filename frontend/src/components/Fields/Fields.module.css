@@ -80,7 +80,13 @@
   color: var(--TextFillColorDisabledBrush);
 }
 
+/*
+ * Подсказка не влияет на ширину поля: width: 0 убирает её из расчёта ширины
+ * корня, а min-width: 100% растягивает до ширины поля и переносит текст.
+ */
 .hint {
+  width: 0;
+  min-width: 100%;
   color: var(--TextFillColorSecondaryBrush);
   overflow-wrap: anywhere;
 }
@@ -137,9 +143,10 @@
   color: var(--TextFillColorDisabledBrush);
 }
 
-/* ───────────── 2. Стеклянная строка поиска (GlassSearchInput) ───────────── */
+/* ───────────── 2. Стеклянная строка поиска (SearchField) ───────────── */
 
-.glassPanel {
+/* Стеклянная панель. Состояния меняют только полупрозрачную заливку и контур. */
+.searchPanel {
   max-width: 100%;
   overflow: hidden;
   background: color-mix(
@@ -147,14 +154,12 @@
     var(--ControlFillColorDefaultBrush) 20%,
     transparent
   );
+  cursor: text;
 
-  transition:
-    width var(--ControlAnimationDuration) var(--ControlAnimationEasing),
-    background-color var(--ControlAnimationDuration)
-      var(--ControlAnimationEasing),
-    opacity var(--ControlAnimationDuration) var(--ControlAnimationEasing);
+  transition: background-color var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
 
-  &:has(.glassInput:hover:not(:disabled)) {
+  &:hover {
     background: color-mix(
       in srgb,
       var(--ControlFillColorSecondaryBrush) 20%,
@@ -162,7 +167,7 @@
     );
   }
 
-  &:has(.glassInput:focus:not(:disabled)) {
+  &:has(.searchInput:focus) {
     background: color-mix(
       in srgb,
       var(--ControlFillColorTertiaryBrush) 20%,
@@ -172,7 +177,8 @@
     outline-offset: -2px;
   }
 
-  &:has(.glassInput:disabled) {
+  &:has(.searchInput:disabled) {
+    cursor: not-allowed;
     background: color-mix(
       in srgb,
       var(--ControlFillColorDisabledBrush) 70%,
@@ -181,15 +187,8 @@
   }
 }
 
-.glassPanelCollapsed {
-  cursor: pointer;
-
-  &:has(.glassInput:disabled) {
-    cursor: not-allowed;
-  }
-}
-
-.glassInner {
+/* Содержимое панели. Это <label>: клик по нему фокусирует input. */
+.searchInner {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -197,12 +196,7 @@
   width: 100%;
   height: 100%;
   padding: 0 12px;
-}
-
-.glassPanelCollapsed .glassInner {
-  justify-content: center;
-  gap: 0;
-  padding: 0;
+  cursor: inherit;
 }
 
 .searchIcon {
@@ -210,18 +204,11 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
   color: var(--TextFillColorSecondaryBrush);
   pointer-events: none;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
 }
 
-.glassInput {
+.searchInput {
   flex: 1 1 auto;
   min-width: 0;
   width: 100%;
@@ -232,8 +219,6 @@
   background: transparent;
   color: var(--TextFillColorPrimaryBrush);
   font-family: inherit;
-  transition: opacity var(--ControlAnimationDuration)
-    var(--ControlAnimationEasing);
 
   &::placeholder {
     color: var(--TextFillColorSecondaryBrush);
@@ -255,13 +240,6 @@
   &::-webkit-search-results-decoration {
     display: none;
   }
-}
-
-.glassPanelCollapsed .glassInput {
-  flex: 0 0 0px;
-  width: 0;
-  opacity: 0;
-  pointer-events: none;
 }
 
 .clearButton {
@@ -309,8 +287,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .control,
-  .glassPanel,
-  .glassInput,
+  .searchPanel,
   .clearButton {
     transition: none;
   }

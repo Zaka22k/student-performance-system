@@ -75,7 +75,13 @@
   background-color: var(--ControlFillColorDisabledBrush);
 }
 
+/*
+ * Подсказка не влияет на ширину поля: width: 0 убирает её из расчёта ширины
+ * корня, а min-width: 100% растягивает до ширины поля и переносит текст.
+ */
 .hint {
+  width: 0;
+  min-width: 100%;
   color: var(--TextFillColorSecondaryBrush);
   overflow-wrap: anywhere;
 }

@@ -33,8 +33,10 @@ export const JournalIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M5 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" />
     <path d="M9 3v18" />
-    <path d="M12 10.5l2 2 3.5-4" />
-    <path d="M12 17h5" />
+    {/* Убрали дробные значения (3.5 и 10.5) для идеальной пиксельной сетки */}
+    <path d="M12 11l2 2 4-4" />
+    {/* Сдвинули линию чуть ниже для баланса с галочкой */}
+    <path d="M12 18h5" />
   </Svg>
 );
 
@@ -43,28 +45,39 @@ export const DictionariesIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <rect x="3" y="4" width="4" height="16" rx="1" />
     <rect x="9" y="4" width="4" height="16" rx="1" />
-    <path d="M15.5 6.2l3.6-1 3.2 13.2-3.6 1z" />
+    {/* Упростили координаты наклоненной книги и добавили <g> для применения скругления `rx`, 
+        так как path не поддерживает rx. Это сделает углы консистентными */}
+    <g strokeLinejoin="round">
+      <path d="M15 6l4-1 3 14-4 1z" />
+    </g>
+    {/* Добавили корешки всем книгам, чтобы они смотрелись как единый набор */}
     <path d="M3 8h4" />
+    <path d="M9 8h4" />
+    <path d="M15 6l4-1" />
   </Svg>
 );
 
 /** Сессия: календарь с отметкой */
 export const SessionIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
-    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <rect x="3" y="4" width="18" height="18" rx="2" />
     <path d="M3 10h18" />
-    <path d="M8 3v4" />
-    <path d="M16 3v4" />
-    <path d="M9 15.5l2 2 4-4" />
+    <path d="M8 2v4" />
+    <path d="M16 2v4" />
+    {/* Отцентровали галочку относительно пустой области календаря */}
+    <path d="M9 16l2 2 4-4" />
   </Svg>
 );
 
 /** Аналитика: столбчатая диаграмма */
 export const AnalyticsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
-    <rect x="4" y="12" width="4" height="8" rx="1" />
-    <rect x="10" y="5" width="4" height="15" rx="1" />
-    <rect x="16" y="9" width="4" height="11" rx="1" />
+    {/* Базовая линия (ось X), чтобы столбцы не "висели в воздухе" */}
+    <path d="M3 21h18" />
+    {/* Высота пересчитана так, чтобы столбцы стояли ровно на оси X (y=21) */}
+    <rect x="4" y="12" width="4" height="9" rx="1" />
+    <rect x="10" y="5" width="4" height="16" rx="1" />
+    <rect x="16" y="9" width="4" height="12" rx="1" />
   </Svg>
 );
 
@@ -73,8 +86,10 @@ export const ReportsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
     <path d="M14 3v5h5" />
+    {/* Сделали вторую линию короче первой — это создает имитацию реального текста 
+        и визуально отличает иконку от обычной "бумаги" */}
     <path d="M9 13h6" />
-    <path d="M9 17h6" />
+    <path d="M9 17h4" />
   </Svg>
 );
 
@@ -99,5 +114,69 @@ export const EditIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
     <path d="m15 5 4 4" />
+  </Svg>
+);
+
+/** Закрыть: крестик */
+export const CloseIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M18 6L6 18" />
+    <path d="M6 6l12 12" />
+  </Svg>
+);
+
+/** Сохранить: дискета */
+export const SaveIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <path d="M17 21v-8H7v8" />
+    <path d="M7 3v5h8" />
+  </Svg>
+);
+
+/** Сохранить (альтернатива): галочка подтверждения */
+export const CheckIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M20 6L9 17l-5-5" />
+  </Svg>
+);
+
+/** Печать: принтер с листом бумаги */
+export const PrintIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M6 9V3h12v6" />
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+    <path d="M6 14h12v7H6z" />
+  </Svg>
+);
+
+/** PDF: документ с текстовыми строками и блоком */
+export const PdfIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M8 13h2a1.5 1.5 0 0 0 0-3H8v6" />
+    <path d="M14 16h2" />
+    <path d="M14 13h3" />
+  </Svg>
+);
+
+/** XML (просмотр/структура): документ с тегами кода < > */
+export const XmlIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M10 12.5L8 14.5l2 2" />
+    <path d="M14 12.5l2 2-2 2" />
+  </Svg>
+);
+
+/** Скачать XML: документ со стрелкой загрузки вниз */
+export const XmlDownloadIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M12 11v6" />
+    <path d="M9.5 14.5L12 17l2.5-2.5" />
   </Svg>
 );

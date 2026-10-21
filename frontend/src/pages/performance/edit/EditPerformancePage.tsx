@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Page, Button } from "@components";
-import { TrashIcon } from "@icons";
+import { TrashIcon, CheckIcon } from "@icons";
 import PerformanceForm from "./PerformanceForm";
 import { useEditPerformancePage } from "./useEditPerformancePage";
 
@@ -24,9 +24,13 @@ function EditPerformanceContent({ id }: { id?: string }) {
                 disabled={!ready || p.saving}
               />
             )}
-            <Button onClick={p.submit} disabled={!ready || p.saving}>
-              Сохранить
-            </Button>
+            <Button
+              onClick={p.submit}
+              disabled={!ready || p.saving}
+              icon={<CheckIcon />}
+              aria-label="Сохранить"
+              appearance="accent"
+            />
           </>
         ),
       }}

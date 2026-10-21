@@ -164,6 +164,13 @@ const useIsomorphicLayoutEffect =
 const cx = (...parts: Array<string | false | undefined>): string =>
   parts.filter(Boolean).join(" ");
 
+/**
+ * Is there anything to show: null, undefined and false count as empty.
+ * Есть ли что показывать: null, undefined и false считаются пустыми.
+ */
+const hasContent = (node: ReactNode): boolean =>
+  node !== undefined && node !== null && node !== false;
+
 function readKey(option: object, key: PropertyKey): string {
   const v = (option as Record<PropertyKey, unknown>)[key];
   return v === undefined || v === null ? "" : String(v);
@@ -216,7 +223,8 @@ function ComboBoxInner<T extends ComboBoxOption>(
   const inputId = id ?? `${baseId}-input`;
   const listId = `${baseId}-list`;
   const hintId = `${baseId}-hint`;
-  const hasHint = hint !== undefined && hint !== null;
+  const hasLabel = hasContent(label);
+  const hasHint = hasContent(hint);
 
   const describedBy =
     [ariaDescribedBy, hasHint ? hintId : undefined].filter(Boolean).join(" ") ||
@@ -448,7 +456,7 @@ function ComboBoxInner<T extends ComboBoxOption>(
       )}
       style={style}
     >
-      {label !== undefined && label !== null && (
+      {hasLabel && (
         <label
           className={cx(styles.label, "BodyTextBlockStyle")}
           htmlFor={inputId}

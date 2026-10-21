@@ -13,10 +13,10 @@ export default function NotFoundPage() {
           404
         </div>
         <p className={`BodyTextBlockStyle ${styles.text}`}>
-          Такой страницы нет. Возможно, адрес набран с ошибкой или страница была удалена.
+          Такой страницы нет. Возможно, адрес набран с ошибкой или страница была
+          удалена.
         </p>
         <div className={styles.actions}>
-          <Button onClick={() => navigate(-1)}>Назад</Button>
           <Button onClick={() => navigate("/")}>На главную</Button>
         </div>
       </div>

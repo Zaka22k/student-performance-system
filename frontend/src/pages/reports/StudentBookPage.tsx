@@ -18,7 +18,11 @@ export default function StudentBookPage() {
   const studentRef = useRef<HTMLInputElement>(null);
   const semesterRef = useRef<HTMLInputElement>(null);
 
-  useOptionValidity(studentRef, students.some((s) => s.student_id === studentId), "Выберите студента из списка");
+  useOptionValidity(
+    studentRef,
+    students.some((s) => s.student_id === studentId),
+    "Выберите студента из списка",
+  );
   useOptionValidity(
     semesterRef,
     semesterId === "" || semesters.some((s) => s.semester_id === semesterId),
@@ -27,7 +31,10 @@ export default function StudentBookPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    void p.build({ student_id: studentId, ...(semesterId ? { semester_id: semesterId } : {}) });
+    void p.build({
+      student_id: studentId,
+      ...(semesterId ? { semester_id: semesterId } : {}),
+    });
   };
 
   return (
@@ -36,7 +43,9 @@ export default function StudentBookPage() {
       onNavigate={async () => {
         await p.load();
       }}
-      toolbar={{ trailing: <ReportActions disabled={!p.canOutput} onOpen={p.open} /> }}
+      toolbar={{
+        trailing: <ReportActions disabled={!p.canOutput} onOpen={p.open} />,
+      }}
     >
       <div className={styles.layout}>
         <form className={styles.form} onSubmit={submit}>

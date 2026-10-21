@@ -25,16 +25,24 @@ export default function GroupsAnalyticsPage() {
         </div>
 
         <section className={styles.card}>
-          <h2 className={`BodyStrongTextBlockStyle ${styles.cardTitle}`}>Средняя оценка по группам</h2>
+          <h2 className={`BodyStrongTextBlockStyle ${styles.cardTitle}`}>
+            Средняя оценка по группам
+          </h2>
           <BarChart
             aria-label="Средняя оценка по группам"
-            items={p.rows.map((g) => ({ label: g.group_code, value: g.average_grade }))}
+            items={p.rows.map((g) => ({
+              label: g.group_code,
+              value: g.average_grade,
+            }))}
             max={5}
             formatValue={formatAverage}
-            emptyContent={p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"}
+            emptyContent={
+              p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"
+            }
           />
           <p className={`CaptionTextBlockStyle ${styles.hint}`}>
-            Считаются итоговые результаты (последняя попытка). Зачёты в среднюю оценку не входят.
+            Считаются итоговые результаты (последняя попытка). Зачёты в среднюю
+            оценку не входят.
           </p>
         </section>
 
@@ -45,7 +53,9 @@ export default function GroupsAnalyticsPage() {
             columns={groupStatColumns}
             getRowId={(g) => g.group_id}
             resetKey={p.semesterId}
-            emptyContent={p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"}
+            emptyContent={
+              p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"
+            }
           />
         </div>
       </div>

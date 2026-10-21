@@ -7,7 +7,6 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import Button, { type ButtonAppearance } from "../Button/Button";
-import { CloseIcon } from "../icons";
 import styles from "./Modal.module.css";
 
 export interface ModalFormRenderProps {
@@ -62,6 +61,25 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "reset",
   "submit",
 ]);
+
+const CloseIcon = () => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M18 6L6 18" />
+      <path d="M6 6l12 12" />
+    </svg>
+  );
+};
 
 export const Modal = ({
   isOpen,
