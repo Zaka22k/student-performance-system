@@ -13,6 +13,10 @@ import {
   RatingPage,
   GroupsAnalyticsPage,
   SubjectsAnalyticsPage,
+  GroupSheetPage,
+  GroupSummaryPage,
+  StudentBookPage,
+  NotFoundPage,
 } from "@pages";
 
 export default function AppRoutes() {
@@ -48,12 +52,12 @@ export default function AppRoutes() {
 
         {/* Отчёты */}
         <Route path="reports">
-          <Route path="group-sheet" />
-          <Route path="student-book" />
-          <Route path="group-summary" />
+          <Route path="group-sheet" element={<GroupSheetPage />} />
+          <Route path="student-book" element={<StudentBookPage />} />
+          <Route path="group-summary" element={<GroupSummaryPage />} />
         </Route>
 
-        <Route path="*" />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

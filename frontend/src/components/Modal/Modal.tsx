@@ -35,12 +35,12 @@ export interface ModalProps {
    * По умолчанию: «Не удалось выполнить действие. Попробуйте ещё раз.»
    */
   errorMessage?: ReactNode | ((error: unknown) => ReactNode);
-  closeIcon?: ReactNode;
   width?: number | string;
   closeOnBackdropClick?: boolean;
 }
 
-const DEFAULT_ERROR_MESSAGE = "Не удалось выполнить действие. Попробуйте ещё раз.";
+const DEFAULT_ERROR_MESSAGE =
+  "Не удалось выполнить действие. Попробуйте ещё раз.";
 
 // Элементы, до которых можно дойти клавишей Tab
 const FOCUSABLE_SELECTOR = [
@@ -73,7 +73,6 @@ export const Modal = ({
   onAction,
   onError,
   errorMessage = DEFAULT_ERROR_MESSAGE,
-  closeIcon = <CloseIcon />,
   width = 480,
   closeOnBackdropClick = true,
 }: ModalProps) => {
@@ -255,7 +254,10 @@ export const Modal = ({
   // действие запускается сразу.
   const submitForm = () => {
     const form = document.getElementById(formId);
-    if (!(form instanceof HTMLFormElement) || !dialogRef.current?.contains(form)) {
+    if (
+      !(form instanceof HTMLFormElement) ||
+      !dialogRef.current?.contains(form)
+    ) {
       void executeAction();
       return;
     }
@@ -328,7 +330,7 @@ export const Modal = ({
             {title}
           </div>
           <Button
-            icon={closeIcon}
+            icon={<CloseIcon />}
             aria-label="Закрыть модальное окно"
             onClick={onClose}
             disabled={isSubmitting}

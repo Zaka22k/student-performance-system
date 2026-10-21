@@ -6,10 +6,12 @@ import semesters from "./semesters.js";
 import performance from "./performance.js";
 import session from "./session.js";
 import analytics from "./analytics.js";
+import reports from "./reports.js";
 
 export default async function routes(app) {
   app.get("/health", async () => {
-    const [{ count }] = await app.prisma.$queryRaw`SELECT COUNT(*)::int AS count FROM student_performance`;
+    const [{ count }] = await app.prisma
+      .$queryRaw`SELECT COUNT(*)::int AS count FROM student_performance`;
     return { status: "ok", performanceRows: count };
   });
 
@@ -28,4 +30,6 @@ export default async function routes(app) {
 
   // Аналитика: рейтинг, успеваемость по группам и дисциплинам
   await app.register(analytics, { prefix: "/analytics" });
+
+  await app.register(reports, { prefix: "/reports" });
 }

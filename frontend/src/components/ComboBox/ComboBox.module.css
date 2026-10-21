@@ -9,7 +9,7 @@
 
 .labelStart {
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--ControlLabelInlineGap);
 }
 
@@ -18,14 +18,28 @@
   color: var(--TextFillColorSecondaryBrush);
 }
 
+.labelStart .label {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ControlHeight);
+}
+
 .disabled .label {
   color: var(--TextFillColorDisabledBrush);
+}
+
+.fieldWrapper {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ControlLabelGap);
 }
 
 /* Якорь для списка. */
 .field {
   position: relative;
-  flex: 1 1 auto;
+  flex: none;
   min-width: 0;
 }
 
@@ -59,6 +73,15 @@
 .disabled .control,
 .disabled .control:hover {
   background-color: var(--ControlFillColorDisabledBrush);
+}
+
+.hint {
+  color: var(--TextFillColorSecondaryBrush);
+  overflow-wrap: anywhere;
+}
+
+.disabled .hint {
+  color: var(--TextFillColorDisabledBrush);
 }
 
 .input {

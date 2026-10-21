@@ -17,8 +17,13 @@ export default function PerformancePage() {
               placeholder="Поиск записей"
               value={p.query}
               onChange={(e) => p.setQuery(e.target.value)}
+              mode="auto"
             />
-            <Button icon={<PlusIcon />} aria-label="Добавить запись" onClick={p.openCreate} />
+            <Button
+              icon={<PlusIcon />}
+              aria-label="Добавить запись"
+              onClick={p.openCreate}
+            />
           </>
         ),
       }}

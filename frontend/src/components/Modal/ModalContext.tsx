@@ -56,7 +56,6 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
           onAction={options.onAction}
           onError={options.onError}
           errorMessage={options.errorMessage}
-          closeIcon={options.closeIcon}
           width={options.width}
           closeOnBackdropClick={options.closeOnBackdropClick}
         >

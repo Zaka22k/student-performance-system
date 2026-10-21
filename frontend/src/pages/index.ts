@@ -6,3 +6,5 @@ export { default as TeachersPage } from "./teachers";
 export * from "./performance";
 export * from "./session";
 export * from "./analytics";
+export * from "./reports";
+export { NotFoundPage } from "./not-found";

@@ -123,6 +123,11 @@ export interface ComboBoxProps<
    */
   labelPlacement?: "top" | "start";
   /**
+   * Helper text shown below the input field.
+   * Текст подсказки снизу поля ввода.
+   */
+  hint?: ReactNode;
+  /**
    * Accessible name of the pull-down button.
    * Доступное имя кнопки раскрытия списка.
    */
@@ -132,6 +137,7 @@ export interface ComboBoxProps<
   /** Style of the root element. / Стиль корневого элемента. */
   style?: CSSProperties;
 }
+
 // Geometry of the list. LIST_MAX_HEIGHT is the only place with the list height.
 // Геометрия списка. LIST_MAX_HEIGHT — единственное место с высотой списка.
 const LIST_MAX_HEIGHT = 240;
@@ -183,12 +189,14 @@ function ComboBoxInner<T extends ComboBoxOption>(
     filter = true,
     label,
     labelPlacement = "top",
+    hint,
     toggleLabel = "Показать варианты",
     className,
     style,
     disabled,
     id,
     onKeyDown,
+    "aria-describedby": ariaDescribedBy,
     ...rest
   }: ComboBoxProps<T>,
   forwardedRef: ForwardedRef<HTMLInputElement>,
@@ -207,6 +215,12 @@ function ComboBoxInner<T extends ComboBoxOption>(
   const baseId = useId();
   const inputId = id ?? `${baseId}-input`;
   const listId = `${baseId}-list`;
+  const hintId = `${baseId}-hint`;
+  const hasHint = hint !== undefined && hint !== null;
+
+  const describedBy =
+    [ariaDescribedBy, hasHint ? hintId : undefined].filter(Boolean).join(" ") ||
+    undefined;
 
   const [inner, setInner] = useState(defaultValue ?? "");
   // Text being typed right now; null when the field shows the value itself.
@@ -422,6 +436,7 @@ function ComboBoxInner<T extends ComboBoxOption>(
           : { top: anchor.top + LIST_GAP }),
       }
     : undefined;
+
   return (
     <div
       className={cx(
@@ -442,112 +457,124 @@ function ComboBoxInner<T extends ComboBoxOption>(
         </label>
       )}
 
-      <div ref={fieldRef} className={styles.field} onBlur={handleFieldBlur}>
-        <div className={styles.control}>
-          <input
-            autoComplete="off"
-            {...rest}
-            ref={setRefs}
-            id={inputId}
-            className={cx(styles.input, "BodyTextBlockStyle")}
-            type="text"
-            role="combobox"
-            disabled={disabled}
-            value={displayText}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            aria-expanded={listVisible}
-            aria-controls={listVisible ? listId : undefined}
-            aria-autocomplete={filter === false ? "none" : "list"}
-            aria-activedescendant={
-              listVisible && activeIndex >= 0
-                ? `${listId}-${activeIndex}`
-                : undefined
-            }
-          />
-          <button
-            type="button"
-            tabIndex={-1}
-            className={styles.button}
-            aria-label={toggleLabel}
-            disabled={disabled}
-            // Keep the focus in the input.
-            // Оставляем фокус в поле ввода.
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={toggle}
-          >
-            <svg
-              className={styles.chevron}
-              viewBox="0 0 16 16"
-              width="12"
-              height="12"
-              aria-hidden="true"
-              focusable="false"
+      <div className={styles.fieldWrapper}>
+        <div ref={fieldRef} className={styles.field} onBlur={handleFieldBlur}>
+          <div className={styles.control}>
+            <input
+              autoComplete="off"
+              {...rest}
+              ref={setRefs}
+              id={inputId}
+              className={cx(styles.input, "BodyTextBlockStyle")}
+              type="text"
+              role="combobox"
+              disabled={disabled}
+              value={displayText}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              aria-expanded={listVisible}
+              aria-controls={listVisible ? listId : undefined}
+              aria-autocomplete={filter === false ? "none" : "list"}
+              aria-describedby={describedBy}
+              aria-activedescendant={
+                listVisible && activeIndex >= 0
+                  ? `${listId}-${activeIndex}`
+                  : undefined
+              }
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              className={styles.button}
+              aria-label={toggleLabel}
+              disabled={disabled}
+              // Keep the focus in the input.
+              // Оставляем фокус в поле ввода.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={toggle}
             >
-              <path
-                d="M3.5 6 8 10.5 12.5 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                className={styles.chevron}
+                viewBox="0 0 16 16"
+                width="12"
+                height="12"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M3.5 6 8 10.5 12.5 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {listVisible &&
+            anchor &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className={cx(
+                  styles.list,
+                  placement === "top" && styles.listTop,
+                )}
+                style={listStyle}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <div
+                  id={listId}
+                  role="listbox"
+                  className={styles.listbox}
+                  style={{ maxHeight: LIST_MAX_HEIGHT }}
+                >
+                  {visible.map((item, index) => {
+                    const selected = item.value === current;
+                    const active = index === activeIndex;
+                    return (
+                      <div
+                        key={`${item.value}\u0000${index}`}
+                        id={`${listId}-${index}`}
+                        role="option"
+                        aria-selected={selected}
+                        className={cx(
+                          styles.option,
+                          "BodyTextBlockStyle",
+                          active && styles.optionActive,
+                        )}
+                        onClick={() => selectItem(item)}
+                        onMouseMove={() => {
+                          if (!active) setActiveIndex(index);
+                        }}
+                      >
+                        <div className={styles.optionContent}>
+                          {renderOption
+                            ? renderOption(item.option, {
+                                label: item.label,
+                                value: item.value,
+                                selected,
+                                active,
+                                index,
+                              })
+                            : item.label}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
 
-        {listVisible &&
-          anchor &&
-          typeof document !== "undefined" &&
-          createPortal(
-            <div
-              className={cx(styles.list, placement === "top" && styles.listTop)}
-              style={listStyle}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <div
-                id={listId}
-                role="listbox"
-                className={styles.listbox}
-                style={{ maxHeight: LIST_MAX_HEIGHT }}
-              >
-                {visible.map((item, index) => {
-                  const selected = item.value === current;
-                  const active = index === activeIndex;
-                  return (
-                    <div
-                      key={`${item.value}\u0000${index}`}
-                      id={`${listId}-${index}`}
-                      role="option"
-                      aria-selected={selected}
-                      className={cx(
-                        styles.option,
-                        "BodyTextBlockStyle",
-                        active && styles.optionActive,
-                      )}
-                      onClick={() => selectItem(item)}
-                      onMouseMove={() => {
-                        if (!active) setActiveIndex(index);
-                      }}
-                    >
-                      <div className={styles.optionContent}>
-                        {renderOption
-                          ? renderOption(item.option, {
-                              label: item.label,
-                              value: item.value,
-                              selected,
-                              active,
-                              index,
-                            })
-                          : item.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>,
-            document.body,
-          )}
+        {hasHint && (
+          <div id={hintId} className={cx(styles.hint, "CaptionTextBlockStyle")}>
+            {hint}
+          </div>
+        )}
       </div>
     </div>
   );
