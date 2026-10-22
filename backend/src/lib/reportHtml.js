@@ -32,9 +32,8 @@ const CSS = (orientation) => `
 `;
 
 // options.autoprint: открыть диалог печати сразу после загрузки
-// options.pdf: показать подсказку про «Сохранить как PDF»
 export function toHtml(report, options = {}) {
-  const { autoprint = false, pdf = false } = options;
+  const { autoprint = false } = options;
 
   const head = report.columns
     .map((c) => `<th class="${esc(c.align ?? "left")}">${esc(c.title)}</th>`)
@@ -56,10 +55,8 @@ export function toHtml(report, options = {}) {
     ? `<tr><td class="center" colspan="${report.columns.length}">Нет данных по выбранным параметрам</td></tr>`
     : "";
 
-  const hint = pdf
-    ? `<div class="hint">Чтобы сохранить PDF, в окне печати выберите принтер «Сохранить как PDF».
-         <button type="button" onclick="window.print()">Открыть окно печати</button></div>`
-    : `<div class="hint"><button type="button" onclick="window.print()">Печать</button></div>`;
+  const hint = `<div class="hint">Чтобы сохранить PDF, в окне печати выберите принтер «Сохранить как PDF».
+    <button type="button" onclick="window.print()">Печать</button></div>`;
 
   return `<!doctype html>
 <html lang="ru">

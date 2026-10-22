@@ -7,6 +7,13 @@
   --nav-item-height: 32px;
   --nav-icon-size: 18px;
   --nav-page-shift: 64px;
+  --nav-minimal-bar-height: 48px;
+  --nav-overlay-scrim: rgb(0 0 0 / 0.32);
+  --nav-overlay-pane-background: color-mix(
+    in srgb,
+    var(--SolidBackgroundFillColorBaseBrush) 88%,
+    transparent
+  );
   --nav-anim-duration: var(--ControlAnimationDuration);
   --nav-anim-easing: var(--ControlAnimationEasing);
 
@@ -43,6 +50,90 @@
   border-radius: inherit;
   background: var(--SolidBackgroundFillColorBaseBrush);
   transition: width var(--nav-anim-duration) var(--nav-anim-easing);
+}
+
+/* ======================= Панель поверх страницы ======================= */
+
+/*
+ * У leftCompact и leftMinimal (класс .overlay) панель вынута из потока и
+ * раскрывается поверх страницы, не сдвигая её. У left (без .overlay) панель
+ * стоит в потоке и сдвигает страницу.
+ */
+.overlay .paneNav {
+  position: absolute;
+  top: var(--nav-gap);
+  bottom: var(--nav-gap);
+  left: var(--nav-gap);
+  height: auto;
+  transition:
+    width var(--nav-anim-duration) var(--nav-anim-easing),
+    background-color var(--nav-anim-duration) var(--nav-anim-easing),
+    box-shadow var(--nav-anim-duration) var(--nav-anim-easing);
+}
+
+/* Раскрытая поверх страницы: тень и полупрозрачный фон (как in-app acrylic в WinUI) */
+.overlay.paneOpen .paneNav {
+  background: var(--nav-overlay-pane-background);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  backdrop-filter: blur(24px) saturate(1.3);
+  box-shadow: 4px 0 24px rgb(0 0 0 / 0.2);
+}
+
+/* leftCompact: полоса с иконками остаётся в потоке слева от страницы */
+.compact .stage {
+  margin-left: calc(var(--nav-compact-width) + var(--nav-gap));
+}
+
+/*
+ * leftMinimal: в закрытом виде видна только кнопка панели. В потоке полосы нет,
+ * сверху резервируется строка под кнопку. Сама панель прозрачна для кликов, а её
+ * пункты скрыты и не попадают в порядок Tab.
+ */
+.minimal .stage {
+  height: auto;
+  margin-top: var(--nav-minimal-bar-height);
+}
+
+.minimal.strip {
+  --nav-pane-current: var(--nav-minimal-bar-height);
+}
+
+.minimal.strip .paneNav {
+  background: transparent;
+  pointer-events: none;
+}
+
+.minimal.strip .paneTop {
+  height: var(--nav-minimal-bar-height);
+  padding: 0;
+  pointer-events: auto;
+}
+
+.minimal.strip .paneBody,
+.minimal.strip .paneFooterItems,
+.minimal.strip .paneSlot {
+  display: none;
+}
+
+/* На узком корне (порог задаёт overlayFullWidthThreshold) панель на всю ширину */
+.overlay.paneFull.paneOpen {
+  --nav-pane-current: calc(100% - 2 * var(--nav-gap));
+}
+
+/* Затемнение страницы: клик по нему закрывает панель */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--nav-overlay-scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--nav-anim-duration) var(--nav-anim-easing);
+}
+
+.overlay.paneOpen .scrim {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Верхняя строка: заголовок слева, кнопка панели справа */
@@ -353,6 +444,7 @@
   .groupOpen,
   .groupInner,
   .sectionHeader,
+  .scrim,
   .flyout.flyout {
     transition: none;
     animation: none;

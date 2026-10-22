@@ -99,7 +99,7 @@ export function useTeachersPage() {
     openModal({
       title: "Удаление преподавателя",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage, // например «Он указан в записях успеваемости»
       content: (
         <p>

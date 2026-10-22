@@ -5,13 +5,11 @@ export const getReport = (path: ReportPath, params: ReportParams, signal?: Abort
   http.get<Report>(`/reports/${path}`, { params, signal }).then((r) => r.data);
 
 // Вид вывода отчёта, который открывается в новой вкладке
-export type ReportOutput = "print" | "pdf" | "xml" | "xml-file";
+export type ReportOutput = "print" | "xml";
 
 const OUTPUT_PARAMS: Record<ReportOutput, Record<string, string>> = {
-  print: { format: "html", print: "1" }, // печатная форма, окно печати открывается само
-  pdf: { format: "html", pdf: "1" }, // та же форма с подсказкой «Сохранить как PDF»
-  xml: { format: "xml" }, // XML, который браузер показывает через report.xsl
-  "xml-file": { format: "xml", download: "1" }, // XML файлом
+  print: { format: "html", print: "1" }, // печатная форма, окно печати открывается само (в нём же PDF)
+  xml: { format: "xml", download: "1" }, // XML файлом, рядом лежит report.xsl
 };
 
 // Адрес вывода отчёта с теми параметрами, по которым он построен

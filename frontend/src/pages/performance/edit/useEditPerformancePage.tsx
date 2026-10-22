@@ -2,7 +2,11 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useModal } from "@components";
 import { getErrorMessage } from "@api";
-import type { Performance, PerformanceInput, PerformanceOptions } from "@models";
+import type {
+  Performance,
+  PerformanceInput,
+  PerformanceOptions,
+} from "@models";
 import * as api from "../performance.api";
 
 const LIST_PATH = "/performance";
@@ -53,7 +57,7 @@ export function useEditPerformancePage(id?: string) {
     openModal({
       title: "Удаление записи",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage,
       content: <p>Вы действительно хотите удалить эту запись?</p>,
       onAction: async () => {
@@ -63,5 +67,15 @@ export function useEditPerformancePage(id?: string) {
     });
   };
 
-  return { options, record, saving, error, formRef, load, submit, save, openAlert };
+  return {
+    options,
+    record,
+    saving,
+    error,
+    formRef,
+    load,
+    submit,
+    save,
+    openAlert,
+  };
 }

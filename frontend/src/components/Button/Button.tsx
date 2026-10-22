@@ -3,7 +3,13 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { GlassPanel } from "../GlassPanel";
 import styles from "./Button.module.css";
 
-export type ButtonAppearance = "default" | "accent";
+export type ButtonAppearance = "normal" | "primary" | "destructive";
+
+const buttonStyles = {
+  normal: styles.normal,
+  primary: styles.primary,
+  destructive: styles.destructive,
+};
 
 type NativeButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -26,7 +32,7 @@ const cx = (...classes: Array<string | false | null | undefined>): string =>
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
-    appearance = "default",
+    appearance = "normal",
     icon,
     children,
     className,
@@ -54,7 +60,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
         type={type}
         className={cx(
           styles.root,
-          appearance === "accent" ? styles.accent : styles.default,
+          buttonStyles[appearance],
           isIconOnly && styles.iconOnly,
           "BodyTextBlockStyle",
         )}

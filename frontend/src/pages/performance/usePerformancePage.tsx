@@ -69,7 +69,10 @@ export function usePerformancePage() {
     setHasMore(false);
     setLoadError(false);
     setLoadingMore(false);
-    const timer = setTimeout(() => void loadInto(true, query), SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => void loadInto(true, query),
+      SEARCH_DEBOUNCE_MS,
+    );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
@@ -77,23 +80,27 @@ export function usePerformancePage() {
   // Создание и изменение идут на отдельной странице. Когда пользователь возвращается,
   // PerformancePage создаётся заново и сама загружает свежий список.
   const openCreate = () => navigate("/performance/new");
-  const openEdit = (row: Performance) => navigate(`/performance/${row.performance_id}/edit`);
+  const openEdit = (row: Performance) =>
+    navigate(`/performance/${row.performance_id}/edit`);
 
   const openAlert = (row: Performance) => {
     openModal({
       title: "Удаление записи",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage,
       content: (
         <p>
-          Вы действительно хотите удалить запись: {row.student_name}, {row.subject_name}?
+          Вы действительно хотите удалить запись: {row.student_name},{" "}
+          {row.subject_name}?
         </p>
       ),
       onAction: async () => {
         await api.deletePerformance(row.performance_id);
         // Курсор — это дата и id последней записи порции, он остаётся верным и после удаления
-        setItems((prev) => prev.filter((r) => r.performance_id !== row.performance_id));
+        setItems((prev) =>
+          prev.filter((r) => r.performance_id !== row.performance_id),
+        );
       },
     });
   };

@@ -87,7 +87,7 @@ export const Modal = ({
   title,
   children,
   actionText,
-  actionAppearance = "accent",
+  actionAppearance = "primary",
   onAction,
   onError,
   errorMessage = DEFAULT_ERROR_MESSAGE,

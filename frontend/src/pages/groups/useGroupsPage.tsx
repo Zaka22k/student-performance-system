@@ -96,7 +96,7 @@ export function useGroupsPage() {
     openModal({
       title: "Удаление группы",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage, // например «В ней есть студенты»
       content: (
         <p>Вы действительно хотите удалить группу {group.group_code}?</p>

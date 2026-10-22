@@ -1,12 +1,8 @@
-/* Раскладка страниц «Успеваемость по...»: параметры, диаграмма, таблица. Только токены index.css */
-
 .layout {
   display: flex;
   flex-direction: column;
   gap: 16px;
   height: calc(100vh - 100px);
-  overflow-y: auto;
-  padding-bottom: 16px;
 }
 
 .params {
@@ -31,7 +27,7 @@
 }
 
 .cardTitle {
-  color: var(--TextFillColorSecondaryBrush);
+  color: var(--TextFillColorPrimaryBrush);
 }
 
 .hint {

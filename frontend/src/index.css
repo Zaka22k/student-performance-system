@@ -75,7 +75,6 @@
 
     /* Stroke */
     --ControlElevationBorderBrush: rgb(229, 229, 229);
-    --CardStrokeColorDefaultBrush: rgb(229, 229, 229);
     --DividerStrokeColorDefaultBrush: rgb(229, 229, 229);
     --SurfaceStrokeColorDefaultBrush: rgb(193, 193, 193);
 
@@ -138,7 +137,6 @@
 
     /* Stroke */
     --ControlElevationBorderBrush: rgb(53, 53, 53);
-    --CardStrokeColorDefaultBrush: rgb(29, 29, 29);
     --DividerStrokeColorDefaultBrush: rgb(50, 50, 50);
     --SurfaceStrokeColorDefaultBrush: rgb(66, 66, 66);
 

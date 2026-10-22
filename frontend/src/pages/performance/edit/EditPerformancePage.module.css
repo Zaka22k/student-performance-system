@@ -3,24 +3,19 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: 720px;
+  gap: 48px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 16px 24px 32px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
-  background-color: var(--LayerFillColorDefaultBrush);
-  border: 1px solid var(--DividerStrokeColorDefaultBrush);
-  border-radius: var(--ControlCornerRadius);
 }
 
 .sectionTitle {
-  color: var(--TextFillColorSecondaryBrush);
+  color: var(--TextFillColorPrimaryBrush);
 }
 
 .grid {

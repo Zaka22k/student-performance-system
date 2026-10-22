@@ -24,6 +24,18 @@ import styles from "./NavigationView.module.css";
 /* Вспомогательные функции и хуки                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Режимы панели, как в WinUI NavigationView:
+ * - "left": панель раскрыта и стоит рядом со страницей;
+ * - "leftCompact": только иконки, раскрытая панель лежит поверх страницы;
+ * - "leftMinimal": только кнопка панели, раскрытая панель лежит поверх страницы;
+ * - "auto": по ширине корня выбирает один из трёх.
+ */
+export type PaneDisplayMode = "auto" | "left" | "leftCompact" | "leftMinimal";
+
+/** Режим, который реально применён (для "auto" это результат выбора по ширине). */
+type ResolvedPaneMode = Exclude<PaneDisplayMode, "auto">;
+
 interface NavContextValue {
   selectedValue?: string | number;
   select: (
@@ -34,6 +46,8 @@ interface NavContextValue {
   openCategories: Array<string | number>;
   toggleCategory: (value: string | number) => void;
   isPaneOpen: boolean;
+  /** Нажатие на пункт. Закрывает панель, раскрытую поверх страницы. */
+  onItemInvoked: () => void;
   rootRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -87,6 +101,46 @@ function useIsWide(
     return () => observer.disconnect();
   }, [ref, threshold, enabled]);
   return isWide;
+}
+
+/**
+ * Режим панели для "auto" по ширине корня, как в WinUI: от `expanded` и шире это
+ * "left", до `compact` включительно это "leftMinimal", между ними "leftCompact".
+ * `compact <= 0` отключает "leftMinimal". Ререндер вызывает только пересечение порога.
+ */
+function useAutoDisplayMode(
+  ref: React.RefObject<HTMLElement | null>,
+  compact: number,
+  expanded: number,
+  enabled: boolean,
+): ResolvedPaneMode | null {
+  const [mode, setMode] = useState<ResolvedPaneMode | null>(null);
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled) {
+      setMode(null);
+      return undefined;
+    }
+    const update = () => {
+      const width = el.offsetWidth;
+      setMode(
+        width >= expanded
+          ? "left"
+          : compact > 0 && width <= compact
+            ? "leftMinimal"
+            : "leftCompact",
+      );
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, compact, expanded, enabled]);
+  return mode;
 }
 
 const FOCUSABLE_ITEM =
@@ -261,8 +315,31 @@ export interface NavigationViewProps extends Omit<
     | ReactNode
     | ((props: { isPaneOpen: boolean }) => ReactNode);
   paneFooter?: ReactNode | ((props: { isPaneOpen: boolean }) => ReactNode);
-  paneDisplayMode?: "auto" | "left" | "leftCompact";
+  /**
+   * Режим панели:
+   * - "auto": по ширине корня выбирает "left", "leftCompact" или "leftMinimal";
+   * - "left": всегда раскрыта и стоит рядом со страницей, кнопки нет;
+   * - "leftCompact": стартует полосой с иконками, раскрытая лежит поверх страницы;
+   * - "leftMinimal": стартует с одной кнопкой панели, раскрытая лежит поверх страницы.
+   */
+  paneDisplayMode?: PaneDisplayMode;
+  /**
+   * Режим "auto": ширина корня (px), от которой панель раскрыта ("left").
+   * `0`: панель всегда "left" (с кнопкой). По умолчанию 1008.
+   */
   expandedModeThresholdWidth?: number;
+  /**
+   * Режим "auto": ширина корня (px), при которой и меньше остаётся только кнопка
+   * панели ("leftMinimal"). Между порогами "leftCompact". `0` отключает
+   * "leftMinimal". По умолчанию 640.
+   */
+  compactModeThresholdWidth?: number;
+  /**
+   * Если ширина корня не больше значения (px), панель, раскрытая поверх страницы
+   * ("leftCompact" и "leftMinimal"), занимает всю ширину корня. `0` отключает:
+   * панель всегда шириной `--nav-open-width`. По умолчанию 640.
+   */
+  overlayFullWidthThreshold?: number;
   isPaneOpen?: boolean;
   onPaneOpenChange?: (isOpen: boolean) => void;
   isPaneToggleButtonVisible?: boolean;
@@ -293,7 +370,9 @@ export function NavigationView({
   paneCustomContent,
   paneFooter,
   paneDisplayMode = "auto",
-  expandedModeThresholdWidth = 900,
+  expandedModeThresholdWidth = 1008,
+  compactModeThresholdWidth = 640,
+  overlayFullWidthThreshold = 640,
   isPaneOpen,
   onPaneOpenChange,
   isPaneToggleButtonVisible = true,
@@ -315,9 +394,10 @@ export function NavigationView({
   const paneRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLElement>(null);
 
+  // "leftCompact" и "leftMinimal" стартуют со свёрнутой панелью.
   const [open, setOpenState, openControlled] = useControllable<boolean>(
     isPaneOpen,
-    paneDisplayMode !== "leftCompact",
+    paneDisplayMode === "auto" || paneDisplayMode === "left",
   );
   const [selected, setSelected, selectedControlled] = useControllable(
     selectedValue,
@@ -336,19 +416,90 @@ export function NavigationView({
     [openControlled, setOpenState, onPaneOpenChange],
   );
 
-  const adaptive = paneDisplayMode === "auto" && expandedModeThresholdWidth > 0;
-  const isWide = useIsWide(rootRef, expandedModeThresholdWidth, adaptive);
-  const initializedRef = useRef(false);
+  // Режим, который реально применён. Для "auto" его выбирает ширина корня; пока
+  // она не измерена, считаем панель раскрытой ("left").
+  const adaptive = paneDisplayMode === "auto";
+  const autoMode = useAutoDisplayMode(
+    rootRef,
+    compactModeThresholdWidth,
+    expandedModeThresholdWidth,
+    adaptive,
+  );
+  const displayMode: ResolvedPaneMode =
+    paneDisplayMode === "auto" ? (autoMode ?? "left") : paneDisplayMode;
+  // У "leftCompact" и "leftMinimal" раскрытая панель лежит поверх страницы,
+  // у "left" стоит рядом с ней и сдвигает её.
+  const isOverlay = displayMode !== "left";
+  const lastAutoModeRef = useRef<ResolvedPaneMode | null>(null);
 
+  // Режим сменили на лету (например, "leftMinimal" на телефоне и "auto" на десктопе):
+  // приводим панель к состоянию, с которого режим стартует. Без этого у "left"
+  // (кнопки нет) панель могла бы остаться свёрнутой, а у остальных открытой.
+  const prevModeRef = useRef(paneDisplayMode);
   useIsoLayoutEffect(() => {
-    if (!adaptive || isWide === null) return;
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      if (!isWide && !openControlled) setOpenState(false);
+    const prev = prevModeRef.current;
+    prevModeRef.current = paneDisplayMode;
+    if (prev === paneDisplayMode) return;
+    if (paneDisplayMode === "auto") {
+      // Подгонка под ширину начнётся заново, как при первом показе.
+      lastAutoModeRef.current = null;
     } else {
-      setPaneOpen(isWide);
+      setPaneOpen(paneDisplayMode === "left");
     }
-  }, [adaptive, isWide, openControlled, setOpenState, setPaneOpen]);
+  }, [paneDisplayMode, setPaneOpen]);
+
+  // В "auto" панель реагирует только на смену режима по ширине: раскрыта в "left",
+  // свёрнута в "leftCompact" и "leftMinimal". Пока режим остаётся тем же, ручное
+  // раскрытие и сворачивание кнопкой сохраняются.
+  useIsoLayoutEffect(() => {
+    if (!adaptive || autoMode === null) return;
+    const prev = lastAutoModeRef.current;
+    lastAutoModeRef.current = autoMode;
+    if (prev === autoMode) return;
+    const wantOpen = autoMode === "left";
+    if (prev === null) {
+      // Первое измерение: стартовое состояние по ширине. В управляемом режиме
+      // состояние ведёт родитель, колбэк не вызываем.
+      if (!openControlled) setOpenState(wantOpen);
+    } else {
+      setPaneOpen(wantOpen);
+    }
+  }, [adaptive, autoMode, openControlled, setOpenState, setPaneOpen]);
+
+  // На узком корне панель, раскрытая поверх страницы, занимает всю его ширину.
+  const fullWidthEnabled = isOverlay && overlayFullWidthThreshold > 0;
+  const isRootWide = useIsWide(
+    rootRef,
+    overlayFullWidthThreshold + 1,
+    fullWidthEnabled,
+  );
+  const paneFull = fullWidthEnabled && isRootWide === false;
+
+  const focusToggle = useCallback(() => {
+    paneRef.current?.querySelector<HTMLElement>("[data-nv-toggle]")?.focus();
+  }, []);
+
+  // Раскрытая поверх страницы панель сворачивается сама: при выборе пункта, по Esc
+  // и по клику на затемнение.
+  const overlayOpen = isOverlay && open;
+  const closeOverlay = useCallback(() => {
+    if (!overlayOpen) return;
+    setPaneOpen(false);
+    // В "leftMinimal" закрытая панель скрывает пункты: фокус переносим на кнопку
+    // панели, иначе он пропал бы вместе с нажатым пунктом.
+    if (
+      displayMode === "leftMinimal" &&
+      paneRef.current?.contains(document.activeElement)
+    ) {
+      focusToggle();
+    }
+  }, [overlayOpen, displayMode, setPaneOpen, focusToggle]);
+
+  // Пока панель открыта поверх страницы, страница закрыта для фокуса и кликов.
+  // Атрибут ставится напрямую: `inert` в JSX по-разному поддержан в React 18 и 19.
+  useIsoLayoutEffect(() => {
+    scrollRef.current?.toggleAttribute("inert", overlayOpen);
+  }, [overlayOpen]);
 
   const select = useCallback(
     (
@@ -389,9 +540,10 @@ export function NavigationView({
       openCategories: openCats,
       toggleCategory,
       isPaneOpen: open,
+      onItemInvoked: closeOverlay,
       rootRef,
     }),
-    [selected, select, openCats, toggleCategory, open],
+    [selected, select, openCats, toggleCategory, open, closeOverlay],
   );
 
   const handlePaneKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -401,6 +553,12 @@ export function NavigationView({
         'input, textarea, select, [contenteditable="true"]',
       )
     ) {
+      return;
+    }
+    if (event.key === "Escape" && overlayOpen) {
+      event.preventDefault();
+      setPaneOpen(false);
+      focusToggle();
       return;
     }
     if (moveFocusInContainer(paneRef.current, event.key, true)) {
@@ -423,10 +581,15 @@ export function NavigationView({
         className={cx(
           styles.root,
           open ? styles.paneOpen : styles.strip,
+          isOverlay && styles.overlay,
+          displayMode === "leftCompact" && styles.compact,
+          displayMode === "leftMinimal" && styles.minimal,
+          paneFull && styles.paneFull,
           className,
         )}
         style={style}
         data-pane-open={open}
+        data-pane-mode={displayMode}
       >
         {/* Боковая панель */}
         <nav
@@ -443,6 +606,7 @@ export function NavigationView({
               )}
               {showToggleButton && (
                 <Button
+                  data-nv-toggle=""
                   aria-label={toggleButtonLabel}
                   aria-expanded={open}
                   aria-controls={paneId}
@@ -479,6 +643,15 @@ export function NavigationView({
             {children}
           </PageTransition>
         </main>
+
+        {/* Затемнение страницы под панелью, раскрытой поверх неё */}
+        {isOverlay && (
+          <div
+            className={styles.scrim}
+            aria-hidden="true"
+            onClick={closeOverlay}
+          />
+        )}
       </div>
     </NavContext.Provider>
   );
@@ -523,7 +696,7 @@ function NavLinkBase({
   isSub,
   ...rest
 }: NavLinkBaseProps) {
-  const { selectedValue, select, isPaneOpen } = useNav();
+  const { selectedValue, select, isPaneOpen, onItemInvoked } = useNav();
   const selected = value !== undefined && value === selectedValue;
 
   const Tag: ElementType = as || (href ? "a" : "button");
@@ -546,6 +719,7 @@ function NavLinkBase({
     if (!event.defaultPrevented && value !== undefined) {
       select(event, value, { selects: selectsOnInvoked });
     }
+    onItemInvoked();
   };
 
   const tooltip =

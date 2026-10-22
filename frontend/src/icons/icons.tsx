@@ -150,17 +150,6 @@ export const PrintIcon = ({ size, className }: IconProps) => (
   </Svg>
 );
 
-/** PDF: документ с текстовыми строками и блоком */
-export const PdfIcon = ({ size, className }: IconProps) => (
-  <Svg size={size} className={className}>
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <path d="M14 2v6h6" />
-    <path d="M8 13h2a1.5 1.5 0 0 0 0-3H8v6" />
-    <path d="M14 16h2" />
-    <path d="M14 13h3" />
-  </Svg>
-);
-
 /** XML (просмотр/структура): документ с тегами кода < > */
 export const XmlIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
@@ -168,15 +157,5 @@ export const XmlIcon = ({ size, className }: IconProps) => (
     <path d="M14 2v6h6" />
     <path d="M10 12.5L8 14.5l2 2" />
     <path d="M14 12.5l2 2-2 2" />
-  </Svg>
-);
-
-/** Скачать XML: документ со стрелкой загрузки вниз */
-export const XmlDownloadIcon = ({ size, className }: IconProps) => (
-  <Svg size={size} className={className}>
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <path d="M14 2v6h6" />
-    <path d="M12 11v6" />
-    <path d="M9.5 14.5L12 17l2.5-2.5" />
   </Svg>
 );

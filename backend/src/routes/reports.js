@@ -8,13 +8,11 @@ const ID = { type: "string", pattern: "^[0-9]+$" };
 // Общие параметры вывода:
 //   format=json (по умолчанию) | xml | html
 //   download=1  - XML отдаётся файлом, а не показывается в браузере
-//   print=1     - HTML сразу открывает окно печати
-//   pdf=1       - HTML с подсказкой «Сохранить как PDF» (и окном печати)
+//   print=1     - HTML сразу открывает окно печати (в нём же «Сохранить как PDF»)
 const OUTPUT = {
   format: { type: "string", enum: ["json", "xml", "html"], default: "json" },
   download: { type: "string", enum: ["0", "1"] },
   print: { type: "string", enum: ["0", "1"] },
-  pdf: { type: "string", enum: ["0", "1"] },
 };
 
 const XSL_URL = new URL("../reports/report.xsl", import.meta.url);
@@ -75,7 +73,7 @@ export default async function reportsRoutes(app) {
 
         if (q.format === "html") {
           reply.type("text/html; charset=utf-8");
-          return toHtml(report, { autoprint: q.print === "1" || q.pdf === "1", pdf: q.pdf === "1" });
+          return toHtml(report, { autoprint: q.print === "1" });
         }
 
         return report;

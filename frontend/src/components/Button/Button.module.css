@@ -47,7 +47,7 @@
   }
 
   /* Дефолтная кнопка */
-  &.default {
+  &.normal {
     color: var(--TextFillColorPrimaryBrush);
     background-color: color-mix(
       in srgb,
@@ -83,7 +83,7 @@
   }
 
   /* Акцентная кнопка */
-  &.accent {
+  &.primary {
     color: var(--TextOnAccentFillColorPrimaryBrush);
     background-color: var(--AccentFillColorDefaultBrush);
 
@@ -99,6 +99,41 @@
     &:disabled {
       color: var(--TextOnAccentFillColorDisabledBrush);
       background-color: var(--AccentFillColorDisabledBrush);
+    }
+  }
+
+  /* Разрушительная кнопка */
+  &.destructive {
+    color: var(--SystemFillColorCriticalBrush);
+    background-color: color-mix(
+      in srgb,
+      var(--ControlFillColorDefaultBrush) 20%,
+      transparent
+    );
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(
+        in srgb,
+        var(--ControlFillColorSecondaryBrush) 20%,
+        transparent
+      );
+    }
+
+    &:active:not(:disabled) {
+      background-color: color-mix(
+        in srgb,
+        var(--ControlFillColorTertiaryBrush) 20%,
+        transparent
+      );
+    }
+
+    &:disabled {
+      color: var(--TextFillColorDisabledBrush);
+      background-color: color-mix(
+        in srgb,
+        var(--ControlFillColorDisabledBrush) 70%,
+        transparent
+      );
     }
   }
 }

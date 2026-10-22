@@ -1,6 +1,17 @@
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
-import { ComboBox, TextField } from "@components";
-import type { AssessmentType, Performance, PerformanceInput, PerformanceOptions } from "@models";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type RefObject,
+} from "react";
+import { ComboBox, TextField, Button } from "@components";
+import type {
+  AssessmentType,
+  Performance,
+  PerformanceInput,
+  PerformanceOptions,
+} from "@models";
 import { fullName, semesterLabel } from "@utils";
 import { ASSESSMENT_TYPES } from "../constants";
 import styles from "./EditPerformancePage.module.css";
@@ -12,6 +23,7 @@ interface Props {
   isSaving: boolean;
   error: string | null;
   onSubmit: (data: PerformanceInput) => void | Promise<void>;
+  onDelete: () => void;
 }
 
 const RESULT_OPTIONS = [
@@ -41,6 +53,7 @@ export default function PerformanceForm({
   isSaving,
   error,
   onSubmit,
+  onDelete,
 }: Props) {
   const { students, subjects, teachers, semesters } = options;
   const isEdit = initial !== undefined;
@@ -53,8 +66,12 @@ export default function PerformanceForm({
     initial?.semester_id ?? semesters.at(-1)?.semester_id ?? "",
   );
   const [type, setType] = useState<string>(initial?.assessment_type ?? "exam");
-  const [grade, setGrade] = useState(initial?.grade != null ? String(initial.grade) : "");
-  const [passed, setPassed] = useState(initial?.passed === false ? "false" : "true");
+  const [grade, setGrade] = useState(
+    initial?.grade != null ? String(initial.grade) : "",
+  );
+  const [passed, setPassed] = useState(
+    initial?.passed === false ? "false" : "true",
+  );
   const [attempt, setAttempt] = useState(String(initial?.attempt_number ?? 1));
   const [date, setDate] = useState(initial?.assessment_date ?? todayISO());
 
@@ -117,7 +134,9 @@ export default function PerformanceForm({
   return (
     <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
       <section className={styles.section}>
-        <h2 className={`BodyStrongTextBlockStyle ${styles.sectionTitle}`}>Что оценивается</h2>
+        <h2 className={`BodyStrongTextBlockStyle ${styles.sectionTitle}`}>
+          Что оценивается
+        </h2>
         <div className={styles.grid}>
           <ComboBox
             ref={studentRef}
@@ -174,14 +193,16 @@ export default function PerformanceForm({
         </div>
         {isEdit && (
           <p className={`CaptionTextBlockStyle ${styles.hint}`}>
-            Студент, дисциплина, семестр и вид контроля после создания записи не меняются. Чтобы
-            изменить их, удалите запись и создайте новую.
+            Студент, дисциплина, семестр и вид контроля после создания записи не
+            меняются. Чтобы изменить их, удалите запись и создайте новую.
           </p>
         )}
       </section>
 
       <section className={styles.section}>
-        <h2 className={`BodyStrongTextBlockStyle ${styles.sectionTitle}`}>Результат</h2>
+        <h2 className={`BodyStrongTextBlockStyle ${styles.sectionTitle}`}>
+          Результат
+        </h2>
         <div className={styles.grid}>
           <ComboBox
             ref={teacherRef}
@@ -246,6 +267,17 @@ export default function PerformanceForm({
           />
         </div>
       </section>
+
+      {isEdit && (
+        <Button
+          appearance="destructive"
+          onClick={onDelete}
+          disabled={!(options !== null) || isSaving}
+          width="max-content"
+        >
+          Удалить запись
+        </Button>
+      )}
 
       {error && (
         <div role="alert" className={`BodyTextBlockStyle ${styles.error}`}>

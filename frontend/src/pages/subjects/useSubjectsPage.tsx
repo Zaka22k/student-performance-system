@@ -98,7 +98,7 @@ export function useSubjectsPage() {
     openModal({
       title: "Удаление дисциплины",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage, // например «По ней есть записи успеваемости»
       content: (
         <p>

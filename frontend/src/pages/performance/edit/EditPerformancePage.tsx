@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Page, Button } from "@components";
-import { TrashIcon, CheckIcon } from "@icons";
+import { CheckIcon } from "@icons";
 import PerformanceForm from "./PerformanceForm";
 import { useEditPerformancePage } from "./useEditPerformancePage";
 
@@ -16,20 +16,12 @@ function EditPerformanceContent({ id }: { id?: string }) {
       toolbar={{
         trailing: (
           <>
-            {id && (
-              <Button
-                icon={<TrashIcon />}
-                aria-label="Удалить запись"
-                onClick={p.openAlert}
-                disabled={!ready || p.saving}
-              />
-            )}
             <Button
               onClick={p.submit}
               disabled={!ready || p.saving}
               icon={<CheckIcon />}
               aria-label="Сохранить"
-              appearance="accent"
+              appearance="primary"
             />
           </>
         ),
@@ -43,6 +35,7 @@ function EditPerformanceContent({ id }: { id?: string }) {
           isSaving={p.saving}
           error={p.error}
           onSubmit={p.save}
+          onDelete={p.openAlert}
         />
       )}
     </Page>

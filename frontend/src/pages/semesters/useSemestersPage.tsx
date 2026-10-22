@@ -99,7 +99,7 @@ export function useSemestersPage() {
     openModal({
       title: "Удаление семестра",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage, // например «По нему есть записи успеваемости»
       content: (
         <p>

@@ -105,7 +105,7 @@ export function useStudentsPage() {
     openModal({
       title: "Удаление студента",
       actionText: "Удалить",
-      actionAppearance: "default",
+      actionAppearance: "normal",
       errorMessage: getErrorMessage, // например «У студента есть записи успеваемости»
       content: (
         <p>Вы действительно хотите удалить студента {fullName(student)}?</p>
