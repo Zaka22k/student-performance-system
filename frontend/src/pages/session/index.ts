@@ -1,2 +1,4 @@
-export { default as SchedulePage } from "./schedule/SchedulePage";
-export { default as SheetPage } from "./sheet/SheetPage";
+import { lazy } from "react";
+
+export const SchedulePage = lazy(() => import("./schedule/SchedulePage"));
+export const SheetPage = lazy(() => import("./sheet/SheetPage"));

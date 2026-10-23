@@ -1,2 +1,6 @@
-export { default as PerformancePage } from "./PerformancePage";
-export { default as EditPerformancePage } from "./edit/EditPerformancePage";
+import { lazy } from "react";
+
+export const PerformancePage = lazy(() => import("./PerformancePage"));
+export const EditPerformancePage = lazy(
+  () => import("./edit/EditPerformancePage"),
+);

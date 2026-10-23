@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { useLocation, useOutlet, Link } from "react-router-dom";
 import { NavigationView, NavItem, NavCategory, NavSubItem } from "@components";
 import {
@@ -43,7 +44,7 @@ export default function AppLayout() {
       <NavigationView
         paneTitle="АСУ «Успеваемость»"
         selectedValue={selected}
-        pageKey={selected}
+        pageKey={location.pathname}
         defaultOpenCategories={openCategory ? [openCategory] : []}
         menuItems={
           <>
@@ -145,7 +146,7 @@ export default function AppLayout() {
           </>
         }
       >
-        {outlet}
+        <Suspense fallback={null}>{outlet}</Suspense>
       </NavigationView>
     </div>
   );

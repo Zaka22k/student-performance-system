@@ -1,3 +1,9 @@
-export { default as GroupsAnalyticsPage } from "./groups/GroupsAnalyticsPage";
-export { default as RatingPage } from "./rating/RatingPage";
-export { default as SubjectsAnalyticsPage } from "./subjects/SubjectsAnalyticsPage";
+import { lazy } from "react";
+
+export const GroupsAnalyticsPage = lazy(
+  () => import("./groups/GroupsAnalyticsPage"),
+);
+export const RatingPage = lazy(() => import("./rating/RatingPage"));
+export const SubjectsAnalyticsPage = lazy(
+  () => import("./subjects/SubjectsAnalyticsPage"),
+);

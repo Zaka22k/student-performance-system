@@ -9,7 +9,10 @@ const root = path.join(
 );
 
 export default fp(async (app) => {
-  await app.register(fastifyStatic, { root });
+  await app.register(fastifyStatic, {
+    root,
+    preCompressed: true,
+  });
 
   app.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith("/api")) {

@@ -1,3 +1,5 @@
-export { default as GroupSheetPage } from "./GroupSheetPage";
-export { default as GroupSummaryPage } from "./GroupSummaryPage";
-export { default as StudentBookPage } from "./StudentBookPage";
+import { lazy } from "react";
+
+export const GroupSheetPage = lazy(() => import("./GroupSheetPage"));
+export const GroupSummaryPage = lazy(() => import("./GroupSummaryPage"));
+export const StudentBookPage = lazy(() => import("./StudentBookPage"));
