@@ -1,3 +1,5 @@
+"use client";
+
 import {
   forwardRef,
   useCallback,
@@ -22,30 +24,16 @@ import type {
 import { createPortal } from "react-dom";
 import styles from "./ComboBox.module.css";
 
-/**
- * An item of the list: a plain string or any object.
- * Элемент списка: просто строка или любой объект.
- */
 export type ComboBoxOption = string | object;
 
-/**
- * State passed to `renderOption`.
- * Состояние, которое получает `renderOption`.
- */
 export interface ComboBoxOptionState {
-  /** Text of the item. / Текст элемента. */
   label: string;
-  /** Value of the item (id or another field). / Значение элемента (id или другое поле). */
   value: string;
-  /** The item matches the current value. / Элемент совпадает с текущим значением. */
   selected: boolean;
-  /** The item is under the pointer or the keyboard cursor. / Элемент под курсором мыши или клавиатуры. */
   active: boolean;
-  /** Index in the visible (filtered) list. / Индекс в видимом (отфильтрованном) списке. */
   index: number;
 }
 
-/** Keys of an object option; strings have none. / Ключи объекта-элемента; у строк их нет. */
 type OptionKey<T> = T extends string ? never : keyof T;
 
 export interface ComboBoxProps<
@@ -62,99 +50,35 @@ export interface ComboBoxProps<
   | "className"
   | "style"
 > {
-  /**
-   * List of choices: strings, objects, or both.
-   * Список вариантов: строки, объекты или то и другое.
-   */
   options: readonly T[];
-  /**
-   * Current value (controlled). For objects it is the value of `valueKey`, for a custom text it is the text itself.
-   * Текущее значение (управляемый режим). Для объектов это значение поля `valueKey`, для своего текста — сам текст.
-   */
   value?: string;
-  /**
-   * Initial value (uncontrolled). Per HIG, prefer a meaningful value from the list.
-   * Начальное значение (неуправляемый режим). По HIG лучше подставлять осмысленное значение из списка.
-   */
   defaultValue?: string;
-  /**
-   * Called on every change. `option` is the chosen item, or null when the text is custom.
-   * Вызывается при каждом изменении. `option` — выбранный элемент или null, если текст свой.
-   */
   onChange?: (value: string, option: T | null) => void;
-  /**
-   * Field of an object used as the value (for example 'id'). Strings are their own value.
-   * Поле объекта, которое служит значением (например, 'id'). Строка сама является своим значением.
-   */
   valueKey?: OptionKey<T>;
-  /**
-   * Field of an object shown in the field and in the list (for example 'name').
-   * Поле объекта, которое показывается в поле и в списке (например, 'name').
-   */
   labelKey?: OptionKey<T>;
-  /**
-   * Function form of `valueKey`; wins over it.
-   * Функциональная форма `valueKey`; приоритетнее него.
-   */
   getOptionValue?: (option: T) => string;
-  /**
-   * Function form of `labelKey`; wins over it.
-   * Функциональная форма `labelKey`; приоритетнее него.
-   */
   getOptionLabel?: (option: T) => string;
-  /**
-   * Custom content of a list item. The item box (hover, selection mark, click) stays standard.
-   * Своё содержимое пункта списка. Оболочка пункта (наведение, отметка выбора, клик) остаётся стандартной.
-   */
   renderOption?: (option: T, state: ComboBoxOptionState) => ReactNode;
-  /**
-   * Filtering of the list while typing. true: label contains the text; false: no filtering; or your own function.
-   * Фильтрация списка при вводе. true: подпись содержит текст; false: без фильтра; либо своя функция.
-   */
   filter?: boolean | ((option: T, query: string, label: string) => boolean);
-  /**
-   * Introductory label. Per HIG, use title-style capitalization and end it with a colon.
-   * Вводная подпись. По HIG: заглавные буквы как в заголовке и двоеточие в конце.
-   */
   label?: ReactNode;
-  /**
-   * Where the label sits: above the field or before it (macOS style).
-   * Где стоит подпись: над полем или перед ним (как в macOS).
-   */
   labelPlacement?: "top" | "start";
-  /**
-   * Helper text shown below the input field.
-   * Текст подсказки снизу поля ввода.
-   */
   hint?: ReactNode;
-  /**
-   * Accessible name of the pull-down button.
-   * Доступное имя кнопки раскрытия списка.
-   */
+  /** Ошибка валидации: подсвечивает рамку красным и выводит текст ошибки вместо `hint`. */
+  error?: ReactNode | boolean;
   toggleLabel?: string;
-  /** Class of the root element. / Класс корневого элемента. */
   className?: string;
-  /** Style of the root element. / Стиль корневого элемента. */
   style?: CSSProperties;
 }
 
-// Geometry of the list. LIST_MAX_HEIGHT is the only place with the list height.
-// Геометрия списка. LIST_MAX_HEIGHT — единственное место с высотой списка.
 const LIST_MAX_HEIGHT = 240;
 const ITEM_HEIGHT = 32;
-const LIST_GAP = 8; // gap between field and list / зазор между полем и списком
-const LIST_CHROME = 8 + LIST_GAP; // padding + gap / отступы и зазор
+const LIST_GAP = 8;
+const LIST_CHROME = 8 + LIST_GAP;
 
-/**
- * Where the field sits in the viewport; the list is positioned from it.
- * Положение поля в окне браузера; от него считается положение списка.
- */
 interface ListAnchor {
   left: number;
   width: number;
-  /** Bottom edge of the field. / Нижняя граница поля. */
   top: number;
-  /** Distance from the top edge of the field to the viewport bottom. / Расстояние от верха поля до низа окна. */
   bottom: number;
 }
 
@@ -164,12 +88,8 @@ const useIsomorphicLayoutEffect =
 const cx = (...parts: Array<string | false | undefined>): string =>
   parts.filter(Boolean).join(" ");
 
-/**
- * Is there anything to show: null, undefined and false count as empty.
- * Есть ли что показывать: null, undefined и false считаются пустыми.
- */
 const hasContent = (node: ReactNode): boolean =>
-  node !== undefined && node !== null && node !== false;
+  node !== undefined && node !== null && node !== false && node !== "";
 
 function readKey(option: object, key: PropertyKey): string {
   const v = (option as Record<PropertyKey, unknown>)[key];
@@ -197,13 +117,17 @@ function ComboBoxInner<T extends ComboBoxOption>(
     label,
     labelPlacement = "top",
     hint,
+    error,
     toggleLabel = "Показать варианты",
     className,
     style,
     disabled,
     id,
+    name,
+    form,
     onKeyDown,
     "aria-describedby": ariaDescribedBy,
+    "aria-invalid": ariaInvalid,
     ...rest
   }: ComboBoxProps<T>,
   forwardedRef: ForwardedRef<HTMLInputElement>,
@@ -224,20 +148,52 @@ function ComboBoxInner<T extends ComboBoxOption>(
   const listId = `${baseId}-list`;
   const hintId = `${baseId}-hint`;
   const hasLabel = hasContent(label);
-  const hasHint = hasContent(hint);
+
+  const isInvalid =
+    Boolean(error) || ariaInvalid === true || ariaInvalid === "true";
+  const feedbackMessage =
+    typeof error !== "boolean" && hasContent(error) ? error : hint;
+  const hasFeedback = hasContent(feedbackMessage);
 
   const describedBy =
-    [ariaDescribedBy, hasHint ? hintId : undefined].filter(Boolean).join(" ") ||
-    undefined;
+    [ariaDescribedBy, hasFeedback ? hintId : undefined]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   const [inner, setInner] = useState(defaultValue ?? "");
-  // Text being typed right now; null when the field shows the value itself.
-  // Текст, который вводят прямо сейчас; null, когда поле показывает само значение.
   const [query, setQuery] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [placement, setPlacement] = useState<"bottom" | "top">("bottom");
   const [anchor, setAnchor] = useState<ListAnchor | null>(null);
+
+  // Синхронизируем внутреннее значение при обновлении defaultValue из ответа Server Action
+  const prevDefaultValueRef = useRef(defaultValue);
+  if (prevDefaultValueRef.current !== defaultValue) {
+    prevDefaultValueRef.current = defaultValue;
+    if (value === undefined) {
+      setInner(defaultValue ?? "");
+      setQuery(null);
+    }
+  }
+
+  // Поддержка нативного сброса формы (form.reset() и автосброс после экшена в React 19)
+  useEffect(() => {
+    const input = inputRef.current;
+    const formEl = input?.form;
+    if (!formEl) return;
+
+    const handleReset = () => {
+      if (value === undefined) {
+        setInner(defaultValue ?? "");
+      }
+      setQuery(null);
+      setOpen(false);
+    };
+
+    formEl.addEventListener("reset", handleReset);
+    return () => formEl.removeEventListener("reset", handleReset);
+  }, [value, defaultValue]);
 
   const current = value !== undefined ? value : inner;
 
@@ -283,12 +239,7 @@ function ComboBoxInner<T extends ComboBoxOption>(
   const listVisible = open && !disabled && visible.length > 0;
   const currentLabel = items.find((i) => i.value === current)?.label ?? current;
   const displayText = query ?? currentLabel;
-  // The list is rendered in a portal, so it is positioned from the field's
-  // rectangle: on open, on resize, and on scroll of any ancestor. It flips
-  // above the field when there is no room below.
-  // Список рендерится порталом, поэтому его положение считается по рамке поля:
-  // при открытии, при изменении размера окна и прокрутке любого предка.
-  // Если снизу не хватает места, список разворачивается вверх.
+
   const visibleCount = visible.length;
   useIsomorphicLayoutEffect(() => {
     if (!listVisible) {
@@ -349,8 +300,6 @@ function ComboBoxInner<T extends ComboBoxOption>(
     inputRef.current?.focus();
   };
 
-  // Open with the whole list, the cursor on the chosen item.
-  // Открываем весь список, курсор на выбранном элементе.
   const openList = (edge?: "first" | "last") => {
     const selected = items.findIndex((i) => i.value === current);
     setQuery(null);
@@ -373,8 +322,6 @@ function ComboBoxInner<T extends ComboBoxOption>(
     setQuery(text);
     setOpen(true);
     setActiveIndex(-1);
-    // A custom text is not added to the list (HIG): it is just the new value.
-    // Свой текст не добавляется в список (HIG): он просто становится новым значением.
     commit(matched ? matched.value : text, matched ? matched.option : null);
   };
 
@@ -421,8 +368,6 @@ function ComboBoxInner<T extends ComboBoxOption>(
   const handleFieldBlur = (e: FocusEvent<HTMLDivElement>) => {
     const next = e.relatedTarget as Node | null;
     if (e.currentTarget.contains(next)) return;
-    // The list lives in a portal, so it is not inside the field in the DOM.
-    // Список лежит в портале и в DOM не является потомком поля.
     if (next && document.getElementById(listId)?.contains(next)) return;
     setOpen(false);
     setQuery(null);
@@ -451,6 +396,7 @@ function ComboBoxInner<T extends ComboBoxOption>(
         styles.root,
         labelPlacement === "start" && styles.labelStart,
         disabled && styles.disabled,
+        isInvalid && styles.invalid,
         listVisible && styles.open,
         className,
       )}
@@ -468,11 +414,15 @@ function ComboBoxInner<T extends ComboBoxOption>(
       <div className={styles.fieldWrapper}>
         <div ref={fieldRef} className={styles.field} onBlur={handleFieldBlur}>
           <div className={styles.control}>
+            {name && !disabled && (
+              <input type="hidden" name={name} form={form} value={current} />
+            )}
             <input
               autoComplete="off"
               {...rest}
               ref={setRefs}
               id={inputId}
+              form={form}
               className={cx(styles.input, "BodyTextBlockStyle")}
               type="text"
               role="combobox"
@@ -484,6 +434,7 @@ function ComboBoxInner<T extends ComboBoxOption>(
               aria-controls={listVisible ? listId : undefined}
               aria-autocomplete={filter === false ? "none" : "list"}
               aria-describedby={describedBy}
+              aria-invalid={isInvalid || undefined}
               aria-activedescendant={
                 listVisible && activeIndex >= 0
                   ? `${listId}-${activeIndex}`
@@ -496,8 +447,6 @@ function ComboBoxInner<T extends ComboBoxOption>(
               className={styles.button}
               aria-label={toggleLabel}
               disabled={disabled}
-              // Keep the focus in the input.
-              // Оставляем фокус в поле ввода.
               onMouseDown={(e) => e.preventDefault()}
               onClick={toggle}
             >
@@ -578,9 +527,9 @@ function ComboBoxInner<T extends ComboBoxOption>(
             )}
         </div>
 
-        {hasHint && (
+        {hasFeedback && (
           <div id={hintId} className={cx(styles.hint, "CaptionTextBlockStyle")}>
-            {hint}
+            {feedbackMessage}
           </div>
         )}
       </div>
@@ -588,13 +537,6 @@ function ComboBoxInner<T extends ComboBoxOption>(
   );
 }
 
-/**
- * Combo box: a text field with a pull-down button. A custom text can be typed in,
- * or a value picked from the list.
- *
- * Combo box: текстовое поле с кнопкой раскрытия списка. Можно ввести свой текст
- * или выбрать значение из списка.
- */
 export const ComboBox = forwardRef(ComboBoxInner) as <
   T extends ComboBoxOption = string,
 >(

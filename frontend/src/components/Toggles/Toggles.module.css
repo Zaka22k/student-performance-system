@@ -48,6 +48,7 @@
 
 .checkboxRoot {
   --CheckboxSize: 20px;
+  --CheckboxRadius: 6px;
 
   --fill: var(--ControlFillColorDefaultBrush);
   --stroke: var(--TextFillColorTertiaryBrush);
@@ -104,7 +105,7 @@
   width: 100%;
   height: 100%;
   border: 1px solid var(--stroke);
-  border-radius: var(--ControlCornerRadius);
+  border-radius: var(--CheckboxRadius);
   background-color: var(--fill);
   color: var(--glyph);
   transition:

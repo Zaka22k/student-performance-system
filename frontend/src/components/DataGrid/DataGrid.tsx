@@ -1,4 +1,7 @@
+"use client";
+
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -13,6 +16,7 @@ import type {
   MouseEvent,
   PointerEvent as ReactPointerEvent,
   ReactNode,
+  UIEvent,
 } from "react";
 import Button from "../Button";
 import { ContextMenu } from "../ContextMenu/ContextMenu";
@@ -74,10 +78,20 @@ export interface DataGridProps<T> {
   getRowId: (row: T) => DataGridRowId;
 
   /**
-   * Height of the grid. Default `100%`: the parent must have a definite height.
-   * Высота таблицы. По умолчанию `100%`: у родителя должна быть определённая высота.
+   * Height of the grid. Default `"auto"`: the grid scrolls with the page (`Page` / `NavigationView`),
+   * its header sticks below the page header, and rows pass under the headers.
+   * Pass a fixed height (e.g. `480` or `"100%"`) to scroll inside the grid itself.
+   *
+   * Высота таблицы. По умолчанию `"auto"`: таблица прокручивается вместе со страницей,
+   * её шапка фиксируется под заголовком страницы, а строки проходят под заголовками.
+   * Передайте фиксированную высоту (например, `480` или `"100%"`), чтобы таблица прокручивалась внутри себя.
    */
   height?: number | string;
+  /**
+   * Sticky top offset of the table header when scrolling with the page. Default `64` (below `Page` header).
+   * Отступ сверху для фиксированной шапки таблицы при прокрутке со страницей. По умолчанию `64` (под шапкой `Page`).
+   */
+  stickyTop?: number | string;
   /** Alternating row fill instead of dividers. / Чередующаяся заливка строк вместо разделителей. */
   striped?: boolean;
   /** Shown when there are no rows. / Показывается, когда строк нет. */
@@ -147,20 +161,16 @@ const clamp = (value: number, min: number, max: number): number =>
 
 const noop = () => {};
 
-/**
- * Geometry and timings. The only place with these numbers.
- * Геометрия и тайминги. Единственное место с этими числами.
- */
 const ROW_HEIGHT = 40;
 const HEADER_HEIGHT = 40;
 const SELECT_COLUMN_WIDTH = 48;
 const DEFAULT_COLUMN_WIDTH = 160;
 const DEFAULT_MIN_COLUMN_WIDTH = 80;
-const OVERSCAN = 6; // extra rows above and below the window / запас строк сверху и снизу окна
+const OVERSCAN = 6;
 const DEFAULT_END_THRESHOLD = 10;
-const MAX_ANIMATED_CHANGES = 20; // more changes at once are applied instantly / больше изменений за раз применяются мгновенно
-const SETTLE_MS = 320; // sliding and fading are over / движение и исчезновение закончились
-const HIGHLIGHT_MS = 1600; // the highlight of a new row is over / подсветка новой строки закончилась
+const MAX_ANIMATED_CHANGES = 20;
+const SETTLE_MS = 320;
+const HIGHLIGHT_MS = 1600;
 const KEY_RESIZE_STEP = 10;
 const KEY_RESIZE_STEP_LARGE = 50;
 
@@ -195,10 +205,6 @@ interface ResizeState {
   width: number;
 }
 
-/**
- * CSS for the column grid. The last column takes the free space.
- * CSS колонок таблицы. Последняя колонка занимает свободное место.
- */
 function buildLayout<T>(
   columns: readonly DataGridColumn<T>[],
   widthOf: (column: DataGridColumn<T>) => number,
@@ -224,17 +230,33 @@ const justify = (align: DataGridColumn<unknown>["align"]): CSSProperties => ({
 });
 
 /**
- * A read-only table for long lists: rows are virtualized, columns can be resized, rows can be
- * selected, and more rows are requested when the user scrolls to the end.
- *
- * Таблица только для просмотра для длинных списков: строки виртуализированы, ширину колонок
- * можно менять, строки можно выделять, а новые строки запрашиваются, когда прокрутили до конца.
+ * Finds the nearest vertically scrollable ancestor (e.g. `.scroller` in `NavigationView`,
+ * `.body` in `Modal`, or `window`).
+ * Находит ближайшего вертикально прокручиваемого предка (например, `.scroller` в `NavigationView`,
+ * `.body` в `Modal` или `window`).
  */
+function getScrollParent(node: HTMLElement | null): HTMLElement | Window {
+  let el = node?.parentElement ?? null;
+  while (el && el !== document.body && el !== document.documentElement) {
+    const { overflowY } = getComputedStyle(el);
+    if (
+      overflowY === "auto" ||
+      overflowY === "scroll" ||
+      overflowY === "overlay"
+    ) {
+      return el;
+    }
+    el = el.parentElement;
+  }
+  return window;
+}
+
 export function DataGrid<T>({
   rows,
   columns,
   getRowId,
-  height,
+  height = "auto",
+  stickyTop,
   striped = false,
   emptyContent = "Нет данных",
   selectable = false,
@@ -258,7 +280,13 @@ export function DataGrid<T>({
   "aria-labelledby": ariaLabelledBy,
 }: DataGridProps<T>) {
   const gridId = useId();
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const headerScrollRef = useRef<HTMLDivElement | null>(null);
+  const bodyScrollRef = useRef<HTMLDivElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  const isPageScroll = height === undefined || height === "auto";
 
   const getRowIdRef = useRef(getRowId);
   getRowIdRef.current = getRowId;
@@ -287,7 +315,11 @@ export function DataGrid<T>({
   });
   const widthOf = (column: DataGridColumn<T>): number => {
     const { min, max } = limitsOf(column);
-    return clamp(widths[column.id] ?? column.width ?? DEFAULT_COLUMN_WIDTH, min, max);
+    return clamp(
+      widths[column.id] ?? column.width ?? DEFAULT_COLUMN_WIDTH,
+      min,
+      max,
+    );
   };
   const layout = buildLayout(columns, widthOf, selectable);
 
@@ -296,31 +328,83 @@ export function DataGrid<T>({
   const [topIndex, setTopIndex] = useState(0);
   const scrollTopRef = useRef(0);
 
-  useIsomorphicLayoutEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const measure = () =>
-      setViewport((prev) =>
-        prev.w === el.clientWidth && prev.h === el.clientHeight
-          ? prev
-          : { w: el.clientWidth, h: el.clientHeight },
-      );
-    measure();
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const updateMetrics = useCallback(() => {
+    const root = rootRef.current;
+    const body = bodyRef.current;
+    if (!root || !body) return;
 
-  const handleScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    scrollTopRef.current = el.scrollTop;
-    const next = Math.floor(el.scrollTop / ROW_HEIGHT);
-    setTopIndex((prev) => (prev === next ? prev : next));
+    if (!isPageScroll) {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      scrollTopRef.current = el.scrollTop;
+      const nextTop = Math.max(0, Math.floor(el.scrollTop / ROW_HEIGHT));
+      setTopIndex((prev) => (prev === nextTop ? prev : nextTop));
+      setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+      return;
+    }
+
+    const scrollParent = getScrollParent(root);
+    const w = bodyScrollRef.current?.clientWidth ?? root.clientWidth;
+    let h: number;
+    let scrolledPastBodyTop: number;
+
+    if (scrollParent instanceof HTMLElement) {
+      h = scrollParent.clientHeight;
+      const scrollerRect = scrollParent.getBoundingClientRect();
+      const bodyRect = body.getBoundingClientRect();
+      scrolledPastBodyTop = scrollerRect.top - bodyRect.top;
+    } else {
+      h = window.innerHeight;
+      const bodyRect = body.getBoundingClientRect();
+      scrolledPastBodyTop = -bodyRect.top;
+    }
+
+    scrollTopRef.current = Math.max(0, scrolledPastBodyTop);
+    const nextTop = Math.max(0, Math.floor(scrolledPastBodyTop / ROW_HEIGHT));
+    setTopIndex((prev) => (prev === nextTop ? prev : nextTop));
+    setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+  }, [isPageScroll]);
+
+  useIsomorphicLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    updateMetrics();
+
+    const scrollParent = isPageScroll
+      ? getScrollParent(root)
+      : scrollerRef.current;
+
+    const onScroll = () => updateMetrics();
+    scrollParent?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateMetrics);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(updateMetrics);
+      ro.observe(root);
+      if (scrollParent instanceof HTMLElement) {
+        ro.observe(scrollParent);
+      }
+    }
+
+    return () => {
+      scrollParent?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateMetrics);
+      ro?.disconnect();
+    };
+  }, [isPageScroll, updateMetrics]);
+
+  const handleHorizontalScroll = (e: UIEvent<HTMLDivElement>) => {
+    if (headerScrollRef.current) {
+      headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
   };
 
-  const bodyViewportHeight = Math.max(0, viewport.h - HEADER_HEIGHT);
+  const bodyViewportHeight = isPageScroll
+    ? viewport.h
+    : Math.max(0, viewport.h - HEADER_HEIGHT);
   const visibleCount = Math.ceil(bodyViewportHeight / ROW_HEIGHT) + 1;
   const firstVisible = Math.min(topIndex, Math.max(0, rows.length - 1));
   const start = Math.max(0, firstVisible - OVERSCAN);
@@ -382,20 +466,12 @@ export function DataGrid<T>({
   const [prev, setPrev] = useState({ rows, ids, resetKey });
   const pendingShiftRef = useRef(0);
 
-  /*
-   * The change of `rows` is examined while rendering, so the new positions and the animation class
-   * reach the DOM in one commit; that is what lets rows slide instead of jumping.
-   * Смену `rows` разбираем прямо при рендере: новые позиции и класс анимации попадают в DOM
-   * одним коммитом, благодаря этому строки именно съезжают, а не прыгают.
-   */
   if (prev.rows !== rows || prev.resetKey !== resetKey) {
     const prevIds = prev.ids;
     setPrev({ rows, ids, resetKey });
     pendingShiftRef.current = 0;
 
     if (prev.resetKey !== resetKey) {
-      // The list was replaced as a whole: no animation, back to the top.
-      // Список заменили целиком: без анимации, возврат к началу.
       setAnim(null);
       setActiveId(null);
       setMenu(null);
@@ -409,19 +485,16 @@ export function DataGrid<T>({
       });
       const removed: Ghost<T>[] = [];
       prevIds.forEach((id, index) => {
-        if (!indexById.has(id)) removed.push({ id, row: prev.rows[index], index });
+        if (!indexById.has(id))
+          removed.push({ id, row: prev.rows[index], index });
       });
 
-      // The row with the cursor is gone: the cursor moves to its neighbour.
-      // Строка с курсором исчезла: курсор переходит на соседнюю.
       if (activeId !== null && !indexById.has(activeId)) {
         const old = prevIndexById.get(activeId) ?? 0;
         setActiveId(ids.length > 0 ? ids[Math.min(old, ids.length - 1)] : null);
       }
 
       if (added.length > 0 || removed.length > 0) {
-        // Keep the row at the top of the window where it was, if something changed above it.
-        // Если что-то изменилось выше окна, оставляем верхнюю строку окна на месте.
         const scrollTop = scrollTopRef.current;
         let shift = 0;
         if (scrollTop > 1 && prevIds.length > 0) {
@@ -434,14 +507,12 @@ export function DataGrid<T>({
         }
         pendingShiftRef.current = shift * ROW_HEIGHT;
 
-        // A tail append is a normal load of the next portion: nothing to animate.
-        // Добавление в хвост — обычная подгрузка следующей порции: анимировать нечего.
         const tailAppend =
           removed.length === 0 &&
           added.every((id) => (indexById.get(id) ?? 0) >= prevIds.length);
 
         if (tailAppend) {
-          // keep whatever is playing / оставляем то, что уже играет
+          // keep whatever is playing
         } else if (
           animateChanges &&
           shift === 0 &&
@@ -486,21 +557,28 @@ export function DataGrid<T>({
     };
   }, [animToken]);
 
-  // Apply the scroll correction right after the rows are in the DOM.
-  // Применяем поправку прокрутки сразу после того, как строки попали в DOM.
   useIsomorphicLayoutEffect(() => {
     const dy = pendingShiftRef.current;
     pendingShiftRef.current = 0;
-    const el = scrollerRef.current;
-    if (dy !== 0 && el) {
-      el.scrollTop += dy;
-      handleScroll();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+    if (dy === 0) return;
 
-  // A new `resetKey`: back to the top. The first run is the mount, skip it.
-  // Новый `resetKey`: возврат к началу. Первый запуск — монтирование, пропускаем его.
+    if (!isPageScroll) {
+      const el = scrollerRef.current;
+      if (el) {
+        el.scrollTop += dy;
+        updateMetrics();
+      }
+    } else if (rootRef.current) {
+      const scrollParent = getScrollParent(rootRef.current);
+      if (scrollParent instanceof HTMLElement) {
+        scrollParent.scrollTop += dy;
+      } else {
+        window.scrollBy(0, dy);
+      }
+      updateMetrics();
+    }
+  }, [rows, isPageScroll, updateMetrics]);
+
   const mountedRef = useRef(false);
   const requestedRef = useRef(-1);
   useIsomorphicLayoutEffect(() => {
@@ -508,24 +586,41 @@ export function DataGrid<T>({
       mountedRef.current = true;
       return;
     }
-    const el = scrollerRef.current;
-    if (el) el.scrollTop = 0;
+    if (!isPageScroll) {
+      const el = scrollerRef.current;
+      if (el) el.scrollTop = 0;
+    } else if (rootRef.current && scrollTopRef.current > 0) {
+      const scrollParent = getScrollParent(rootRef.current);
+      if (scrollParent instanceof HTMLElement) {
+        scrollParent.scrollTop = Math.max(
+          0,
+          scrollParent.scrollTop - scrollTopRef.current,
+        );
+      } else {
+        window.scrollBy(0, -scrollTopRef.current);
+      }
+    }
     scrollTopRef.current = 0;
     setTopIndex(0);
     requestedRef.current = -1;
-  }, [resetKey]);
+  }, [resetKey, isPageScroll]);
 
   // ───── Infinite scroll / Бесконечная прокрутка ─────
   useEffect(() => {
     if (!hasMore || loadingMore || loadMoreError) return;
     if (!onEndReachedRef.current) return;
     if (rows.length - end > endReachedThreshold) return;
-    // One request per number of loaded rows: an empty answer must not start a loop.
-    // Один запрос на каждое число загруженных строк: пустой ответ не должен запускать цикл.
     if (requestedRef.current === rows.length) return;
     requestedRef.current = rows.length;
     onEndReachedRef.current();
-  }, [hasMore, loadingMore, loadMoreError, rows.length, end, endReachedThreshold]);
+  }, [
+    hasMore,
+    loadingMore,
+    loadMoreError,
+    rows.length,
+    end,
+    endReachedThreshold,
+  ]);
 
   const retryLoadMore = () => {
     requestedRef.current = rows.length;
@@ -535,15 +630,57 @@ export function DataGrid<T>({
   // ───── Keyboard and scrolling to a row / Клавиатура и прокрутка к строке ─────
   const rowDomId = (index: number) => `${gridId}-row-${index}`;
 
+  const focusGrid = () => {
+    const target = isPageScroll ? rootRef.current : scrollerRef.current;
+    target?.focus({ preventScroll: true });
+  };
+
   const ensureVisible = (index: number) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const top = index * ROW_HEIGHT;
-    const bottom = top + ROW_HEIGHT;
-    const viewHeight = el.clientHeight - HEADER_HEIGHT;
-    if (top < el.scrollTop) el.scrollTop = top;
-    else if (bottom > el.scrollTop + viewHeight)
-      el.scrollTop = bottom - viewHeight;
+    if (!isPageScroll) {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const top = index * ROW_HEIGHT;
+      const bottom = top + ROW_HEIGHT;
+      const viewHeight = el.clientHeight - HEADER_HEIGHT;
+      if (top < el.scrollTop) el.scrollTop = top;
+      else if (bottom > el.scrollTop + viewHeight)
+        el.scrollTop = bottom - viewHeight;
+      return;
+    }
+
+    const root = rootRef.current;
+    const body = bodyRef.current;
+    if (!root || !body) return;
+
+    const scrollParent = getScrollParent(root);
+    const scrollerTop =
+      scrollParent instanceof HTMLElement
+        ? scrollParent.getBoundingClientRect().top
+        : 0;
+    const viewHeight =
+      scrollParent instanceof HTMLElement
+        ? scrollParent.clientHeight
+        : window.innerHeight;
+    const bodyTop = body.getBoundingClientRect().top - scrollerTop;
+    const rowTop = bodyTop + index * ROW_HEIGHT;
+    const rowBottom = rowTop + ROW_HEIGHT;
+
+    const headerBottom = headerScrollRef.current
+      ? Math.max(
+          0,
+          headerScrollRef.current.getBoundingClientRect().bottom - scrollerTop,
+        )
+      : HEADER_HEIGHT;
+
+    if (rowTop < headerBottom) {
+      const delta = rowTop - headerBottom;
+      if (scrollParent instanceof HTMLElement) scrollParent.scrollTop += delta;
+      else window.scrollBy(0, delta);
+    } else if (rowBottom > viewHeight) {
+      const delta = rowBottom - viewHeight;
+      if (scrollParent instanceof HTMLElement) scrollParent.scrollTop += delta;
+      else window.scrollBy(0, delta);
+    }
   };
 
   // ───── Context menu / Контекстное меню ─────
@@ -562,8 +699,6 @@ export function DataGrid<T>({
       : [row];
     const items = rowMenu({ row, rows: targets });
     if (!items || items.length === 0) return false;
-    // Like in a file manager: a click on a row outside the selection selects just that row.
-    // Как в файловом менеджере: клик по строке вне выделения выделяет только её.
     if (selectable && !isSelected) {
       anchorRef.current = id;
       commitSelection(new Set([id]));
@@ -577,23 +712,20 @@ export function DataGrid<T>({
     if (activeIndex < 0) return;
     ensureVisible(activeIndex);
     const el = document.getElementById(rowDomId(activeIndex));
-    const rect = (el ?? scrollerRef.current)?.getBoundingClientRect();
+    const rect = (el ?? rootRef.current)?.getBoundingClientRect();
     if (!rect) return;
     openRowMenu(activeIndex, rect.left + 32, rect.bottom - 4, true);
   };
 
-  // The menu belongs to a row: it closes when the row is gone.
-  // Меню принадлежит строке: когда строка исчезла, оно закрывается.
   const menuRowId = menu?.rowId;
   useEffect(() => {
     if (menuRowId === undefined || indexById.has(menuRowId)) return;
     setMenu(null);
-    scrollerRef.current?.focus({ preventScroll: true });
+    focusGrid();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuRowId, indexById]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    // Keys pressed on a resize handle or a checkbox are theirs.
-    // Клавиши на ручке изменения ширины или на чекбоксе принадлежат им.
     if (e.target !== e.currentTarget) return;
     const count = rows.length;
     if (count === 0) return;
@@ -661,8 +793,6 @@ export function DataGrid<T>({
     if (activeIndex < 0 && rows.length > 0) setActiveId(ids[0]);
   };
 
-  // A menu key pressed on the grid itself (not on a row) acts on the row with the cursor.
-  // Клавиша меню на самой таблице (не на строке) действует на строку с курсором.
   const handleGridContextMenu = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget || e.button !== 0) return;
     if (!rowMenu || activeIndex < 0) return;
@@ -672,7 +802,7 @@ export function DataGrid<T>({
 
   // ───── Resizing columns / Изменение ширины колонок ─────
   const applyLayout = (override?: { id: string; width: number }) => {
-    const el = scrollerRef.current;
+    const el = rootRef.current;
     if (!el) return;
     const next = buildLayout(
       columns,
@@ -693,8 +823,6 @@ export function DataGrid<T>({
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
-    // Start from the width shown now: the last column may be stretched.
-    // Начинаем от ширины, которая видна сейчас: последняя колонка может быть растянута.
     const startWidth = cell.getBoundingClientRect().width;
     const { min, max } = limitsOf(column);
     resizeRef.current = {
@@ -715,8 +843,6 @@ export function DataGrid<T>({
     r.width = Math.round(
       clamp(r.startWidth + e.clientX - r.startX, r.min, r.max),
     );
-    // Written to the DOM directly: the visible rows are not re-rendered on every pixel.
-    // Пишем прямо в DOM: видимые строки не перерисовываются на каждый пиксель.
     applyLayout({ id: r.id, width: r.width });
   };
 
@@ -744,15 +870,17 @@ export function DataGrid<T>({
     const step = e.shiftKey ? KEY_RESIZE_STEP_LARGE : KEY_RESIZE_STEP;
     const { min, max } = limitsOf(column);
     const current = Math.round(cell.getBoundingClientRect().width);
-    const next = clamp(current + (e.key === "ArrowRight" ? step : -step), min, max);
+    const next = clamp(
+      current + (e.key === "ArrowRight" ? step : -step),
+      min,
+      max,
+    );
     setWidths((w) => ({ ...w, [column.id]: next }));
   };
 
   // ───── Render / Отрисовка ─────
   const indices: number[] = [];
   for (let i = start; i < end; i++) indices.push(i);
-  // The row with the cursor stays in the DOM even when it is scrolled out of the window.
-  // Строка с курсором остаётся в DOM, даже когда её прокрутили за пределы окна.
   if (activeIndex >= 0 && (activeIndex < start || activeIndex >= end)) {
     if (activeIndex < start) indices.unshift(activeIndex);
     else indices.push(activeIndex);
@@ -788,6 +916,7 @@ export function DataGrid<T>({
             ? undefined
             : () => {
                 setActiveId(id);
+                focusGrid();
                 onRowClick?.(row);
               }
         }
@@ -827,7 +956,9 @@ export function DataGrid<T>({
             className={styles.cell}
             style={justify(column.align)}
           >
-            <span className={styles.cellContent}>{column.cell(row, index)}</span>
+            <span className={styles.cellContent}>
+              {column.cell(row, index)}
+            </span>
           </div>
         ))}
       </div>
@@ -840,144 +971,198 @@ export function DataGrid<T>({
     rows.length === 0 && !hasMore && !loadingMore && !loadMoreError;
   const showFooter = loadingMore || loadMoreError;
 
-  // The footer adds one row of height. If the user was at the very bottom, scroll it into view:
-  // otherwise the ring or the error would sit just below the visible area.
-  // Подвал добавляет одну строку высоты. Если пользователь был в самом низу, показываем его:
-  // иначе кольцо или ошибка окажутся сразу под видимой областью.
   useIsomorphicLayoutEffect(() => {
     if (!showFooter) return;
-    const el = scrollerRef.current;
-    if (!el) return;
-    if (el.scrollHeight - (el.scrollTop + el.clientHeight) <= ROW_HEIGHT + 2) {
-      el.scrollTop = el.scrollHeight;
+    if (!isPageScroll) {
+      const el = scrollerRef.current;
+      if (!el) return;
+      if (
+        el.scrollHeight - (el.scrollTop + el.clientHeight) <=
+        ROW_HEIGHT + 2
+      ) {
+        el.scrollTop = el.scrollHeight;
+      }
+      return;
     }
-  }, [showFooter]);
+    const root = rootRef.current;
+    if (!root) return;
+    const scrollParent = getScrollParent(root);
+    if (scrollParent instanceof HTMLElement) {
+      if (
+        scrollParent.scrollHeight -
+          (scrollParent.scrollTop + scrollParent.clientHeight) <=
+        ROW_HEIGHT + 2
+      ) {
+        scrollParent.scrollTop = scrollParent.scrollHeight;
+      }
+    }
+  }, [showFooter, isPageScroll]);
 
-  const scrollerStyle = {
-    "--dg-columns": layout.template,
-    "--dg-min-width": `${layout.total}px`,
-  } as CSSProperties;
+  const stickyTopCss =
+    stickyTop !== undefined
+      ? typeof stickyTop === "number"
+        ? `${stickyTop}px`
+        : stickyTop
+      : undefined;
+
   const rootStyle = {
     "--dg-row-height": `${ROW_HEIGHT}px`,
     "--dg-header-height": `${HEADER_HEIGHT}px`,
-    height: height ?? "100%",
+    "--dg-columns": layout.template,
+    "--dg-min-width": `${layout.total}px`,
+    ...(stickyTopCss ? { "--dg-sticky-top": stickyTopCss } : {}),
+    height: isPageScroll ? "auto" : height,
     ...style,
   } as CSSProperties;
 
-  return (
-    <div className={cx(styles.root, className)} style={rootStyle}>
-      <div
-        ref={scrollerRef}
-        role="grid"
-        tabIndex={0}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        aria-rowcount={rowCount}
-        aria-colcount={columns.length + (selectable ? 1 : 0)}
-        aria-multiselectable={selectable || undefined}
-        aria-activedescendant={
-          activeIndex >= 0 ? rowDomId(activeIndex) : undefined
-        }
-        className={cx(
-          styles.scroller,
-          "BodyTextBlockStyle",
-          striped && styles.striped,
-        )}
-        style={scrollerStyle}
-        onScroll={handleScroll}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onContextMenu={handleGridContextMenu}
-      >
-        <div className={styles.canvas}>
-          <div role="row" aria-rowindex={1} className={styles.header}>
-            {selectable && (
-              <div
-                role="columnheader"
-                aria-colindex={1}
-                className={cx(styles.headerCell, styles.selectCell)}
-              >
-                <Checkbox
-                  aria-label="Выбрать все строки"
-                  tabIndex={-1}
-                  checked={allSelected}
-                  indeterminate={someSelected}
-                  disabled={rows.length === 0}
-                  onChange={toggleAll}
-                />
-              </div>
-            )}
-            {columns.map((column, c) => {
-              const { min, max } = limitsOf(column);
-              return (
-                <div
-                  key={column.id}
-                  role="columnheader"
-                  aria-colindex={c + (selectable ? 2 : 1)}
-                  className={cx(
-                    styles.headerCell,
-                    "BodyTextBlockStyle",
-                    "BodyStrongTextBlockStyle",
-                  )}
-                  style={justify(column.align)}
-                >
-                  <span className={styles.headerText}>{column.header}</span>
-                  {column.resizable !== false && (
-                    <div
-                      role="separator"
-                      aria-orientation="vertical"
-                      aria-label="Изменить ширину колонки"
-                      aria-valuenow={Math.round(widthOf(column))}
-                      aria-valuemin={min}
-                      aria-valuemax={Number.isFinite(max) ? max : undefined}
-                      tabIndex={0}
-                      className={cx(
-                        styles.resizeHandle,
-                        resizingId === column.id && styles.resizing,
-                      )}
-                      onPointerDown={(e) => handleResizeDown(e, column)}
-                      onPointerMove={handleResizeMove}
-                      onPointerUp={(e) => finishResize(e, true)}
-                      onPointerCancel={(e) => finishResize(e, false)}
-                      onKeyDown={(e) => handleResizeKey(e, column)}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
+  const headerNode = (
+    <div ref={headerScrollRef} className={styles.headerScroller}>
+      <div role="row" aria-rowindex={1} className={styles.header}>
+        {selectable && (
           <div
-            role="rowgroup"
-            className={cx(styles.body, anim?.moving && styles.moving)}
-            style={{ height: rows.length * ROW_HEIGHT }}
+            role="columnheader"
+            aria-colindex={1}
+            className={cx(styles.headerCell, styles.selectCell)}
           >
-            {anim?.exiting.map((g) => renderRow(g.index, g.row, g.id, true))}
-            {indices.map((index) =>
-              renderRow(index, rows[index], ids[index], false),
-            )}
+            <Checkbox
+              aria-label="Выбрать все строки"
+              tabIndex={-1}
+              checked={allSelected}
+              indeterminate={someSelected}
+              disabled={rows.length === 0}
+              onChange={toggleAll}
+            />
           </div>
-
-          {showFooter && (
+        )}
+        {columns.map((column, c) => {
+          const { min, max } = limitsOf(column);
+          return (
             <div
-              className={styles.footer}
-              style={{ width: viewport.w || undefined }}
-              role={loadingMore ? "status" : "alert"}
+              key={column.id}
+              role="columnheader"
+              aria-colindex={c + (selectable ? 2 : 1)}
+              className={cx(
+                styles.headerCell,
+                "BodyTextBlockStyle",
+                "BodyStrongTextBlockStyle",
+              )}
+              style={justify(column.align)}
             >
-              {loadingMore ? (
-                <ProgressRing loading size={20} aria-label="Загрузка" />
-              ) : (
-                <>
-                  <span className={cx(styles.footerError, "BodyTextBlockStyle")}>
-                    Не удалось загрузить данные.
-                  </span>
-                  <Button onClick={retryLoadMore}>Повторить</Button>
-                </>
+              <span className={styles.headerText}>{column.header}</span>
+              {column.resizable !== false && (
+                <div
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label="Изменить ширину колонки"
+                  aria-valuenow={Math.round(widthOf(column))}
+                  aria-valuemin={min}
+                  aria-valuemax={Number.isFinite(max) ? max : undefined}
+                  tabIndex={0}
+                  className={cx(
+                    styles.resizeHandle,
+                    resizingId === column.id && styles.resizing,
+                  )}
+                  onPointerDown={(e) => handleResizeDown(e, column)}
+                  onPointerMove={handleResizeMove}
+                  onPointerUp={(e) => finishResize(e, true)}
+                  onPointerCancel={(e) => finishResize(e, false)}
+                  onKeyDown={(e) => handleResizeKey(e, column)}
+                />
               )}
             </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const bodyNode = (
+    <div className={styles.canvas}>
+      <div
+        ref={bodyRef}
+        role="rowgroup"
+        className={cx(styles.body, anim?.moving && styles.moving)}
+        style={{ height: rows.length * ROW_HEIGHT }}
+      >
+        {anim?.exiting.map((g) => renderRow(g.index, g.row, g.id, true))}
+        {indices.map((index) =>
+          renderRow(index, rows[index], ids[index], false),
+        )}
+      </div>
+
+      {showFooter && (
+        <div
+          className={styles.footer}
+          style={{ width: viewport.w || undefined }}
+          role={loadingMore ? "status" : "alert"}
+        >
+          {loadingMore ? (
+            <ProgressRing loading size={20} aria-label="Загрузка" />
+          ) : (
+            <>
+              <span className={cx(styles.footerError, "BodyTextBlockStyle")}>
+                Не удалось загрузить данные.
+              </span>
+              <Button onClick={retryLoadMore}>Повторить</Button>
+            </>
           )}
         </div>
-      </div>
+      )}
+    </div>
+  );
+
+  const gridAriaProps = {
+    role: "grid" as const,
+    tabIndex: 0,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledBy,
+    "aria-rowcount": rowCount,
+    "aria-colcount": columns.length + (selectable ? 1 : 0),
+    "aria-multiselectable": selectable || undefined,
+    "aria-activedescendant":
+      activeIndex >= 0 ? rowDomId(activeIndex) : undefined,
+    onKeyDown: handleKeyDown,
+    onFocus: handleFocus,
+    onContextMenu: handleGridContextMenu,
+  };
+
+  return (
+    <div
+      ref={rootRef}
+      {...(isPageScroll ? gridAriaProps : {})}
+      className={cx(
+        styles.root,
+        "BodyTextBlockStyle",
+        striped && styles.striped,
+        !isPageScroll && styles.containedScroll,
+        className,
+      )}
+      style={rootStyle}
+    >
+      {isPageScroll ? (
+        <>
+          {headerNode}
+          <div
+            ref={bodyScrollRef}
+            className={styles.bodyScroller}
+            onScroll={handleHorizontalScroll}
+          >
+            {bodyNode}
+          </div>
+        </>
+      ) : (
+        <div
+          ref={scrollerRef}
+          {...gridAriaProps}
+          className={styles.scroller}
+          onScroll={updateMetrics}
+        >
+          <div className={styles.canvas}>
+            {headerNode}
+            {bodyNode}
+          </div>
+        </div>
+      )}
 
       {showEmpty && (
         <div className={cx(styles.empty, "BodyTextBlockStyle")}>
@@ -994,7 +1179,7 @@ export function DataGrid<T>({
           aria-label="Действия со строкой"
           onClose={(restoreFocus) => {
             setMenu(null);
-            if (restoreFocus) scrollerRef.current?.focus({ preventScroll: true });
+            if (restoreFocus) focusGrid();
           }}
         />
       )}

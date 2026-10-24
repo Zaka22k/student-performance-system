@@ -29,7 +29,6 @@ export default function PerformancePage() {
     >
       <DataGrid
         aria-label="Журнал успеваемости"
-        height="calc(100vh - 100px)"
         rows={p.items}
         striped
         columns={performanceColumns}

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   forwardRef,
   useCallback,
@@ -115,7 +117,6 @@ export interface GlassOptions {
    * Радиус углов в px. Значение больше половины короткой стороны даёт «таблетку» или круг.
    */
   radius?: number;
-
   /**
    * Full CSS box-shadow of the panel. When set, it replaces the shadow made by `outerShadowOpacity`.
    * Полное значение CSS box-shadow. Если задано, заменяет тень, которую строит `outerShadowOpacity`.
@@ -149,7 +150,7 @@ export const GLASS_DEFAULTS = {
   strength: 1,
   blur: 0.25,
   saturation: 1.4,
-  specularAngle: -110,
+  specularAngle: -90,
   specularOpacity: 0.6,
   specularWidth: 2,
   edgeShadowOpacity: "var(--edgeShadowOpacity)",
@@ -317,18 +318,7 @@ const OVERLAY_STYLE: CSSProperties = {
 
 /**
  * A panel that refracts whatever is behind it, like Apple's Liquid Glass.
- *
- * Refraction is an SVG displacement filter used as a backdrop-filter (Chromium only, other
- * browsers get a plain blur). The edge highlight and the edge shade are ordinary layers of the
- * panel itself, so they also show up in browsers without the filter. All maps are generated from
- * the panel's measured size, so it can have a fixed size, a percentage, or 'auto'.
- *
  * Панель, которая преломляет то, что находится за ней, как Liquid Glass у Apple.
- *
- * Преломление — это SVG-фильтр смещения в backdrop-filter (только Chromium, остальные браузеры
- * получают обычное размытие). Блик и тень по краю — обычные слои самой панели, поэтому они видны
- * и там, где фильтра нет. Все карты строятся по измеренному размеру панели, поэтому размер может
- * быть фиксированным, в процентах или 'auto'.
  */
 export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
   function GlassPanel(
@@ -368,8 +358,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       [forwardedRef],
     );
 
-    // Shade width in px: a number, or a token resolved against this panel.
-    // Ширина тени в px: число либо токен, раскрытый относительно этой панели.
     const edgeShadowWidth = useCssNumber(
       edgeShadowWidthProp,
       innerRef,
@@ -380,8 +368,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
     const [size, setSize] = useState<Size | null>(null);
     const [svgFilterOk, setSvgFilterOk] = useState(false);
 
-    // Measure the panel and keep the measurement in sync with layout changes.
-    // Замеряем панель и обновляем замер при любых изменениях раскладки.
     useIsomorphicLayoutEffect(() => {
       setSvgFilterOk(supportsSvgBackdropFilter());
       const el = innerRef.current;
@@ -400,8 +386,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       return () => ro.disconnect();
     }, []);
 
-    // Opacities are applied in CSS, so they are not dependencies: changing them does not rebuild the maps.
-    // Непрозрачности применяются через CSS и не входят в зависимости: их смена не пересобирает карты.
     const maps = useMemo(() => {
       if (!size || size.w < 2 || size.h < 2) return null;
       return createGlassMaps({
@@ -436,8 +420,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       profile,
     ]);
 
-    // A new id for every new filter makes Chrome re-evaluate the backdrop filter.
-    // Новый id у каждого нового фильтра заставляет Chrome заново применить backdrop-filter.
     const filterId = useMemo(() => {
       const key = [
         size?.w,
@@ -467,8 +449,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       saturation,
     ]);
 
-    // Refraction works only in Chromium; elsewhere a plain blur is used.
-    // Преломление работает только в Chromium; в остальных браузерах обычное размытие.
     const refracts =
       svgFilterOk &&
       maps !== null &&
@@ -478,8 +458,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
       ? `url(#${filterId})`
       : `blur(${fallbackBlur}px) saturate(${saturation})`;
 
-    // The root carries the tint, shadow and backdrop filter; `style` from the caller wins over all of it.
-    // Корень несёт заливку, тень и backdrop-filter; `style` от вызывающего перекрывает всё это.
     const rootStyle: CSSProperties = {
       position: "relative",
       isolation: "isolate",
@@ -499,7 +477,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
 
     return (
       <div ref={setRefs} style={rootStyle} {...rest}>
-        {/* SVG filter: blur, then displacement by the map, then saturation. / SVG-фильтр: размытие, смещение по карте, насыщенность. */}
         {refracts && maps && size && (
           <svg
             aria-hidden="true"
@@ -533,7 +510,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
               />
               {dispersion > 0 ? (
                 <>
-                  {/* Красный канал — преломляется слабее */}
                   <feDisplacementMap
                     in="blur"
                     in2="map"
@@ -548,7 +524,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
                     values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
                     result="chR"
                   />
-                  {/* Зелёный канал — базовое преломление */}
                   <feDisplacementMap
                     in="blur"
                     in2="map"
@@ -563,7 +538,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
                     values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"
                     result="chG"
                   />
-                  {/* Синий канал — преломляется сильнее */}
                   <feDisplacementMap
                     in="blur"
                     in2="map"
@@ -578,7 +552,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
                     values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
                     result="chB"
                   />
-                  {/* Собираем R + G + B через screen-смешивание */}
                   <feBlend in="chR" in2="chG" mode="screen" result="rg" />
                   <feBlend in="rg" in2="chB" mode="screen" result="disp" />
                 </>
@@ -601,7 +574,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
           </svg>
         )}
 
-        {/* Edge highlight layer. / Слой блика на краю. */}
         {maps && isVisible(specularOpacity) && (
           <div
             aria-hidden="true"
@@ -612,7 +584,6 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
             }}
           />
         )}
-        {/* Edge outline and inner shadow layer. / Слой контура и внутренней тени. */}
         {maps && isVisible(edgeShadowOpacity) && (
           <div
             aria-hidden="true"

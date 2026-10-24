@@ -70,8 +70,17 @@
   background-color: var(--ControlFillColorTertiaryBrush);
 }
 
+.invalid .control {
+  border-color: var(--SystemFillColorCriticalBrush);
+}
+
+.invalid .control:focus-within {
+  outline-color: var(--SystemFillColorCriticalBrush);
+}
+
 .disabled .control,
 .disabled .control:hover {
+  border-color: var(--ControlElevationBorderBrush);
   background-color: var(--ControlFillColorDisabledBrush);
 }
 
@@ -84,6 +93,10 @@
   min-width: 100%;
   color: var(--TextFillColorSecondaryBrush);
   overflow-wrap: anywhere;
+}
+
+.invalid .hint {
+  color: var(--SystemFillColorCriticalBrush);
 }
 
 .disabled .hint {

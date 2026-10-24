@@ -1,3 +1,5 @@
+"use client";
+
 import {
   createContext,
   useContext,
@@ -54,6 +56,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
           actionText={options.actionText}
           actionAppearance={options.actionAppearance}
           onAction={options.onAction}
+          isSubmitting={options.isSubmitting}
+          error={options.error}
           onError={options.onError}
           errorMessage={options.errorMessage}
           width={options.width}

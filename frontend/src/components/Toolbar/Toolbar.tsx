@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { GlassPanel } from "../GlassPanel";
@@ -11,26 +13,23 @@ export interface ToolbarProps extends Omit<
   "title" | "children"
 > {
   /**
-   * Leading edge: возврат назад, показ/скрытие сайдбара. Стоит перед заголовком, не кастомизируется.
-   * Края слева: возврат, сайдбар. Затем идёт заголовок.
+   * Leading edge: возврат назад и дополнительные элементы слева от заголовка.
    */
   leading?: ReactNode;
-  /** Заголовок текущего представления. Короткий, до ~15 символов. Не называйте им приложение. */
+  /** Заголовок текущего представления. Короткий, до ~15 символов. */
   title?: ReactNode;
   /** Center area: частые полезные действия. */
   center?: ReactNode;
   /**
-   * Trailing edge: важные действия, инспекторы, поиск, меню «Ещё», главное действие (Готово).
+   * Trailing edge: важные действия, инспекторы, поиск, меню «Ещё», главное действие (Готово/Сохранить).
    * Главное действие ставьте последним.
    */
   trailing?: ReactNode;
 }
 
 /**
- * Панель инструментов по Apple HIG (Liquid Glass): три зоны — leading, center, trailing.
- * Содержимое каждой зоны собирается из <ToolbarGroup>, между ними можно ставить <ToolbarSpacer>.
- * Сама панель фона не имеет: стекло есть только у групп, а подложку (scroll edge effect)
- * даёт контейнер, в котором она лежит (в Page это шапка с градиентом).
+ * Панель инструментов по Apple HIG (Liquid Glass) для шапки компонента Page:
+ * три зоны — leading, center, trailing.
  */
 export const Toolbar = ({
   leading,
@@ -70,7 +69,6 @@ export interface ToolbarGroupProps extends Omit<
 /**
  * Группа элементов на одной стеклянной «таблетке».
  * Группируйте по функции и частоте использования, всего групп не больше трёх.
- * Действие с текстовой подписью выносите в отдельную группу, чтобы оно не слилось с соседней иконкой.
  */
 export const ToolbarGroup = ({
   children,
@@ -111,7 +109,7 @@ export interface ToolbarButtonProps extends ButtonHTMLAttributes<HTMLButtonEleme
 /**
  * Прозрачная кнопка для использования ВНУТРИ <ToolbarGroup>. Своего стекла у неё нет,
  * поэтому стекло не накладывается на стекло группы: видны только hover и нажатие.
- * Одиночную кнопку вне группы делайте обычным GlassButton.
+ * Одиночную кнопку вне группы делайте обычным <Button>.
  */
 export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
   function ToolbarButton(
@@ -134,7 +132,11 @@ export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
 
 /** Тонкий разделитель между кнопками внутри <ToolbarGroup>. */
 export const ToolbarDivider = () => (
-  <span role="separator" aria-orientation="vertical" className={styles.divider} />
+  <span
+    role="separator"
+    aria-orientation="vertical"
+    className={styles.divider}
+  />
 );
 
 export default Toolbar;

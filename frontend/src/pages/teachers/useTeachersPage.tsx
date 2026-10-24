@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useModal } from "@components";
+import { useModal, useToast } from "@components";
 import { getErrorMessage } from "@api";
 import * as api from "./teachers.api";
 import type { Teacher, TeacherInput } from "@models";
@@ -10,6 +10,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function useTeachersPage() {
   const { openModal } = useModal();
+  const toast = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [query, setQuery] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
@@ -69,8 +70,17 @@ export function useTeachersPage() {
     teacherId: Teacher["teacher_id"] | undefined,
     data: TeacherInput,
   ) => {
-    if (teacherId === undefined) await api.createTeacher(data);
-    else await api.updateTeacher(teacherId, data);
+    if (teacherId === undefined) {
+      await api.createTeacher(data);
+      toast.success("Преподаватель создан", {
+        description: fullName(data),
+      });
+    } else {
+      await api.updateTeacher(teacherId, data);
+      toast.success("Изменения сохранены", {
+        description: fullName(data),
+      });
+    }
     await refresh(); // порядок строк и вычисляемые поля считает сервер
   };
 
@@ -108,6 +118,9 @@ export function useTeachersPage() {
       ),
       onAction: async () => {
         await api.deleteTeacher(teacher.teacher_id);
+        toast.success("Преподаватель удалён", {
+          description: fullName(teacher),
+        });
         await refresh();
       },
     });

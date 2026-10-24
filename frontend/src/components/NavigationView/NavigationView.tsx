@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   createContext,
   useCallback,
@@ -51,20 +53,8 @@ export type {
   PageTransitionSetting,
 } from "./pageTransitions";
 
-/* ------------------------------------------------------------------ */
-/* Вспомогательные функции и хуки                                      */
-/* ------------------------------------------------------------------ */
-
-/**
- * Режимы панели, как в WinUI NavigationView:
- * - "left": панель раскрыта и стоит рядом со страницей;
- * - "leftCompact": только иконки, раскрытая панель лежит поверх страницы;
- * - "leftMinimal": только кнопка панели, раскрытая панель лежит поверх страницы;
- * - "auto": по ширине корня выбирает один из трёх.
- */
 export type PaneDisplayMode = "auto" | "left" | "leftCompact" | "leftMinimal";
 
-/** Режим, который реально применён (для "auto" это результат выбора по ширине). */
 type ResolvedPaneMode = Exclude<PaneDisplayMode, "auto">;
 
 interface NavContextValue {
@@ -77,7 +67,6 @@ interface NavContextValue {
   openCategories: Array<string | number>;
   toggleCategory: (value: string | number) => void;
   isPaneOpen: boolean;
-  /** Нажатие на пункт. Закрывает панель, раскрытую поверх страницы. */
   onItemInvoked: () => void;
   rootRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -109,9 +98,6 @@ function useNav() {
   return ctx;
 }
 
-/**
- * Отслеживает только пересечение порога ширины, не вызывая ререндер на каждый пиксель.
- */
 function useIsWide(
   ref: React.RefObject<HTMLElement | null>,
   threshold: number,
@@ -134,11 +120,6 @@ function useIsWide(
   return isWide;
 }
 
-/**
- * Режим панели для "auto" по ширине корня, как в WinUI: от `expanded` и шире это
- * "left", до `compact` включительно это "leftMinimal", между ними "leftCompact".
- * `compact <= 0` отключает "leftMinimal". Ререндер вызывает только пересечение порога.
- */
 function useAutoDisplayMode(
   ref: React.RefObject<HTMLElement | null>,
   compact: number,
@@ -177,9 +158,6 @@ function useAutoDisplayMode(
 const FOCUSABLE_ITEM =
   '[data-nv-item]:not(:disabled):not([aria-disabled="true"])';
 
-/**
- * Общая клавиатурная навигация стрелками и Home/End для боковой панели и всплывающего меню.
- */
 function moveFocusInContainer(
   container: HTMLElement | null,
   key: string,
@@ -211,17 +189,9 @@ function moveFocusInContainer(
   return true;
 }
 
-/* ------------------------------------------------------------------ */
-/* Настройки всплывающего стекла (фон задаётся в CSS .flyout)          */
-/* ------------------------------------------------------------------ */
-
 const MENU_GLASS = {
   radius: 36,
 } as const;
-
-/* ------------------------------------------------------------------ */
-/* Иконки                                                              */
-/* ------------------------------------------------------------------ */
 
 function SidebarIcon() {
   return (
@@ -273,22 +243,12 @@ function ChevronIcon() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Смена страницы                                                      */
-/* ------------------------------------------------------------------ */
-
 interface PageFrameProps {
   info: PageTransitionInfo | null;
   setting: PageTransitionSetting;
   headerSlot: HTMLElement | null;
   children?: ReactNode;
 }
-
-/**
- * Рамка одной страницы. NavigationView создаёт новую рамку на каждый ключ страницы
- * (`key`), поэтому прежняя страница убирается сразу, а анимация идёт только у
- * новой, и содержимое всегда берётся из актуального маршрута.
- */
 
 function PageFrame({ info, setting, headerSlot, children }: PageFrameProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -325,13 +285,6 @@ function PageFrame({ info, setting, headerSlot, children }: PageFrameProps) {
   );
 }
 
-/**
- * Какой пункт меню подсвечивать на странице `pathname`. Подходит пункт, чьё
- * значение равно пути или является его началом по сегментам; из нескольких
- * побеждает самый длинный. Так страница вне меню (`/performance/new`) оставляет
- * выбранным раздел `/performance`. Корень «/» подходит только самому себе.
- * Ничего не подошло: `null`.
- */
 export function matchNavValue<T extends string | number>(
   pathname: string,
   values: readonly T[],
@@ -354,27 +307,12 @@ export function matchNavValue<T extends string | number>(
   return best;
 }
 
-/* ------------------------------------------------------------------ */
-/* NavigationView                                                      */
-/* ------------------------------------------------------------------ */
-
 export interface NavigationViewProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "onSelect"
 > {
-  /** Содержимое: страница (`Page`). */
   children?: ReactNode;
-  /**
-   * Ключ страницы. При смене показывается новая страница и играет переход.
-   * С роутером передавайте `location.pathname`: от него зависит, какой переход
-   * выбрать (вглубь, назад, рядом). По умолчанию выбранное значение меню.
-   */
   pageKey?: PageKey;
-  /**
-   * Переход при смене страницы: "auto" (по умолчанию: рядом это "entrance",
-   * вглубь и назад это "drillIn"), "entrance", "drillIn", "slide", "suppress"
-   * или своя функция. Страница может переопределить его своим `transition`.
-   */
   pageTransition?: PageTransitionSetting;
   menuItems?: ReactNode;
   footerMenuItems?: ReactNode;
@@ -384,35 +322,13 @@ export interface NavigationViewProps extends Omit<
     | ReactNode
     | ((props: { isPaneOpen: boolean }) => ReactNode);
   paneFooter?: ReactNode | ((props: { isPaneOpen: boolean }) => ReactNode);
-  /**
-   * Режим панели:
-   * - "auto": по ширине корня выбирает "left", "leftCompact" или "leftMinimal";
-   * - "left": всегда раскрыта и стоит рядом со страницей, кнопки нет;
-   * - "leftCompact": стартует полосой с иконками, раскрытая лежит поверх страницы;
-   * - "leftMinimal": стартует с одной кнопкой панели, раскрытая лежит поверх страницы.
-   */
   paneDisplayMode?: PaneDisplayMode;
-  /**
-   * Режим "auto": ширина корня (px), от которой панель раскрыта ("left").
-   * `0`: панель всегда "left" (с кнопкой). По умолчанию 1008.
-   */
   expandedModeThresholdWidth?: number;
-  /**
-   * Режим "auto": ширина корня (px), при которой и меньше остаётся только кнопка
-   * панели ("leftMinimal"). Между порогами "leftCompact". `0` отключает
-   * "leftMinimal". По умолчанию 640.
-   */
   compactModeThresholdWidth?: number;
-  /**
-   * Если ширина корня не больше значения (px), панель, раскрытая поверх страницы
-   * ("leftCompact" и "leftMinimal"), занимает всю ширину корня. `0` отключает:
-   * панель всегда шириной `--nav-open-width`. По умолчанию 640.
-   */
   overlayFullWidthThreshold?: number;
   isPaneOpen?: boolean;
   onPaneOpenChange?: (isOpen: boolean) => void;
   isPaneToggleButtonVisible?: boolean;
-  /** Выбранный пункт (управляемый режим). `null`: управляемый режим, ничего не выбрано. */
   selectedValue?: string | number | null;
   defaultSelectedValue?: string | number | null;
   onNavItemSelect?: (
@@ -466,7 +382,6 @@ export function NavigationView({
   const stageRef = useRef<HTMLElement>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
 
-  // "leftCompact" и "leftMinimal" стартуют со свёрнутой панелью.
   const [open, setOpenState, openControlled] = useControllable<boolean>(
     isPaneOpen,
     paneDisplayMode === "auto" || paneDisplayMode === "left",
@@ -487,8 +402,6 @@ export function NavigationView({
     [openControlled, setOpenState, onPaneOpenChange],
   );
 
-  // Режим, который реально применён. Для "auto" его выбирает ширина корня; пока
-  // она не измерена, считаем панель раскрытой ("left").
   const adaptive = paneDisplayMode === "auto";
   const autoMode = useAutoDisplayMode(
     rootRef,
@@ -498,30 +411,21 @@ export function NavigationView({
   );
   const displayMode: ResolvedPaneMode =
     paneDisplayMode === "auto" ? (autoMode ?? "left") : paneDisplayMode;
-  // У "leftCompact" и "leftMinimal" раскрытая панель лежит поверх страницы,
-  // у "left" стоит рядом с ней и сдвигает её.
   const isOverlay = displayMode !== "left";
   const lastAutoModeRef = useRef<ResolvedPaneMode | null>(null);
 
-  // Режим сменили на лету (например, "leftMinimal" на телефоне и "auto" на десктопе):
-  // приводим панель к состоянию, с которого режим стартует. Без этого у "left"
-  // (кнопки нет) панель могла бы остаться свёрнутой, а у остальных открытой.
   const prevModeRef = useRef(paneDisplayMode);
   useIsoLayoutEffect(() => {
     const prev = prevModeRef.current;
     prevModeRef.current = paneDisplayMode;
     if (prev === paneDisplayMode) return;
     if (paneDisplayMode === "auto") {
-      // Подгонка под ширину начнётся заново, как при первом показе.
       lastAutoModeRef.current = null;
     } else {
       setPaneOpen(paneDisplayMode === "left");
     }
   }, [paneDisplayMode, setPaneOpen]);
 
-  // В "auto" панель реагирует только на смену режима по ширине: раскрыта в "left",
-  // свёрнута в "leftCompact" и "leftMinimal". Пока режим остаётся тем же, ручное
-  // раскрытие и сворачивание кнопкой сохраняются.
   useIsoLayoutEffect(() => {
     if (!adaptive || autoMode === null) return;
     const prev = lastAutoModeRef.current;
@@ -529,15 +433,12 @@ export function NavigationView({
     if (prev === autoMode) return;
     const wantOpen = autoMode === "left";
     if (prev === null) {
-      // Первое измерение: стартовое состояние по ширине. В управляемом режиме
-      // состояние ведёт родитель, колбэк не вызываем.
       if (!openControlled) setOpenState(wantOpen);
     } else {
       setPaneOpen(wantOpen);
     }
   }, [adaptive, autoMode, openControlled, setOpenState, setPaneOpen]);
 
-  // На узком корне панель, раскрытая поверх страницы, занимает всю его ширину.
   const fullWidthEnabled = isOverlay && overlayFullWidthThreshold > 0;
   const isRootWide = useIsWide(
     rootRef,
@@ -550,14 +451,10 @@ export function NavigationView({
     paneRef.current?.querySelector<HTMLElement>("[data-nv-toggle]")?.focus();
   }, []);
 
-  // Раскрытая поверх страницы панель сворачивается сама: при выборе пункта, по Esc
-  // и по клику на затемнение.
   const overlayOpen = isOverlay && open;
   const closeOverlay = useCallback(() => {
     if (!overlayOpen) return;
     setPaneOpen(false);
-    // В "leftMinimal" закрытая панель скрывает пункты: фокус переносим на кнопку
-    // панели, иначе он пропал бы вместе с нажатым пунктом.
     if (
       displayMode === "leftMinimal" &&
       paneRef.current?.contains(document.activeElement)
@@ -566,15 +463,10 @@ export function NavigationView({
     }
   }, [overlayOpen, displayMode, setPaneOpen, focusToggle]);
 
-  // Пока панель открыта поверх страницы, страница закрыта для фокуса и кликов.
-  // Атрибут ставится напрямую: `inert` в JSX по-разному поддержан в React 18 и 19.
   useIsoLayoutEffect(() => {
     stageRef.current?.toggleAttribute("inert", overlayOpen);
   }, [overlayOpen]);
 
-  // Ключ показываемой страницы и переход с прежней. Прежний ключ запоминается
-  // после отрисовки, поэтому при обычных перерисовках (тот же ключ) перехода нет,
-  // а у первой страницы его нет вовсе.
   const currentKey: PageKey | undefined = pageKey ?? selected ?? undefined;
   const previousKeyRef = useRef<PageKey | undefined>(undefined);
   const previousKey = previousKeyRef.current;
@@ -678,7 +570,6 @@ export function NavigationView({
         data-pane-open={open}
         data-pane-mode={displayMode}
       >
-        {/* Боковая панель */}
         <nav
           ref={paneRef}
           id={paneId}
@@ -721,7 +612,6 @@ export function NavigationView({
           )}
         </nav>
 
-        {/* Область контента страницы */}
         <main ref={stageRef} className={styles.stage}>
           <div ref={setHeaderSlot} className={styles.headerHost} />
           <PageFrame
@@ -734,7 +624,6 @@ export function NavigationView({
           </PageFrame>
         </main>
 
-        {/* Затемнение страницы под панелью, раскрытой поверх неё */}
         {isOverlay && (
           <div
             className={styles.scrim}
@@ -746,10 +635,6 @@ export function NavigationView({
     </NavContext.Provider>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Общая основа для NavItem и NavSubItem                               */
-/* ------------------------------------------------------------------ */
 
 type NavItemOwnProps<E extends ElementType = "button"> = {
   value?: string | number;
@@ -796,8 +681,9 @@ function NavLinkBase({
     tagProps.disabled = disabled;
   } else {
     tagProps["aria-disabled"] = disabled ? true : undefined;
-    if (Tag === "a") tagProps.href = disabled ? undefined : href;
-    else if (href) tagProps.href = href;
+    if (href && !disabled) {
+      tagProps.href = href;
+    }
   }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -850,10 +736,6 @@ export function NavSubItem<E extends ElementType = "button">(
 ) {
   return <NavLinkBase {...(props as NavLinkBaseProps)} isSub />;
 }
-
-/* ------------------------------------------------------------------ */
-/* NavCategory — раскрывающаяся группа                                 */
-/* ------------------------------------------------------------------ */
 
 export interface NavCategoryProps {
   value: string | number;
@@ -1027,10 +909,6 @@ export function NavCategory({
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Заголовок секции и разделитель                                      */
-/* ------------------------------------------------------------------ */
 
 export function NavSectionHeader({
   className,

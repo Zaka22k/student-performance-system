@@ -1,3 +1,5 @@
+"use client";
+
 import {
   useCallback,
   useEffect,
@@ -50,18 +52,14 @@ export interface ContextMenuProps {
   /** Items of the menu. / Пункты меню. */
   items: readonly ContextMenuItem[];
   /**
-   * Where the menu opens, in viewport coordinates (clientX / clientY). The menu flips to the other
-   * side of this point when it would not fit, and is always kept inside the window.
-   * Где открывается меню, в координатах окна (clientX / clientY). Если меню не помещается,
-   * оно разворачивается на другую сторону от этой точки и всегда остаётся в пределах окна.
+   * Where the menu opens, in viewport coordinates (clientX / clientY).
+   * Где открывается меню, в координатах окна (clientX / clientY).
    */
   x: number;
   y: number;
   /**
-   * Called when the menu wants to close. `restoreFocus` is true when the user closed it with the
-   * keyboard or chose an item (give focus back to where it was), false when they clicked elsewhere.
-   * Вызывается, когда меню хочет закрыться. `restoreFocus` равен true, если меню закрыли с клавиатуры
-   * или выбрали пункт (верните фокус туда, где он был), и false, если кликнули в другом месте.
+   * Called when the menu wants to close.
+   * Вызывается, когда меню хочет закрыться.
    */
   onClose: (restoreFocus: boolean) => void;
   /**
@@ -84,7 +82,6 @@ const cx = (...parts: Array<string | false | null | undefined>): string =>
 const isSeparator = (item: ContextMenuItem): item is ContextMenuSeparator =>
   "type" in item && item.type === "separator";
 
-// Minimum gap to the window edge / Минимальный зазор до края окна
 const EDGE = 8;
 
 interface Placement {
@@ -97,15 +94,6 @@ interface Placement {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), Math.max(min, max));
 
-/**
- * A context menu. It is rendered in a portal in <body> with `position: fixed`, so no parent
- * with `overflow` or `opacity` can clip or spoil it. Mount it while the menu is open and unmount
- * it in `onClose`.
- *
- * Контекстное меню. Рендерится порталом в <body> с `position: fixed`, поэтому его не обрезают
- * и не портят родители с `overflow` или `opacity`. Монтируйте его, пока меню открыто,
- * и размонтируйте в `onClose`.
- */
 export function ContextMenu({
   items,
   x,
@@ -119,8 +107,6 @@ export function ContextMenu({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Indexes of the items that can be chosen.
-  // Индексы пунктов, которые можно выбрать.
   const enabled = useMemo(
     () =>
       items.flatMap((item, index) =>
@@ -146,8 +132,6 @@ export function ContextMenu({
     onCloseRef.current = onClose;
   });
 
-  // Place the menu from its measured size before the first paint.
-  // Ставим меню по его замеренному размеру до первой отрисовки.
   useIsomorphicLayoutEffect(() => {
     const el = panelRef.current;
     if (!el) return;
@@ -174,14 +158,10 @@ export function ContextMenu({
     );
   }, [x, y, items]);
 
-  // The menu takes the keyboard focus; the cursor is shown with aria-activedescendant.
-  // Меню забирает фокус клавиатуры; курсор показываем через aria-activedescendant.
   useEffect(() => {
     menuRef.current?.focus({ preventScroll: true });
   }, []);
 
-  // Anything outside the menu closes it: a click, a scroll, a resize, leaving the window.
-  // Всё, что происходит вне меню, закрывает его: клик, прокрутка, изменение размера, уход из окна.
   useEffect(() => {
     const close = () => onCloseRef.current(false);
     const inside = (target: EventTarget | null) =>
@@ -255,8 +235,6 @@ export function ContextMenu({
         break;
       case "Escape":
       case "Tab":
-        // preventDefault tells a Modal below not to treat this Escape as its own.
-        // preventDefault сообщает Modal под меню, что этот Escape не его.
         onCloseRef.current(true);
         break;
       default:

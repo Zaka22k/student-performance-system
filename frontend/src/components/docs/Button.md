@@ -1,6 +1,6 @@
 # Button
 
-Кнопка на основе `GlassPanel`: стеклянная подложка, внутри нативный `<button>`. Есть два вида (обычная и акцентная) и два варианта содержимого: текст или только иконка.
+Кнопка на основе `GlassPanel`: стеклянная подложка, внутри нативный `<button>`. Есть три вида (`normal`, `primary`, `destructive`) и два варианта содержимого: текст или только иконка.
 
 ## Подключение
 
@@ -18,14 +18,16 @@ import Button from "./Button";
 import type { ButtonProps, ButtonAppearance } from "./Button";
 ```
 
-Компонент экспортируется по умолчанию.
+Компонент экспортируется по умолчанию и содержит директиву `"use client"` для работы в Next.js App Router.
 
 ## Быстрый старт
 
 ```tsx
 <Button onClick={save}>Сохранить</Button>
 
-<Button appearance="accent" onClick={send}>Отправить</Button>
+<Button appearance="primary" onClick={send}>Отправить</Button>
+
+<Button appearance="destructive" onClick={remove}>Удалить</Button>
 
 <Button icon={<PlusIcon />} aria-label="Добавить" onClick={add} />
 ```
@@ -34,7 +36,7 @@ import type { ButtonProps, ButtonAppearance } from "./Button";
 
 | Свойство | Тип | По умолчанию | Описание |
 | --- | --- | --- | --- |
-| `appearance` | `"default" \| "accent"` | `"default"` | Вид кнопки |
+| `appearance` | `"normal" \| "primary" \| "destructive"` | `"normal"` | Вид кнопки |
 | `children` | `ReactNode` | — | Текст кнопки. Нельзя использовать вместе с `icon` |
 | `icon` | `ReactNode` | — | Иконка. Включает режим «только иконка», требует `aria-label` |
 | `aria-label` | `string` | — | **Обязателен**, если задан `icon` |
@@ -42,7 +44,7 @@ import type { ButtonProps, ButtonAppearance } from "./Button";
 | `height` | `number \| string` | `36` | Высота. В режиме иконки задаёт и ширину, кнопка получается квадратной |
 | `type` | `"button" \| "submit" \| "reset"` | `"button"` | Тип нативной кнопки |
 | `className`, `style` | | | Применяются к **внешней обёртке** (`GlassPanel`), а не к `<button>` |
-| остальные | атрибуты `<button>` | | `onClick`, `disabled`, `title`, `form`, `aria-*`, `data-*` идут на нативный `<button>` |
+| остальные | атрибуты `<button>` | | `onClick`, `disabled`, `title`, `form`, `formAction`, `aria-*`, `data-*` идут на нативный `<button>` |
 
 `ref` указывает на нативный `<button>`.
 
@@ -52,8 +54,9 @@ import type { ButtonProps, ButtonAppearance } from "./Button";
 
 | Вид | Когда использовать |
 | --- | --- |
-| `default` | Обычные действия, второстепенные кнопки, кнопки в панелях |
-| `accent` | Главное действие на экране или в диалоге (одно на область) |
+| `normal` | Обычные действия, второстепенные кнопки, кнопки в панелях (полупрозрачная стеклянная заливка) |
+| `primary` | Главное действие на экране, в форме или в диалоге (сплошная акцентная заливка) |
+| `destructive` | Разрушительные действия: удаление, сброс, отмена (полупрозрачная заливка с критическим красным текстом) |
 
 ## Примеры
 
@@ -71,28 +74,31 @@ import type { ButtonProps, ButtonAppearance } from "./Button";
 
 ```tsx
 <Button icon={<SettingsIcon />} aria-label="Настройки" />
-<Button icon={<TrashIcon />} aria-label="Удалить" height={32} />
+<Button icon={<TrashIcon />} appearance="destructive" aria-label="Удалить" height={32} />
 ```
 
-Иконка рисуется размером 20×20, SVG растягивается на весь блок. Цвет берётся из `currentColor`, поэтому у иконок стоит использовать `stroke`/`fill="currentColor"`.
+Иконка рисуется размером 20x20, SVG растягивается на весь блок. Цвет берётся из `currentColor`, поэтому у иконок стоит использовать `stroke`/`fill="currentColor"`.
 
-### 3. Отправка формы
+### 3. Отправка формы и `useActionState` (Next.js / React 19)
 
 ```tsx
-<form onSubmit={handleSubmit}>
-  …
-  <Button type="submit" appearance="accent">Сохранить</Button>
-  <Button type="reset">Сбросить</Button>
+<form action={formAction}>
+  <Button type="submit" appearance="primary" disabled={isPending} width={140}>
+    {isPending ? "Сохранение…" : "Сохранить"}
+  </Button>
+  <Button type="reset" disabled={isPending}>
+    Сбросить
+  </Button>
 </form>
 ```
 
-По умолчанию `type="button"`, поэтому кнопка форму **не отправляет**. Для отправки нужен `type="submit"`.
+По умолчанию `type="button"`, поэтому кнопка форму **не отправляет**. Для отправки нужен `type="submit"`. Если текст кнопки меняется во время `isPending`, рекомендуется задать фиксированную `width`, чтобы `GlassPanel` не пересчитывал карту преломления при смене статуса.
 
 ### 4. Отключённая кнопка
 
 ```tsx
 <Button disabled>Недоступно</Button>
-<Button appearance="accent" disabled>Недоступно</Button>
+<Button appearance="primary" disabled>Недоступно</Button>
 ```
 
 ### 5. Свой класс и положение
@@ -118,15 +124,15 @@ const ref = useRef<HTMLButtonElement>(null);
 
 ## Поведение
 
-- **Наведение:** фон переходит на `ControlFillColorSecondary` (обычная) или `AccentFillColorSecondary` (акцентная).
+- **Наведение:** фон переходит на `ControlFillColorSecondary` (`normal` и `destructive`) или `AccentFillColorSecondary` (`primary`).
 - **Нажатие:** цвет текста и фон переключаются на «нажатые» токены, вся кнопка вместе с подложкой слегка уменьшается до `scale(0.97)`.
-- **Отключена:** текст и фон из токенов `Disabled`, курсор `not-allowed`, вся кнопка с подложкой становится полупрозрачной (`opacity: 0.6`). Наведение и нажатие не срабатывают.
+- **Отключена:** текст и фон из токенов `Disabled`, курсор `not-allowed`, вся кнопка с подложкой становится полупрозрачной (`opacity: 0.6`). Наведение и нажатие не срабатывают, пересчёт карт стекла не запускается.
 - **Переходы** фона, цвета и масштаба идут по `--ControlAnimationDuration` и `--ControlAnimationEasing`.
-- Обычная кнопка полупрозрачная (20% заливки), и под ней просвечивает стеклянная подложка. Акцентная заливается сплошным цветом.
+- Кнопки `normal` и `destructive` полупрозрачные (20% заливки), и под ними просвечивает стеклянная подложка. Кнопка `primary` заливается сплошным цветом.
 
 ## Доступность
 
-- Это нативный `<button>`: работают `Tab`, `Enter`, `Space`, `disabled`, `form`.
+- Это нативный `<button>`: работают `Tab`, `Enter`, `Space`, `disabled`, `form`, `formAction`.
 - Фокус показывается внутренней обводкой 2px (`--AccentFillColorSelectedTextBackgroundBrush`). Она внутри, потому что обёртка обрезает всё, что выходит за её границы.
 - Кнопке-иконке нужен `aria-label`, TypeScript проверяет это сам.
 - Для `prefers-reduced-motion: reduce` переходы и сжатие при нажатии отключаются.
@@ -134,7 +140,6 @@ const ref = useRef<HTMLButtonElement>(null);
 ## Ограничения
 
 - Нельзя совместить иконку и текст в одной кнопке.
-- Нет размеров `small`/`large`, вида «прозрачная», «опасная» и состояния загрузки. Высота и ширина задаются числами.
 - Из `style` и `className` ничего не попадает на `<button>`, только на обёртку. Это важно, например, для `:hover`-стилей и селекторов, которые ожидают класс на самой кнопке.
 - В режиме иконки `width` игнорируется, кнопка всегда квадрат со стороной `height`.
 - Режим иконки включается при любом `icon` кроме `null`/`undefined`. Значение `icon={false}` создаст пустую квадратную кнопку.
@@ -144,8 +149,9 @@ const ref = useRef<HTMLButtonElement>(null);
 
 | Что | Токены |
 | --- | --- |
-| Обычная кнопка | `TextFillColorPrimaryBrush`, `TextFillColorSecondaryBrush` (нажата), `TextFillColorDisabledBrush`; `ControlFillColorDefaultBrush`, `ControlFillColorSecondaryBrush`, `ControlFillColorTertiaryBrush`, `ControlFillColorDisabledBrush` |
-| Акцентная кнопка | `TextOnAccentFillColorPrimaryBrush`, `TextOnAccentFillColorSecondaryBrush`, `TextOnAccentFillColorDisabledBrush`; `AccentFillColorDefaultBrush`, `AccentFillColorSecondaryBrush`, `AccentFillColorTertiaryBrush`, `AccentFillColorDisabledBrush` |
+| Обычная кнопка (`normal`) | `TextFillColorPrimaryBrush`, `TextFillColorSecondaryBrush` (нажата), `TextFillColorDisabledBrush`; `ControlFillColorDefaultBrush`, `ControlFillColorSecondaryBrush`, `ControlFillColorTertiaryBrush`, `ControlFillColorDisabledBrush` |
+| Акцентная кнопка (`primary`) | `TextOnAccentFillColorPrimaryBrush`, `TextOnAccentFillColorSecondaryBrush`, `TextOnAccentFillColorDisabledBrush`; `AccentFillColorDefaultBrush`, `AccentFillColorSecondaryBrush`, `AccentFillColorTertiaryBrush`, `AccentFillColorDisabledBrush` |
+| Разрушительная кнопка (`destructive`) | `SystemFillColorCriticalBrush`, `TextFillColorDisabledBrush`; фон как у `normal` |
 | Фокус | `AccentFillColorSelectedTextBackgroundBrush` |
 | Анимации | `ControlAnimationDuration`, `ControlAnimationEasing` |
 | Типографика | класс `BodyTextBlockStyle` из `index.css` |

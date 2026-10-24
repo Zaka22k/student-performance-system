@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { GlassPanel } from "../GlassPanel";
@@ -5,7 +7,7 @@ import styles from "./Button.module.css";
 
 export type ButtonAppearance = "normal" | "primary" | "destructive";
 
-const buttonStyles = {
+const buttonStyles: Record<ButtonAppearance, string> = {
   normal: styles.normal,
   primary: styles.primary,
   destructive: styles.destructive,
@@ -40,7 +42,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     type = "button",
     width = "auto",
     height = 36,
-
     ...props
   },
   ref,

@@ -1,9 +1,5 @@
 /* ───────────── 1. Обычное поле ввода (TextField) ───────────── */
 
-/*
- * Корень: подпись + поле (+ подсказка). Размеры, отступы, подпись и состояния
- * совпадают с ComboBox (общие токены Control* из index.css).
- */
 .root {
   display: inline-flex;
   flex-direction: column;
@@ -42,7 +38,6 @@
   gap: var(--ControlLabelGap);
 }
 
-/* Поле (обёртка над input и иконками). Это <label>: клик по нему фокусирует input. */
 .control {
   flex: none;
   min-width: 0;
@@ -73,22 +68,31 @@
   background-color: var(--ControlFillColorTertiaryBrush);
 }
 
+.invalid .control {
+  border-color: var(--SystemFillColorCriticalBrush);
+}
+
+.invalid .control:focus-within {
+  outline-color: var(--SystemFillColorCriticalBrush);
+}
+
 .disabled .control,
 .disabled .control:hover {
   cursor: not-allowed;
+  border-color: var(--ControlElevationBorderBrush);
   background-color: var(--ControlFillColorDisabledBrush);
   color: var(--TextFillColorDisabledBrush);
 }
 
-/*
- * Подсказка не влияет на ширину поля: width: 0 убирает её из расчёта ширины
- * корня, а min-width: 100% растягивает до ширины поля и переносит текст.
- */
 .hint {
   width: 0;
   min-width: 100%;
   color: var(--TextFillColorSecondaryBrush);
   overflow-wrap: anywhere;
+}
+
+.invalid .hint {
+  color: var(--SystemFillColorCriticalBrush);
 }
 
 .disabled .hint {
@@ -145,7 +149,6 @@
 
 /* ───────────── 2. Стеклянная строка поиска (SearchField) ───────────── */
 
-/* Стеклянная панель. Состояния меняют только полупрозрачную заливку и контур. */
 .searchPanel {
   max-width: 100%;
   overflow: hidden;
@@ -187,7 +190,6 @@
   }
 }
 
-/* Содержимое панели. Это <label>: клик по нему фокусирует input. */
 .searchInner {
   box-sizing: border-box;
   display: flex;
@@ -233,7 +235,6 @@
     }
   }
 
-  /* Скрываем стандартный браузерный крестик у type="search" */
   &::-webkit-search-decoration,
   &::-webkit-search-cancel-button,
   &::-webkit-search-results-button,

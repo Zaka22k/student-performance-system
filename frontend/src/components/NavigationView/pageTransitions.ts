@@ -1,15 +1,9 @@
+"use client";
+
 import { createContext, useContext, useEffect, useLayoutEffect } from "react";
 
 /* ------------------------------------------------------------------ */
 /* Переходы между страницами NavigationView                            */
-/*                                                                     */
-/* Названия и смысл взяты у WinUI (Page transitions):                  */
-/* - entrance (Page refresh): наверх стека, пункты меню;               */
-/* - drillIn: вглубь иерархии, назад из неё;                           */
-/* - slide: соседние страницы;                                         */
-/* - suppress: без анимации.                                           */
-/* Анимируется только появляющаяся страница, как в WinUI. Время и      */
-/* кривые из статьи «Motion in Windows».                               */
 /* ------------------------------------------------------------------ */
 
 /** Ключ страницы. Для роутера это `pathname`. */
@@ -227,17 +221,12 @@ const NAMED: Record<PageTransitionName, BuiltIn> = {
 /* Связь страниц по ключам-путям                                        */
 /* ------------------------------------------------------------------ */
 
-/**
- * Путь из ключа или `null`, если ключ не путь. Путь начинается с «/», без
- * запроса, хеша и конечного слэша; корень это «/».
- */
 export function normalizePagePath(key: PageKey): string | null {
   if (typeof key !== "string" || !key.startsWith("/")) return null;
   const path = key.split(/[?#]/)[0].replace(/\/+$/, "");
   return path === "" ? "/" : path;
 }
 
-/** Корень «/» родителем не считается: верхние страницы меню равноправны. */
 const isAncestor = (ancestor: string, path: string): boolean =>
   ancestor !== "/" && path.startsWith(`${ancestor}/`);
 
@@ -275,10 +264,6 @@ export function prefersReducedMotion(): boolean {
   );
 }
 
-/**
- * Превращает настройку в дорожки анимации. При `reducedMotion` любой переход,
- * кроме "suppress", заменяется коротким затуханием без движения.
- */
 export function resolvePageTransition(
   setting: PageTransitionSetting,
   info: PageTransitionInfo,
@@ -297,7 +282,6 @@ export function resolvePageTransition(
   return reducedMotion && animations.length > 0 ? [fadeIn()] : animations;
 }
 
-/** Простое `var(--имя)` или `var(--имя, запасное)`. Сложные формы оставляем браузеру. */
 const VAR_PATTERN = /var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*))?\)/g;
 
 function substituteVars(value: unknown, style: CSSStyleDeclaration): unknown {
@@ -311,7 +295,6 @@ function substituteVars(value: unknown, style: CSSStyleDeclaration): unknown {
   );
 }
 
-/** Подставляет значения CSS-переменных, чтобы не зависеть от поддержки `var()` в keyframes. */
 function resolveVars(
   keyframes: PageAnimation["keyframes"],
   style: CSSStyleDeclaration,
@@ -337,7 +320,6 @@ function resolveVars(
   ) as PropertyIndexedKeyframes;
 }
 
-/** Запускает дорожки на элементе. Вернуть `cancel()` для каждой нужно при размонтировании. */
 export function playPageAnimations(
   element: HTMLElement,
   animations: PageAnimation[],
@@ -363,7 +345,6 @@ export interface PageFrameContextValue {
   headerSlot: HTMLElement | null;
 }
 
-/** Предоставляется рамкой страницы внутри NavigationView. Вне его значение `null`. */
 export const PageFrameContext = createContext<PageFrameContextValue | null>(
   null,
 );
@@ -371,12 +352,6 @@ export const PageFrameContext = createContext<PageFrameContextValue | null>(
 const useIsoLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-/**
- * Страница сообщает рамке, каким переходом она появляется. Эффект страницы идёт
- * раньше эффекта рамки (дочерние эффекты выполняются первыми), поэтому настройка
- * успевает до старта анимации. Если страница появляется позже рамки (например,
- * подгружается лениво), настройка не действует.
- */
 export function usePageTransition(setting?: PageTransitionSetting): void {
   const frame = useContext(PageFrameContext);
   useIsoLayoutEffect(() => {

@@ -43,7 +43,6 @@
   }
 }
 
-/* Окно получает фокус программно (tabIndex=-1): рамка фокуса не нужна. */
 .modal:focus {
   outline: none;
 }
@@ -140,7 +139,6 @@
   flex: none;
 }
 
-/* Сообщение об ошибке действия слева от кнопки */
 .footerError {
   flex: 1 1 auto;
   min-width: 0;
@@ -185,5 +183,15 @@
   to {
     opacity: 0;
     transform: translateZ(0) scale(0.96);
+  }
+}
+
+/* Сокращаем анимацию вместо animation: none, чтобы срабатывал onAnimationEnd и размонтировал окно */
+@media (prefers-reduced-motion: reduce) {
+  .overlayOpen,
+  .overlayClose,
+  .modalOpen,
+  .modalClose {
+    animation-duration: 0.01ms;
   }
 }

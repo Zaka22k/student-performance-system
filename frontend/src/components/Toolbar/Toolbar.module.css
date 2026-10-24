@@ -123,3 +123,9 @@
   display: inline-block;
   flex: 1 1 0;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

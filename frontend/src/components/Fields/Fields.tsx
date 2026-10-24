@@ -1,4 +1,13 @@
-import { forwardRef, useCallback, useId, useRef, useState } from "react";
+"use client";
+
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import type {
   ChangeEvent,
   CSSProperties,
@@ -16,18 +25,14 @@ export type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   startIcon?: ReactNode;
   /** Icon after the text. / Иконка после текста. */
   endIcon?: ReactNode;
-  /**
-   * Introductory label. Per HIG, use title-style capitalization and end it with a colon.
-   * Вводная подпись. По HIG: заглавные буквы как в заголовке и двоеточие в конце.
-   */
+  /** Introductory label. / Вводная подпись. */
   label?: ReactNode;
-  /**
-   * Where the label sits: above the field or before it (macOS style).
-   * Где стоит подпись: над полем или перед ним (как в macOS).
-   */
+  /** Where the label sits: above the field or before it. / Где стоит подпись: над полем или перед ним. */
   labelPlacement?: "top" | "start";
   /** Helper text shown below the input field. / Текст подсказки снизу поля ввода. */
   hint?: ReactNode;
+  /** Validation error state or message. / Ошибка валидации: подсвечивает рамку красным и выводит текст ошибки вместо `hint`. */
+  error?: ReactNode | boolean;
   /** Class of the root element. / Класс корневого элемента. */
   className?: string;
   /** Style of the root element. / Стиль корневого элемента. */
@@ -44,10 +49,7 @@ export type SearchFieldProps = Omit<
   width?: number | string;
   /** Called after the clear button is pressed. / Вызывается после нажатия на кнопку очистки. */
   onClear?: () => void;
-  /**
-   * Accessible name and tooltip of the clear button.
-   * Доступное имя и всплывающая подсказка кнопки очистки.
-   */
+  /** Accessible name and tooltip of the clear button. / Доступное имя и всплывающая подсказка кнопки очистки. */
   clearLabel?: string;
   /** Class of the glass panel. / Класс стеклянной панели. */
   className?: string;
@@ -60,9 +62,8 @@ export type SearchFieldProps = Omit<
 const cx = (...classes: Array<string | false | null | undefined>): string =>
   classes.filter(Boolean).join(" ");
 
-/** Есть ли что показывать: `null`, `undefined` и `false` считаются пустыми. */
 const hasContent = (node: ReactNode): boolean =>
-  node !== undefined && node !== null && node !== false;
+  node !== undefined && node !== null && node !== false && node !== "";
 
 /* ───────────── Иконки ───────────── */
 
@@ -123,12 +124,14 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
       label,
       labelPlacement = "top",
       hint,
+      error,
       className,
       style,
       disabled,
       id,
       type = "text",
       "aria-describedby": ariaDescribedBy,
+      "aria-invalid": ariaInvalid,
       ...props
     },
     ref,
@@ -137,10 +140,15 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
     const inputId = id ?? `${baseId}-input`;
     const hintId = `${baseId}-hint`;
     const hasLabel = hasContent(label);
-    const hasHint = hasContent(hint);
+
+    const isInvalid =
+      Boolean(error) || ariaInvalid === true || ariaInvalid === "true";
+    const feedbackMessage =
+      typeof error !== "boolean" && hasContent(error) ? error : hint;
+    const hasFeedback = hasContent(feedbackMessage);
 
     const describedBy =
-      [ariaDescribedBy, hasHint ? hintId : undefined]
+      [ariaDescribedBy, hasFeedback ? hintId : undefined]
         .filter(Boolean)
         .join(" ") || undefined;
 
@@ -150,6 +158,7 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
           styles.root,
           labelPlacement === "start" && styles.labelStart,
           disabled && styles.disabled,
+          isInvalid && styles.invalid,
           className,
         )}
         style={style}
@@ -164,7 +173,6 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
         )}
 
         <div className={styles.fieldWrapper}>
-          {/* <label>: клик по иконкам и отступам тоже фокусирует input */}
           <label className={styles.control}>
             {startIcon && <span className={styles.icon}>{startIcon}</span>}
             <input
@@ -174,17 +182,18 @@ export const TextField = forwardRef<HTMLInputElement, FieldProps>(
               type={type}
               disabled={disabled}
               aria-describedby={describedBy}
+              aria-invalid={isInvalid || undefined}
               className={cx(styles.input, "BodyTextBlockStyle")}
             />
             {endIcon && <span className={styles.icon}>{endIcon}</span>}
           </label>
 
-          {hasHint && (
+          {hasFeedback && (
             <div
               id={hintId}
               className={cx(styles.hint, "CaptionTextBlockStyle")}
             >
-              {hint}
+              {feedbackMessage}
             </div>
           )}
         </div>
@@ -216,7 +225,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
   ) {
     const innerRef = useRef<HTMLInputElement | null>(null);
 
-    // Один и тот же узел нужен и нам (очистка, фокус), и родителю через ref.
     const setRefs = useCallback(
       (node: HTMLInputElement | null) => {
         innerRef.current = node;
@@ -226,12 +234,38 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       [forwardedRef],
     );
 
-    // Кнопка очистки зависит от того, есть ли в поле текст. В управляемом режиме
-    // это видно по `value`, в неуправляемом — отслеживаем сами.
     const isControlled = value !== undefined;
     const [uncontrolledHasValue, setUncontrolledHasValue] = useState(() =>
       Boolean(defaultValue && String(defaultValue).length > 0),
     );
+
+    const prevDefaultValueRef = useRef(defaultValue);
+    if (prevDefaultValueRef.current !== defaultValue) {
+      prevDefaultValueRef.current = defaultValue;
+      if (!isControlled) {
+        setUncontrolledHasValue(
+          Boolean(defaultValue && String(defaultValue).length > 0),
+        );
+      }
+    }
+
+    useEffect(() => {
+      const input = innerRef.current;
+      const formEl = input?.form;
+      if (!formEl) return;
+
+      const handleReset = () => {
+        if (!isControlled) {
+          setUncontrolledHasValue(
+            Boolean(defaultValue && String(defaultValue).length > 0),
+          );
+        }
+      };
+
+      formEl.addEventListener("reset", handleReset);
+      return () => formEl.removeEventListener("reset", handleReset);
+    }, [isControlled, defaultValue]);
+
     const hasValue = isControlled
       ? String(value).length > 0
       : uncontrolledHasValue;
@@ -245,9 +279,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       const input = innerRef.current;
       if (!input || disabled) return;
 
-      // Нативный сеттер обходит отслеживание значения в React, поэтому событие
-      // `input` доходит до `onChange` как при обычном вводе (и в управляемом,
-      // и в неуправляемом режиме).
       const setNativeValue = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
         "value",
@@ -259,7 +290,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       input.focus();
     };
 
-    // Не даём кнопке перехватить фокус у поля при нажатии мышью.
     const keepInputFocus = (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
     };
@@ -271,7 +301,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
         width={width}
         height={size}
       >
-        {/* <label>: клик по иконке и отступам тоже фокусирует input */}
         <label className={styles.searchInner}>
           <span className={styles.searchIcon}>
             <SearchIcon />

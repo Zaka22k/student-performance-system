@@ -1,3 +1,5 @@
+"use client";
+
 import {
   forwardRef,
   useCallback,
@@ -76,6 +78,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       className,
       style,
       disabled,
+      checked,
+      defaultChecked,
       onChange,
       ...rest
     },
@@ -96,6 +100,17 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     useIsomorphicLayoutEffect(() => {
       if (inputRef.current) inputRef.current.indeterminate = indeterminate;
     });
+
+    // Синхронизируем defaultChecked при обновлении стейта из useActionState
+    useEffect(() => {
+      if (
+        checked === undefined &&
+        defaultChecked !== undefined &&
+        inputRef.current
+      ) {
+        inputRef.current.checked = defaultChecked;
+      }
+    }, [checked, defaultChecked]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -122,6 +137,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             type="checkbox"
             className={styles.input}
             disabled={disabled}
+            checked={checked}
+            defaultChecked={defaultChecked}
             onChange={handleChange}
           />
           <span className={styles.box} aria-hidden="true">
@@ -183,12 +200,6 @@ const SWITCH_SIZES = {
 
 const THUMB_SHADOW = "0 2px 6px rgba(0, 0, 0, 0.35)";
 
-/**
- * If the slide never reports its end (nothing moved, or animations are off), the thumb
- * becomes opaque again after this many ms.
- * Если окончание движения не придёт (ничего не сдвинулось или анимации выключены),
- * ползунок снова станет непрозрачным через столько мс.
- */
 const SWITCHING_FALLBACK_MS = 500;
 
 const prefersReducedMotion = (): boolean =>
@@ -200,25 +211,46 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   {
     label,
     labelPlacement = "end",
-    size = "mini",
+    size = "regular",
     className,
     style,
     disabled,
+    checked,
+    defaultChecked,
     onChange,
     onKeyDown,
     onKeyUp,
     onBlur,
     ...rest
   },
-  ref,
+  forwardedRef,
 ) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const setRefs = useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node;
+      if (typeof forwardedRef === "function") forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+    },
+    [forwardedRef],
+  );
+
   const g = SWITCH_SIZES[size];
 
-  // The thumb is see-through while it is being pressed and while it slides.
-  // Ползунок почти прозрачен, пока его нажимают и пока он едет.
   const [pressed, setPressed] = useState(false);
   const [sliding, setSliding] = useState(false);
   const switching = !disabled && (pressed || sliding);
+
+  // Синхронизируем defaultChecked при обновлении стейта из useActionState
+  useEffect(() => {
+    if (
+      checked === undefined &&
+      defaultChecked !== undefined &&
+      inputRef.current
+    ) {
+      inputRef.current.checked = defaultChecked;
+    }
+  }, [checked, defaultChecked]);
 
   useEffect(() => {
     if (!sliding) return;
@@ -273,11 +305,13 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
       <span className={styles.control}>
         <input
           {...rest}
-          ref={ref}
+          ref={setRefs}
           type="checkbox"
           role="switch"
           className={styles.input}
           disabled={disabled}
+          checked={checked}
+          defaultChecked={defaultChecked}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}

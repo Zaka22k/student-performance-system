@@ -33,7 +33,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]):not(.dark) {
     color-scheme: light;
 
     /* Text */
@@ -94,8 +94,69 @@
   }
 }
 
+:root[data-theme="light"],
+:root.light {
+  color-scheme: light;
+
+  /* Text */
+  --TextFillColorPrimaryBrush: rgb(26, 26, 26);
+  --TextFillColorSecondaryBrush: rgb(92, 92, 92);
+  --TextFillColorTertiaryBrush: rgb(134, 134, 134);
+  --TextFillColorDisabledBrush: rgb(155, 155, 155);
+
+  --AccentTextFillColorPrimaryBrush: rgb(34, 64, 102);
+  --AccentTextFillColorSecondaryBrush: rgb(12, 28, 64);
+  --AccentTextFillColorTertiaryBrush: rgb(53, 96, 136);
+  --AccentTextFillColorDisabledBrush: rgb(155, 155, 155);
+
+  --TextOnAccentFillColorPrimaryBrush: rgb(255, 255, 255);
+  --TextOnAccentFillColorSecondaryBrush: rgb(251, 251, 251);
+  --TextOnAccentFillColorDisabledBrush: rgb(255, 255, 255);
+
+  /* Background */
+  --SolidBackgroundFillColorBaseBrush: rgb(243, 243, 243);
+  --LayerFillColorDefaultBrush: rgb(249, 249, 249);
+
+  --CardBackgroundFillColorDefaultBrush: rgb(251, 251, 251);
+  --CardBackgroundFillColorSecondaryBrush: rgb(244, 244, 244);
+  --CardBackgroundFillColorTertiaryBrush: rgb(255, 255, 255);
+
+  /* Fill */
+  --ControlFillColorDefaultBrush: rgb(251, 251, 251);
+  --ControlFillColorSecondaryBrush: rgb(246, 246, 246);
+  --ControlFillColorTertiaryBrush: rgb(245, 245, 245);
+  --ControlFillColorDisabledBrush: rgb(245, 245, 245);
+
+  --AccentFillColorDefaultBrush: rgb(53, 96, 136);
+  --AccentFillColorSecondaryBrush: rgb(72, 111, 147);
+  --AccentFillColorTertiaryBrush: rgb(91, 125, 157);
+  --AccentFillColorDisabledBrush: rgb(191, 191, 191);
+  --AccentFillColorSelectedTextBackgroundBrush: rgb(68, 121, 162);
+
+  --ControlOnImageFillColorDefaultBrush: rgb(252, 252, 252);
+
+  /* Stroke */
+  --ControlElevationBorderBrush: rgb(229, 229, 229);
+  --DividerStrokeColorDefaultBrush: rgb(229, 229, 229);
+  --SurfaceStrokeColorDefaultBrush: rgb(193, 193, 193);
+
+  /* Signal */
+  --SystemFillColorCriticalBrush: rgb(196, 43, 28);
+  --SystemFillColorCriticalBackgroundBrush: rgb(253, 231, 233);
+
+  --SystemFillColorSuccessBrush: rgb(15, 123, 15);
+  --SystemFillColorSuccessBackgroundBrush: rgb(223, 246, 221);
+
+  --SystemFillColorCautionBrush: rgb(157, 93, 0);
+  --SystemFillColorCautionBackgroundBrush: rgb(255, 244, 206);
+
+  /* Glass */
+  --edgeShadowOpacity: 0.4;
+  --outerShadowOpacity: 0.1;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not(.light) {
     color-scheme: dark;
 
     /* Text */
@@ -154,6 +215,67 @@
     --edgeShadowOpacity: 0;
     --outerShadowOpacity: 0;
   }
+}
+
+:root[data-theme="dark"],
+:root.dark {
+  color-scheme: dark;
+
+  /* Text */
+  --TextFillColorPrimaryBrush: rgb(255, 255, 255);
+  --TextFillColorSecondaryBrush: rgb(204, 204, 204);
+  --TextFillColorTertiaryBrush: rgb(150, 150, 150);
+  --TextFillColorDisabledBrush: rgb(113, 113, 113);
+
+  --AccentTextFillColorPrimaryBrush: rgb(184, 231, 238);
+  --AccentTextFillColorSecondaryBrush: rgb(184, 231, 238);
+  --AccentTextFillColorTertiaryBrush: rgb(150, 199, 216);
+  --AccentTextFillColorDisabledBrush: rgb(113, 113, 113);
+
+  --TextOnAccentFillColorPrimaryBrush: rgb(0, 0, 0);
+  --TextOnAccentFillColorSecondaryBrush: rgb(16, 16, 16);
+  --TextOnAccentFillColorDisabledBrush: rgb(150, 150, 150);
+
+  /* Background */
+  --SolidBackgroundFillColorBaseBrush: rgb(32, 32, 32);
+  --LayerFillColorDefaultBrush: rgb(39, 39, 39);
+
+  --CardBackgroundFillColorDefaultBrush: rgb(43, 43, 43);
+  --CardBackgroundFillColorSecondaryBrush: rgb(39, 39, 39);
+  --CardBackgroundFillColorTertiaryBrush: rgb(48, 48, 48);
+
+  /* Fill */
+  --ControlFillColorDefaultBrush: rgb(45, 45, 45);
+  --ControlFillColorSecondaryBrush: rgb(50, 50, 50);
+  --ControlFillColorTertiaryBrush: rgb(39, 39, 39);
+  --ControlFillColorDisabledBrush: rgb(42, 42, 42);
+
+  --AccentFillColorDefaultBrush: rgb(150, 199, 216);
+  --AccentFillColorSecondaryBrush: rgb(138, 182, 197);
+  --AccentFillColorTertiaryBrush: rgb(126, 165, 178);
+  --AccentFillColorDisabledBrush: rgb(67, 67, 67);
+  --AccentFillColorSelectedTextBackgroundBrush: rgb(68, 121, 162);
+
+  --ControlOnImageFillColorDefaultBrush: rgb(30, 30, 30);
+
+  /* Stroke */
+  --ControlElevationBorderBrush: rgb(53, 53, 53);
+  --DividerStrokeColorDefaultBrush: rgb(50, 50, 50);
+  --SurfaceStrokeColorDefaultBrush: rgb(66, 66, 66);
+
+  /* Signal */
+  --SystemFillColorCriticalBrush: rgb(255, 153, 164);
+  --SystemFillColorCriticalBackgroundBrush: rgb(68, 39, 38);
+
+  --SystemFillColorSuccessBrush: rgb(108, 203, 95);
+  --SystemFillColorSuccessBackgroundBrush: rgb(57, 61, 27);
+
+  --SystemFillColorCautionBrush: rgb(252, 225, 0);
+  --SystemFillColorCautionBackgroundBrush: rgb(67, 53, 25);
+
+  /* Glass */
+  --edgeShadowOpacity: 0;
+  --outerShadowOpacity: 0;
 }
 
 /* Нормализация */
