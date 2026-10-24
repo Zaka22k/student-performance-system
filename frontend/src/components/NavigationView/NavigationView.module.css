@@ -6,7 +6,10 @@
   --nav-compact-width: 60px;
   --nav-item-height: 32px;
   --nav-icon-size: 18px;
+  /* Смена страницы: сдвиг снизу (entrance), сдвиг сбоку (slide), масштаб (drillIn) */
   --nav-page-shift: 64px;
+  --nav-page-slide-shift: 64px;
+  --nav-page-drill-scale: 0.94;
   --nav-minimal-bar-height: 48px;
   --nav-overlay-scrim: rgb(0 0 0 / 0.32);
   --nav-overlay-pane-background: color-mix(
@@ -397,43 +400,32 @@
 }
 
 /* ======================= Страница ======================= */
+
+/*
+ * Окно страницы: само не прокручивается и обрезает всё, что выходит за него.
+ * Прокручивается вложенный .scroller, и именно он движется при смене страницы:
+ * сдвиг не создаёт лишней прокрутки, а полоса прокрутки не пропадает на время
+ * анимации. `overflow: clip` (а не `hidden`) не делает окно контейнером
+ * прокрутки: фокус или scrollIntoView на элементе в смещённой части страницы не
+ * сдвинут окно, и после анимации страница не останется смещённой. Строка с
+ * `hidden` нужна браузерам без поддержки `clip`.
+ */
 .stage {
   position: relative;
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   min-width: 0;
   height: 100%;
-  overflow: auto;
-}
-
-.stage:has(.pageExit, .pageEnter) {
   overflow: hidden;
+  overflow: clip;
 }
 
-.page {
-  min-height: 100%;
-}
-
-.pageExit {
-  pointer-events: none;
-  animation: pageOut 200ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-.pageEnter {
-  animation: pageIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes pageOut {
-  to {
-    opacity: 0;
-    transform: translateY(var(--nav-page-shift));
-  }
-}
-
-@keyframes pageIn {
-  from {
-    opacity: 0;
-    transform: translateY(var(--nav-page-shift));
-  }
+/* Одна страница. Новый элемент на каждую страницу: прокрутка всегда с начала */
+.scroller {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -448,10 +440,5 @@
   .flyout.flyout {
     transition: none;
     animation: none;
-  }
-
-  .pageExit,
-  .pageEnter {
-    animation-duration: 0.01ms;
   }
 }

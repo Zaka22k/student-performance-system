@@ -5,6 +5,8 @@ import Button from "../Button";
 import { ProgressRing } from "../ProgressRing";
 import { Toolbar } from "../Toolbar";
 import type { ToolbarProps } from "../Toolbar";
+import { usePageTransition } from "../NavigationView/pageTransitions";
+import type { PageTransitionSetting } from "../NavigationView/pageTransitions";
 import styles from "./Page.module.css";
 
 export interface PageProps {
@@ -14,6 +16,11 @@ export interface PageProps {
   onBack?: () => void;
   toolbar?: Pick<ToolbarProps, "leading" | "center" | "trailing">;
   onNavigate?: () => void | Promise<void>;
+  /**
+   * Переход, которым эта страница появляется внутри NavigationView. Без него
+   * действует `pageTransition` из NavigationView. Вне NavigationView не используется.
+   */
+  transition?: PageTransitionSetting;
 }
 
 type NavigateStatus = "loading" | "ready" | "error";
@@ -43,8 +50,10 @@ const Page = ({
   onBack,
   toolbar,
   onNavigate,
+  transition,
 }: PageProps) => {
   const navigate = useNavigate();
+  usePageTransition(transition);
 
   const [status, setStatus] = useState<NavigateStatus>(
     onNavigate ? "loading" : "ready",

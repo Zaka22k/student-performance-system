@@ -46,6 +46,9 @@ export default function AppLayout() {
         selectedValue={selected}
         pageKey={location.pathname}
         defaultOpenCategories={openCategory ? [openCategory] : []}
+        pageTransition={(info) =>
+          info.relation === "peer" ? "entrance" : "slide"
+        }
         menuItems={
           <>
             <NavItem

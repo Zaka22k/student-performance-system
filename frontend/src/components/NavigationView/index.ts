@@ -5,4 +5,5 @@ export {
   NavSubItem,
   NavSectionHeader,
   NavDivider,
+  matchNavValue,
 } from "./NavigationView";

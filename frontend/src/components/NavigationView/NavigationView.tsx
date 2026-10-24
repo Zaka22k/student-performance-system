@@ -18,7 +18,38 @@ import type {
 import { createPortal } from "react-dom";
 import { GlassPanel } from "../GlassPanel";
 import Button from "../Button";
+import {
+  PageFrameContext,
+  createPageTransitionInfo,
+  normalizePagePath,
+  playPageAnimations,
+  prefersReducedMotion,
+  resolvePageTransition,
+} from "./pageTransitions";
+import type {
+  PageFrameContextValue,
+  PageKey,
+  PageTransitionInfo,
+  PageTransitionSetting,
+} from "./pageTransitions";
 import styles from "./NavigationView.module.css";
+
+export {
+  autoTransition,
+  drillInTransition,
+  entranceTransition,
+  pageMotion,
+  slideTransition,
+  suppressTransition,
+} from "./pageTransitions";
+export type {
+  PageAnimation,
+  PageKey,
+  PageTransitionFn,
+  PageTransitionInfo,
+  PageTransitionName,
+  PageTransitionSetting,
+} from "./pageTransitions";
 
 /* ------------------------------------------------------------------ */
 /* Вспомогательные функции и хуки                                      */
@@ -37,7 +68,7 @@ export type PaneDisplayMode = "auto" | "left" | "leftCompact" | "leftMinimal";
 type ResolvedPaneMode = Exclude<PaneDisplayMode, "auto">;
 
 interface NavContextValue {
-  selectedValue?: string | number;
+  selectedValue?: string | number | null;
   select: (
     event: React.SyntheticEvent,
     value: string | number,
@@ -246,55 +277,81 @@ function ChevronIcon() {
 /* Смена страницы                                                      */
 /* ------------------------------------------------------------------ */
 
-interface PageTransitionProps {
-  pageKey?: string | number;
-  scrollRef: React.RefObject<HTMLElement | null>;
+interface PageFrameProps {
+  /** Откуда и куда перешли; `null` у первой страницы: она появляется без анимации. */
+  info: PageTransitionInfo | null;
+  setting: PageTransitionSetting;
   children?: ReactNode;
 }
 
-function PageTransition({ pageKey, scrollRef, children }: PageTransitionProps) {
-  const [displayed, setDisplayed] = useState({
-    key: pageKey,
-    node: children,
-    entering: false,
-  });
+/**
+ * Рамка одной страницы. NavigationView создаёт новую рамку на каждый ключ страницы
+ * (`key`), поэтому прежняя страница убирается сразу, а анимация идёт только у
+ * новой, и содержимое всегда берётся из актуального маршрута.
+ */
+function PageFrame({ info, setting, children }: PageFrameProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const overrideRef = useRef<PageTransitionSetting | undefined>(undefined);
+  const frame = useMemo<PageFrameContextValue>(
+    () => ({
+      setTransition: (next) => {
+        overrideRef.current = next;
+      },
+    }),
+    [],
+  );
 
-  const leaving = pageKey !== displayed.key;
-
-  // Обновляем контент синхронно, если ключ страницы не менялся
+  // Запуск один раз, когда страница появилась. Эффект страницы (usePageTransition)
+  // выполняется раньше: у дочерних компонентов эффекты идут первыми. Анимация
+  // стартует до отрисовки кадра, поэтому мигания полной страницы нет.
   useIsoLayoutEffect(() => {
-    if (!leaving && displayed.node !== children) {
-      setDisplayed((prev) => ({ ...prev, node: children }));
-    }
-  }, [leaving, children, displayed.node]);
-
-  // Сбрасываем прокрутку при смене отображаемого ключа
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [displayed.key, scrollRef]);
-
-  const handleAnimationEnd = (event: React.AnimationEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
-    if (leaving) {
-      setDisplayed({ key: pageKey, node: children, entering: true });
-    } else if (displayed.entering) {
-      setDisplayed((prev) => ({ ...prev, entering: false }));
-    }
-  };
+    const element = ref.current;
+    if (!element || !info) return undefined;
+    const animations = resolvePageTransition(
+      overrideRef.current ?? setting,
+      info,
+      prefersReducedMotion(),
+    );
+    const running = playPageAnimations(element, animations);
+    return () => running.forEach((animation) => animation.cancel());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <div
-      key={displayed.key}
-      className={cx(
-        styles.page,
-        leaving && styles.pageExit,
-        !leaving && displayed.entering && styles.pageEnter,
-      )}
-      onAnimationEnd={handleAnimationEnd}
-    >
-      {leaving ? displayed.node : children}
-    </div>
+    <PageFrameContext.Provider value={frame}>
+      <div ref={ref} className={styles.scroller}>
+        {children}
+      </div>
+    </PageFrameContext.Provider>
   );
+}
+
+/**
+ * Какой пункт меню подсвечивать на странице `pathname`. Подходит пункт, чьё
+ * значение равно пути или является его началом по сегментам; из нескольких
+ * побеждает самый длинный. Так страница вне меню (`/performance/new`) оставляет
+ * выбранным раздел `/performance`. Корень «/» подходит только самому себе.
+ * Ничего не подошло: `null`.
+ */
+export function matchNavValue<T extends string | number>(
+  pathname: string,
+  values: readonly T[],
+): T | null {
+  const path = normalizePagePath(pathname);
+  if (path === null) return null;
+  let best: T | null = null;
+  let bestLength = -1;
+  for (const value of values) {
+    const candidate = normalizePagePath(value);
+    if (candidate === null) continue;
+    const matches =
+      path === candidate || (candidate !== "/" && path.startsWith(`${candidate}/`));
+    if (matches && candidate.length > bestLength) {
+      best = value;
+      bestLength = candidate.length;
+    }
+  }
+  return best;
 }
 
 /* ------------------------------------------------------------------ */
@@ -305,8 +362,20 @@ export interface NavigationViewProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "onSelect"
 > {
+  /** Содержимое: страница (`Page`). */
   children?: ReactNode;
-  pageKey?: string | number;
+  /**
+   * Ключ страницы. При смене показывается новая страница и играет переход.
+   * С роутером передавайте `location.pathname`: от него зависит, какой переход
+   * выбрать (вглубь, назад, рядом). По умолчанию выбранное значение меню.
+   */
+  pageKey?: PageKey;
+  /**
+   * Переход при смене страницы: "auto" (по умолчанию: рядом это "entrance",
+   * вглубь и назад это "drillIn"), "entrance", "drillIn", "slide", "suppress"
+   * или своя функция. Страница может переопределить его своим `transition`.
+   */
+  pageTransition?: PageTransitionSetting;
   menuItems?: ReactNode;
   footerMenuItems?: ReactNode;
   paneTitle?: ReactNode;
@@ -343,8 +412,9 @@ export interface NavigationViewProps extends Omit<
   isPaneOpen?: boolean;
   onPaneOpenChange?: (isOpen: boolean) => void;
   isPaneToggleButtonVisible?: boolean;
-  selectedValue?: string | number;
-  defaultSelectedValue?: string | number;
+  /** Выбранный пункт (управляемый режим). `null`: управляемый режим, ничего не выбрано. */
+  selectedValue?: string | number | null;
+  defaultSelectedValue?: string | number | null;
   onNavItemSelect?: (
     event: React.SyntheticEvent,
     info: { value: string | number },
@@ -363,6 +433,7 @@ export interface NavigationViewProps extends Omit<
 export function NavigationView({
   children,
   pageKey,
+  pageTransition = "auto",
   menuItems,
   footerMenuItems,
   paneTitle,
@@ -392,17 +463,16 @@ export function NavigationView({
   const paneId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLElement>(null);
-  const scrollRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLElement>(null);
 
   // "leftCompact" и "leftMinimal" стартуют со свёрнутой панелью.
   const [open, setOpenState, openControlled] = useControllable<boolean>(
     isPaneOpen,
     paneDisplayMode === "auto" || paneDisplayMode === "left",
   );
-  const [selected, setSelected, selectedControlled] = useControllable(
-    selectedValue,
-    defaultSelectedValue,
-  );
+  const [selected, setSelected, selectedControlled] = useControllable<
+    string | number | null | undefined
+  >(selectedValue, defaultSelectedValue);
   const [openCats, setOpenCats, openCatsControlled] = useControllable(
     openCategories,
     defaultOpenCategories,
@@ -498,8 +568,24 @@ export function NavigationView({
   // Пока панель открыта поверх страницы, страница закрыта для фокуса и кликов.
   // Атрибут ставится напрямую: `inert` в JSX по-разному поддержан в React 18 и 19.
   useIsoLayoutEffect(() => {
-    scrollRef.current?.toggleAttribute("inert", overlayOpen);
+    stageRef.current?.toggleAttribute("inert", overlayOpen);
   }, [overlayOpen]);
+
+  // Ключ показываемой страницы и переход с прежней. Прежний ключ запоминается
+  // после отрисовки, поэтому при обычных перерисовках (тот же ключ) перехода нет,
+  // а у первой страницы его нет вовсе.
+  const currentKey: PageKey | undefined = pageKey ?? selected ?? undefined;
+  const previousKeyRef = useRef<PageKey | undefined>(undefined);
+  const previousKey = previousKeyRef.current;
+  const pageInfo =
+    previousKey !== undefined &&
+    currentKey !== undefined &&
+    previousKey !== currentKey
+      ? createPageTransitionInfo(previousKey, currentKey)
+      : null;
+  useIsoLayoutEffect(() => {
+    previousKeyRef.current = currentKey;
+  }, [currentKey]);
 
   const select = useCallback(
     (
@@ -635,13 +721,14 @@ export function NavigationView({
         </nav>
 
         {/* Область контента страницы */}
-        <main ref={scrollRef} className={styles.stage}>
-          <PageTransition
-            pageKey={pageKey !== undefined ? pageKey : selected}
-            scrollRef={scrollRef}
+        <main ref={stageRef} className={styles.stage}>
+          <PageFrame
+            key={currentKey === undefined ? undefined : String(currentKey)}
+            info={pageInfo}
+            setting={pageTransition}
           >
             {children}
-          </PageTransition>
+          </PageFrame>
         </main>
 
         {/* Затемнение страницы под панелью, раскрытой поверх неё */}
