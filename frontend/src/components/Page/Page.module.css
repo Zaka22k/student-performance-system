@@ -23,7 +23,8 @@
 }
 
 .pageBody {
-  padding: 12px 24px;
+  /* 64px под шапку + 12px прежний отступ */
+  padding: 76px 24px 12px;
 }
 
 .pageStatus {

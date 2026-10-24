@@ -61,7 +61,9 @@ export type PageTransitionResult =
   | null
   | undefined;
 
-export type PageTransitionFn = (info: PageTransitionInfo) => PageTransitionResult;
+export type PageTransitionFn = (
+  info: PageTransitionInfo,
+) => PageTransitionResult;
 
 /** Имя встроенного перехода или своя функция. */
 export type PageTransitionSetting = PageTransitionName | PageTransitionFn;
@@ -90,7 +92,10 @@ export const pageMotion = {
 
 const fadeIn = (): PageAnimation => ({
   keyframes: [{ opacity: 0 }, { opacity: 1 }],
-  options: { duration: pageMotion.duration.fade, easing: pageMotion.easing.linear },
+  options: {
+    duration: pageMotion.duration.fade,
+    easing: pageMotion.easing.linear,
+  },
 });
 
 const toCss = (value: number | string): string =>
@@ -117,7 +122,10 @@ export function entranceTransition({
   const shift = toCss(distance);
   return () => [
     {
-      keyframes: [{ transform: `translateY(${shift})` }, { transform: "translateY(0)" }],
+      keyframes: [
+        { transform: `translateY(${shift})` },
+        { transform: "translateY(0)" },
+      ],
       options: { duration, easing: pageMotion.easing.directEntrance },
     },
     fadeIn(),
@@ -173,11 +181,18 @@ export function slideTransition({
   const shift = toCss(distance);
   return ({ direction }) => {
     const side =
-      effect === "auto" ? (direction === "back" ? "fromLeft" : "fromRight") : effect;
+      effect === "auto"
+        ? direction === "back"
+          ? "fromLeft"
+          : "fromRight"
+        : effect;
     const from = side === "fromLeft" ? `calc(-1 * ${shift})` : shift;
     return [
       {
-        keyframes: [{ transform: `translateX(${from})` }, { transform: "translateX(0)" }],
+        keyframes: [
+          { transform: `translateX(${from})` },
+          { transform: "translateX(0)" },
+        ],
         options: { duration, easing: pageMotion.easing.directEntrance },
       },
       fadeIn(),
@@ -287,10 +302,13 @@ const VAR_PATTERN = /var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*))?\)/g;
 
 function substituteVars(value: unknown, style: CSSStyleDeclaration): unknown {
   if (typeof value !== "string" || !value.includes("var(")) return value;
-  return value.replace(VAR_PATTERN, (match, name: string, fallback?: string) => {
-    const resolved = style.getPropertyValue(name).trim();
-    return resolved || fallback?.trim() || match;
-  });
+  return value.replace(
+    VAR_PATTERN,
+    (match, name: string, fallback?: string) => {
+      const resolved = style.getPropertyValue(name).trim();
+      return resolved || fallback?.trim() || match;
+    },
+  );
 }
 
 /** Подставляет значения CSS-переменных, чтобы не зависеть от поддержки `var()` в keyframes. */
@@ -302,7 +320,10 @@ function resolveVars(
     return keyframes.map(
       (frame) =>
         Object.fromEntries(
-          Object.entries(frame).map(([prop, value]) => [prop, substituteVars(value, style)]),
+          Object.entries(frame).map(([prop, value]) => [
+            prop,
+            substituteVars(value, style),
+          ]),
         ) as Keyframe,
     );
   }
@@ -324,7 +345,10 @@ export function playPageAnimations(
   if (typeof element.animate !== "function") return [];
   const style = getComputedStyle(element);
   return animations.map(({ keyframes, options }) =>
-    element.animate(resolveVars(keyframes, style), { fill: "backwards", ...options }),
+    element.animate(resolveVars(keyframes, style), {
+      fill: "backwards",
+      ...options,
+    }),
   );
 }
 
@@ -335,10 +359,14 @@ export function playPageAnimations(
 export interface PageFrameContextValue {
   /** Переход, которым появляется страница; `undefined` возвращает настройку NavigationView. */
   setTransition: (setting: PageTransitionSetting | undefined) => void;
+  /** Постоянный контейнер шапки в NavigationView (не двигается при анимации страницы). */
+  headerSlot: HTMLElement | null;
 }
 
 /** Предоставляется рамкой страницы внутри NavigationView. Вне его значение `null`. */
-export const PageFrameContext = createContext<PageFrameContextValue | null>(null);
+export const PageFrameContext = createContext<PageFrameContextValue | null>(
+  null,
+);
 
 const useIsoLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;

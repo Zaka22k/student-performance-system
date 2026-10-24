@@ -278,9 +278,9 @@ function ChevronIcon() {
 /* ------------------------------------------------------------------ */
 
 interface PageFrameProps {
-  /** Откуда и куда перешли; `null` у первой страницы: она появляется без анимации. */
   info: PageTransitionInfo | null;
   setting: PageTransitionSetting;
+  headerSlot: HTMLElement | null;
   children?: ReactNode;
 }
 
@@ -289,7 +289,8 @@ interface PageFrameProps {
  * (`key`), поэтому прежняя страница убирается сразу, а анимация идёт только у
  * новой, и содержимое всегда берётся из актуального маршрута.
  */
-function PageFrame({ info, setting, children }: PageFrameProps) {
+
+function PageFrame({ info, setting, headerSlot, children }: PageFrameProps) {
   const ref = useRef<HTMLDivElement>(null);
   const overrideRef = useRef<PageTransitionSetting | undefined>(undefined);
   const frame = useMemo<PageFrameContextValue>(
@@ -297,13 +298,11 @@ function PageFrame({ info, setting, children }: PageFrameProps) {
       setTransition: (next) => {
         overrideRef.current = next;
       },
+      headerSlot,
     }),
-    [],
+    [headerSlot],
   );
 
-  // Запуск один раз, когда страница появилась. Эффект страницы (usePageTransition)
-  // выполняется раньше: у дочерних компонентов эффекты идут первыми. Анимация
-  // стартует до отрисовки кадра, поэтому мигания полной страницы нет.
   useIsoLayoutEffect(() => {
     const element = ref.current;
     if (!element || !info) return undefined;
@@ -345,7 +344,8 @@ export function matchNavValue<T extends string | number>(
     const candidate = normalizePagePath(value);
     if (candidate === null) continue;
     const matches =
-      path === candidate || (candidate !== "/" && path.startsWith(`${candidate}/`));
+      path === candidate ||
+      (candidate !== "/" && path.startsWith(`${candidate}/`));
     if (matches && candidate.length > bestLength) {
       best = value;
       bestLength = candidate.length;
@@ -464,6 +464,7 @@ export function NavigationView({
   const rootRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLElement>(null);
+  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
 
   // "leftCompact" и "leftMinimal" стартуют со свёрнутой панелью.
   const [open, setOpenState, openControlled] = useControllable<boolean>(
@@ -722,10 +723,12 @@ export function NavigationView({
 
         {/* Область контента страницы */}
         <main ref={stageRef} className={styles.stage}>
+          <div ref={setHeaderSlot} className={styles.headerHost} />
           <PageFrame
             key={currentKey === undefined ? undefined : String(currentKey)}
             info={pageInfo}
             setting={pageTransition}
+            headerSlot={headerSlot}
           >
             {children}
           </PageFrame>

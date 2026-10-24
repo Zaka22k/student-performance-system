@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import Button from "../Button";
 import { ProgressRing } from "../ProgressRing";
 import { Toolbar } from "../Toolbar";
 import type { ToolbarProps } from "../Toolbar";
-import { usePageTransition } from "../NavigationView/pageTransitions";
+import {
+  PageFrameContext,
+  usePageTransition,
+} from "../NavigationView/pageTransitions";
 import type { PageTransitionSetting } from "../NavigationView/pageTransitions";
 import styles from "./Page.module.css";
 
@@ -16,10 +20,6 @@ export interface PageProps {
   onBack?: () => void;
   toolbar?: Pick<ToolbarProps, "leading" | "center" | "trailing">;
   onNavigate?: () => void | Promise<void>;
-  /**
-   * Переход, которым эта страница появляется внутри NavigationView. Без него
-   * действует `pageTransition` из NavigationView. Вне NavigationView не используется.
-   */
   transition?: PageTransitionSetting;
 }
 
@@ -53,6 +53,7 @@ const Page = ({
   transition,
 }: PageProps) => {
   const navigate = useNavigate();
+  const frame = useContext(PageFrameContext);
   usePageTransition(transition);
 
   const [status, setStatus] = useState<NavigateStatus>(
@@ -126,16 +127,20 @@ const Page = ({
     body = children;
   }
 
+  const header = (
+    <div className={styles.pageHeader}>
+      <Toolbar
+        leading={leading || undefined}
+        title={<div className="SubtitleTextBlockStyle">{title}</div>}
+        center={toolbar?.center}
+        trailing={toolbar?.trailing}
+      />
+    </div>
+  );
+
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <Toolbar
-          leading={leading || undefined}
-          title={<div className={`SubtitleTextBlockStyle`}>{title}</div>}
-          center={toolbar?.center}
-          trailing={toolbar?.trailing}
-        />
-      </div>
+      {frame?.headerSlot ? createPortal(header, frame.headerSlot) : header}
       <div className={styles.pageBody}>{body}</div>
     </div>
   );

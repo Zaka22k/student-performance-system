@@ -428,6 +428,19 @@
   overflow: auto;
 }
 
+.headerHost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  pointer-events: none; /* чтобы прозрачный градиент не перекрывал клики по контенту */
+}
+
+.headerHost > * {
+  pointer-events: auto; /* возвращаем клики самой шапке и кнопкам Toolbar */
+}
+
 @media (prefers-reduced-motion: reduce) {
   .paneNav,
   .item,
