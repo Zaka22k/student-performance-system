@@ -1,0 +1,1 @@
+export { teacherColumns } from "./columns";

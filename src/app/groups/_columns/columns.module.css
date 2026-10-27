@@ -1,0 +1,66 @@
+.codeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: rgba(var(--system-blue-rgb), 0.14);
+  border: 1px solid rgba(var(--system-blue-rgb), 0.28);
+  color: var(--system-blue);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.nameText {
+  display: block;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.programText {
+  display: block;
+  color: var(--label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yearTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: var(--fill-tertiary);
+  border: 1px solid var(--separator);
+  color: var(--label-primary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.countPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+
+.countActive {
+  background-color: rgba(var(--system-green-rgb), 0.14);
+  border-color: rgba(var(--system-green-rgb), 0.28);
+  color: var(--system-green);
+}
+
+.countEmpty {
+  background-color: var(--fill-quaternary);
+  border-color: var(--separator);
+  color: var(--label-tertiary);
+}

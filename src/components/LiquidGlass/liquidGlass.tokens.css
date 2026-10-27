@@ -1,0 +1,80 @@
+/*
+ * LiquidGlass tokens. Every line is optional: a token that is not set falls back to the prop,
+ * and then to LIQUID_GLASS_DEFAULTS. A token that is set wins over the prop.
+ * Tokens can be set on :root, on a theme selector, on any ancestor, in a class or in `style`.
+ *
+ * Токены LiquidGlass. Каждая строка необязательна: незаданный токен уступает пропсу,
+ * а тот значению из LIQUID_GLASS_DEFAULTS. Заданный токен главнее пропса.
+ * Токены можно объявлять на :root, на селекторе темы, на любом предке, в классе или в `style`.
+ *
+ * Types / Типы: length = 24px, 1.5rem, calc(...), var(...); number = 1.5; angle = -110deg;
+ * color = any CSS colour, color-mix() included / любой CSS-цвет, в том числе color-mix();
+ * 0 | 1 = switch / переключатель.
+ */
+
+/* ---- Defaults, for reference / Значения по умолчанию, для справки ----
+:root {
+  --lg-width: 320px;
+  --lg-height: 160px;
+  --lg-radius: 9999px;
+
+  --lg-bezel: 30px;
+  --lg-glass-height: 50px;
+  --lg-ior: 1.5;
+  --lg-strength: 1;
+  --lg-blur: 0.25px;
+  --lg-saturation: 1.4;
+  --lg-fallback-blur: 24px;
+
+  --lg-tint: rgba(255, 255, 255, 0);
+  --lg-tint-opacity: ;  (not set: the alpha of --lg-tint is used)
+
+  --lg-edge-opacity: 0.35;
+  --lg-edge-width: 8px;
+  --lg-edge-direction: 0.65;
+  --lg-specular-over-shade: 1;
+
+  --lg-specular-color: #ffffff;
+  --lg-specular-opacity: 0.6;
+  --lg-specular-width: 2px;
+  --lg-light-angle: -110deg;
+
+  --lg-effects: 0;
+  --lg-glow-hover: 0.25;
+  --lg-glow-press: 0.6;
+  --lg-glow-edge: 1;
+  --lg-glow-size: 160px;
+  --lg-glow-color: #ffffff;
+  --lg-glow-follow: 1;
+  --lg-hover-scale: 1;
+  --lg-press-scale: 1.06;
+  --lg-bounce: 0.6;
+  --lg-stiffness: 300;
+}
+*/
+
+/* ---- Example 1: design system drives the edges / Пример 1: дизайн-система управляет краями ----
+   --edgeShadowOpacity is 0.4 in the light theme and 0 in the dark one (index.css).
+   --edgeShadowOpacity равен 0.4 в светлой теме и 0 в тёмной (index.css).
+   Examples are commented out: copy what you need. / Примеры закомментированы: копируйте нужное.
+:root {
+  --lg-edge-opacity: var(--edgeShadowOpacity);
+  --lg-tint: color-mix(in srgb, var(--ControlFillColorDefaultBrush) 35%, transparent);
+  --lg-glow-color: var(--TextFillColorPrimaryBrush);
+}
+*/
+
+/* ---- Example 2: accent button / Пример 2: акцентная кнопка ----
+.glass-accent {
+  --lg-tint: color-mix(in srgb, var(--AccentFillColorDefaultBrush) 70%, transparent);
+  --lg-specular-color: color-mix(in srgb, var(--AccentFillColorDefaultBrush) 25%, white);
+  --lg-specular-opacity: 0.95;
+  --lg-glow-color: var(--TextOnAccentFillColorPrimaryBrush);
+}
+*/
+
+/* ---- Example 3: all controls react to the pointer / Пример 3: все элементы управления реагируют на указатель ----
+.glass-control {
+  --lg-effects: 1;
+}
+*/

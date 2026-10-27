@@ -1,0 +1,1 @@
+export { subjectColumns } from "./columns";

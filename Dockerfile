@@ -1,34 +1,35 @@
-# --- ЭТАП 1: Сборка фронтенда (React + Vite) ---
-FROM node:22-alpine AS frontend-builder
-WORKDIR /app/frontend
-
-# Устанавливаем зависимости фронта и собираем проект
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-# В результате внутри контейнера появилась папка /app/frontend/dist
-# (в vite.config.ts не должно быть build.outDir, иначе путь ниже изменится)
-
-
-# --- ЭТАП 2: Финальный образ бэкенда ---
-FROM node:22-alpine
+# --- ЭТАП 1: Установка зависимостей и сборка Next.js ---
+FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Устанавливаем зависимости бэкенда
-COPY backend/package*.json ./
-RUN npm install
+# Фиктивный URL только для этапа сборки (для prisma generate и next build)
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=1
 
-# Копируем код бэкенда
-COPY backend/ ./
+# 1. Копируем только package.json и ставим зависимости без запуска postinstall
+COPY package*.json ./
+RUN npm ci --ignore-scripts
 
-# Генерируем Prisma-клиент. Подключения к базе тут нет:
-# DATABASE_URL нужен только затем, чтобы прочиталась конфигурация Prisma
-RUN DATABASE_URL=postgres://build:build@localhost:5432/build npx prisma generate
+# 2. Копируем весь проект целиком и запускаем "build": "prisma generate && next build"
+COPY . .
+RUN npm run build
 
-# Multi-stage: забираем ТОЛЬКО собранную папку dist из первого этапа и кладём её в ./public
-COPY --from=frontend-builder /app/frontend/dist ./public
+
+# --- ЭТАП 2: Чистый и лёгкий финальный образ для запуска ---
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=5000
+
+# Забираем только статику и собранный standalone-сервер
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 5000
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

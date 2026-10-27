@@ -1,0 +1,26 @@
+/* Параметры над таблицей: семестр и группа выбираются, а не фильтруют список */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+}
+
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.param {
+  width: 240px;
+  max-width: 100%;
+}
+
+.grid {
+  flex: 1;
+  min-height: 0;
+  padding-top: 12px;
+}

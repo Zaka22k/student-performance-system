@@ -1,0 +1,251 @@
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* CornerRadius */
+  --CircularCornerRadius: 9999px;
+  --ControlCornerRadius: 8px;
+
+  /* Size: общие размеры полей ввода (TextField, ComboBox) */
+  --ControlHeight: 32px;
+  --ControlPaddingInline: 10px;
+  --ControlLabelGap: 6px;
+  --ControlLabelInlineGap: 12px;
+
+  --ZIndexModal: 1000;
+  --ZIndexPopup: 1100;
+
+  /* Animation */
+  --ControlAnimationDuration: 200ms;
+  --ControlAnimationEasing: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Font Size */
+  --font-caption: 0.75rem;
+  --font-body: 0.875rem;
+  --font-body-large: 1.125rem;
+  --font-subtitle: 1.25rem;
+  --font-title: 1.75rem;
+  --font-title-lg: 2.5rem;
+
+  @media (max-width: 768px) {
+    --font-body-large: 1rem;
+    --font-subtitle: 1.125rem;
+    --font-title: 1.375rem;
+    --font-title-lg: 1.75rem;
+  }
+
+  /* SYSTEM COLORS */
+  --system-red: #ff453a;
+  --system-orange: #ff9f0a;
+  --system-yellow: #ffd60a;
+  --system-green: #32d74b;
+  --system-mint: #66d4cf;
+  --system-teal: #6ac4dc;
+  --system-cyan: #5ac8f5;
+  --system-blue: #0a84ff;
+  --system-indigo: #5e5ce6;
+  --system-purple: #bf5af2;
+  --system-pink: #ff375f;
+  --system-brown: #ac8e68;
+
+  /* RGB-каналы */
+  --system-red-rgb: 255, 69, 58;
+  --system-orange-rgb: 255, 159, 10;
+  --system-yellow-rgb: 255, 214, 10;
+  --system-green-rgb: 50, 215, 75;
+  --system-mint-rgb: 102, 212, 207;
+  --system-teal-rgb: 106, 196, 220;
+  --system-cyan-rgb: 90, 200, 245;
+  --system-blue-rgb: 10, 132, 255;
+  --system-indigo-rgb: 94, 92, 230;
+  --system-purple-rgb: 191, 90, 242;
+  --system-pink-rgb: 255, 55, 95;
+  --system-brown-rgb: 172, 142, 104;
+
+  /* SYSTEM GRAYS */
+  --system-gray: #98989d;
+  --system-gray-2: #636366;
+  --system-gray-3: #48484a;
+  --system-gray-4: #3a3a3c;
+  --system-gray-5: #2c2c2e;
+  --system-gray-6: #1c1c1e;
+
+  /* LABELS & TEXT */
+  --label-primary: rgba(255, 255, 255, 0.85);
+  --label-secondary: rgba(255, 255, 255, 0.55);
+  --label-tertiary: rgba(255, 255, 255, 0.25);
+  --label-quaternary: rgba(255, 255, 255, 0.1);
+
+  --text-primary: #ffffff;
+  --text-placeholder: rgba(255, 255, 255, 0.25);
+  --text-selected: #ffffff;
+  --link: #419cff;
+
+  /* BACKGROUNDS & WINDOWS */
+  --window-bg: #1e1e1e;
+  --under-page-bg: #282828;
+  --control-bg: #1e1e1e;
+  --text-bg: #1e1e1e;
+  --elevated-bg: #2c2c2e;
+  --grouped-bg: #1c1c1e;
+  --grouped-secondary-bg: #2c2c2e;
+
+  /* Чередующиеся строки таблиц / списков */
+  --row-even-bg: transparent;
+  --row-odd-bg: rgba(255, 255, 255, 0.05);
+
+  /* FILLS & CONTROLS */
+  --control-surface: rgba(255, 255, 255, 0.25);
+  --fill-primary: rgba(255, 255, 255, 0.1);
+  --fill-secondary: rgba(255, 255, 255, 0.08);
+  --fill-tertiary: rgba(255, 255, 255, 0.05);
+  --fill-quaternary: rgba(255, 255, 255, 0.03);
+  --fill-quinary: rgba(255, 255, 255, 0.015);
+
+  /* Акценты и выделение */
+  --control-accent: var(--system-green);
+  --selected-control: color-mix(in srgb, var(--control-accent) 45%, #2c2c2e);
+  --selected-content-bg: color-mix(in srgb, var(--control-accent) 75%, #000000);
+  --keyboard-focus-indicator: color-mix(
+    in srgb,
+    var(--control-accent) 50%,
+    transparent
+  );
+  --unemphasized-selected-bg: #464646;
+  --find-highlight: #ffff00;
+
+  /* SEPARATORS & BORDERS */
+  --separator: rgba(255, 255, 255, 0.1);
+  --separator-opaque: #38383a;
+  --grid-color: rgba(255, 255, 255, 0.07);
+  --window-border: rgba(255, 255, 255, 0.15);
+  --window-inner-glow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.15);
+
+  /* VIBRANCY & MATERIALS  */
+  --material-sidebar-bg: rgba(40, 40, 40, 0.65);
+  --material-header-bg: rgba(30, 30, 30, 0.75);
+  --material-popover-bg: rgba(45, 45, 45, 0.8);
+  --material-hud-bg: rgba(20, 20, 20, 0.85);
+  --material-blur: blur(20px) saturate(180%);
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme="dark"] {
+    --system-red: #ff6961;
+    --system-orange: #ffb340;
+    --system-yellow: #ffd426;
+    --system-green: #30db5b;
+    --system-mint: #70d7ff;
+    --system-teal: #5de6ff;
+    --system-cyan: #70d7ff;
+    --system-blue: #409cff;
+    --system-indigo: #7d7aff;
+    --system-purple: #da8fff;
+    --system-pink: #ff6482;
+    --system-brown: #b59469;
+
+    --system-gray: #aeaeb2;
+    --system-gray-2: #7c7c80;
+    --system-gray-3: #545456;
+    --system-gray-4: #444446;
+    --system-gray-5: #363638;
+    --system-gray-6: #242426;
+
+    --label-primary: #ffffff;
+    --label-secondary: rgba(255, 255, 255, 0.7);
+    --label-tertiary: rgba(255, 255, 255, 0.4);
+    --separator: rgba(255, 255, 255, 0.25);
+    --window-border: rgba(255, 255, 255, 0.35);
+  }
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    :root,
+    [data-theme="dark"] {
+      --system-red: color(display-p3 1 0.271 0.227);
+      --system-orange: color(display-p3 1 0.624 0.039);
+      --system-yellow: color(display-p3 1 0.839 0.039);
+      --system-green: color(display-p3 0.196 0.843 0.294);
+      --system-mint: color(display-p3 0.4 0.831 0.812);
+      --system-teal: color(display-p3 0.416 0.769 0.863);
+      --system-cyan: color(display-p3 0.353 0.784 0.961);
+      --system-blue: color(display-p3 0.039 0.518 1);
+      --system-indigo: color(display-p3 0.369 0.361 0.902);
+      --system-purple: color(display-p3 0.749 0.353 0.949);
+      --system-pink: color(display-p3 1 0.216 0.373);
+      --system-brown: color(display-p3 0.675 0.557 0.408);
+    }
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--separator) transparent;
+}
+
+body {
+  color: var(--text-primary);
+  background-color: var(--window-bg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Tahoma,
+    Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
+}
+
+/* Типография */
+.CaptionTextBlockStyle {
+  font-size: var(--font-caption);
+}
+
+.BodyTextBlockStyle {
+  font-size: var(--font-body);
+
+  &.BodyStrongTextBlockStyle {
+    font-weight: 600;
+  }
+}
+
+.BodyLargeTextBlockStyle {
+  font-size: var(--font-body-large);
+
+  &.BodyLargeStrongTextBlockStyle {
+    font-weight: 600;
+  }
+}
+
+.SubtitleTextBlockStyle {
+  font-size: var(--font-subtitle);
+}
+
+.TitleTextBlockStyle {
+  font-size: var(--font-title);
+}
+
+.TitleLargeTextBlockStyle {
+  font-size: var(--font-title-lg);
+}
