@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useModal, useToast, type DataGridRowId } from "@/components";
+import { useModal, useToast, type DataGridRowId } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import type { Performance, PerformanceListResponse } from "@/models";
 import { getPerformances, deletePerformance } from "@/actions/performance";

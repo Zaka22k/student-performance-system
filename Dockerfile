@@ -9,6 +9,7 @@ ENV DOCKER_BUILD=1
 
 # 1. Копируем только package.json и ставим зависимости без запуска postinstall
 COPY package*.json ./
+COPY packages/ ./packages/
 RUN npm ci --ignore-scripts
 
 # 2. Копируем весь проект целиком и запускаем "build": "prisma generate && next build"

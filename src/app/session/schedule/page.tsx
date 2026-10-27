@@ -1,6 +1,6 @@
 "use client";
 
-import { Page, DataGrid, ComboBox, SearchField } from "@/components";
+import { Page, DataGrid, ComboBox, SearchField } from "@ui-kit/components";
 import { semesterLabel } from "@/utils";
 import { scheduleColumns, scheduleRowId } from "./_columns";
 import { useSchedulePage } from "./useSchedulePage";

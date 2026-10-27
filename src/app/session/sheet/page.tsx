@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Page, Button } from "@/components";
+import { Page, Button } from "@ui-kit/components";
 import SheetForm from "./SheetForm";
 import { useSheetPage } from "./useSheetPage";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Page, DataGrid, Button, SearchField } from "@/components";
+import { Page, DataGrid, Button, SearchField } from "@ui-kit/components";
 import { PlusIcon, EditIcon, TrashIcon } from "@/icons";
 import { performanceColumns } from "./_columns";
 import { usePerformancePage } from "./usePerformancePage";

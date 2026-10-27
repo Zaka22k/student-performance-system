@@ -1,6 +1,6 @@
 "use client";
 
-import { ToolbarGroup, ToolbarButton } from "@/components";
+import { ToolbarGroup, ToolbarButton } from "@ui-kit/components";
 import { PrintIcon, XmlIcon } from "@/icons";
 import type { ReportOutput } from "./useReportPage";
 

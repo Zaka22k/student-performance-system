@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "@/components";
+import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getSubjectsAnalytics } from "@/actions/analytics";
-import { getSemesters } from "@/actions/semesters"; // или "@/actions/semesters"
-import { getGroups } from "@/actions/groups"; // или "@/actions/groups"
+import { getSemesters } from "@/actions/semesters";
+import { getGroups } from "@/actions/groups";
 import type { Group, GradeBucket, Semester, SubjectStat } from "@/models";
 
 const DEBOUNCE_MS = 300;

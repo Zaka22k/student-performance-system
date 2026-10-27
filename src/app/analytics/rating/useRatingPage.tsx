@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "@/components";
+import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getRating } from "@/actions/analytics";
 import type { RatingItem } from "@/models";

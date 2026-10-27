@@ -1,6 +1,6 @@
 "use client";
 
-import { Page, DataGrid, ComboBox, BarChart } from "@/components";
+import { BarChart, Page, DataGrid, ComboBox } from "@ui-kit/components";
 import { semesterLabel } from "@/utils";
 import { formatAverage } from "../format";
 import { groupStatColumns } from "./_columns";

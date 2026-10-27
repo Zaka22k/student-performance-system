@@ -1,6 +1,6 @@
 "use client";
 
-import { Page, DataGrid, SearchField } from "@/components";
+import { Page, DataGrid, SearchField } from "@ui-kit/components";
 import { ratingColumns } from "./_columns";
 import { useRatingPage } from "./useRatingPage";
 

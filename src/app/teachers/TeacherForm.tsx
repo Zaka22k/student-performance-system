@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { type ModalFormRenderProps, TextField } from "@/components";
+import { type ModalFormRenderProps, TextField } from "@ui-kit/components";
 import type { Teacher, TeacherInput } from "@/models";
 
 interface Props extends ModalFormRenderProps {

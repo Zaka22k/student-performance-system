@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useModal, useToast } from "@/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import * as actions from "@/actions/groups";
 import type { Group, GroupInput } from "@/models";

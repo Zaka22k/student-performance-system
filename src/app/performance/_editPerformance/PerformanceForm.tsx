@@ -7,7 +7,7 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { ComboBox, TextField, Button } from "@/components";
+import { ComboBox, TextField, Button } from "@ui-kit/components";
 import { getErrorMessage, fullName, semesterLabel } from "@/utils";
 import type {
   AssessmentType,

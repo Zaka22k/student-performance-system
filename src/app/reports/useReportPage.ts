@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useToast } from "@/components";
+import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getReport } from "@/actions/reports";
 import { getGroups } from "@/actions/groups";

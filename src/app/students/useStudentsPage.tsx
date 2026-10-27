@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useModal, useToast } from "@/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage, fullName } from "@/utils";
 import {
   getStudents,

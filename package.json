@@ -6,11 +6,13 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
+    "reinstall": "npm install --force file:packages/ui-kit-components-0.1.0.tgz",
     "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "@ui-kit/components": "file:packages/ui-kit-components-0.1.0.tgz",
     "next": "16.4.3",
     "pg": "^8.23.1",
     "react": "19.3.0",

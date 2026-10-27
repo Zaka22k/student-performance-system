@@ -1,0 +1,203 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 900px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.sectionHeader {
+  padding-inline: 4px;
+  color: var(--label-secondary);
+}
+
+.card {
+  background-color: var(--elevated-bg);
+  border: 1px solid var(--window-border);
+  border-radius: var(--ControlCornerRadius);
+  box-shadow: var(--window-inner-glow);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--separator);
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowDescription {
+  color: var(--label-secondary);
+}
+
+/* ───────────── Карточки выбора темы (macOS Appearance) ───────────── */
+
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.themeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: var(--fill-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--ControlCornerRadius);
+  cursor: pointer;
+  transition:
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing),
+    border-color var(--ControlAnimationDuration) var(--ControlAnimationEasing),
+    transform var(--ControlAnimationDuration) var(--ControlAnimationEasing);
+}
+
+.themeOption:hover {
+  background: var(--fill-secondary);
+}
+
+.themeOption:active {
+  transform: scale(0.98);
+}
+
+.themeOptionActive {
+  border-color: var(--control-accent);
+  background: var(--selected-control);
+}
+
+.themePreview {
+  width: 100%;
+  max-width: 110px;
+  height: 64px;
+  border-radius: 6px;
+  border: 1px solid var(--window-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewLight {
+  background: #ececec;
+}
+
+.previewDark {
+  background: #1e1e1e;
+}
+
+.previewAuto {
+  background: linear-gradient(135deg, #ececec 50%, #1e1e1e 50%);
+}
+
+.previewHeader {
+  height: 14px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 6px;
+}
+
+.previewDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--CircularCornerRadius);
+  background: var(--control-accent);
+}
+
+.previewBody {
+  flex: 1;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.previewBar {
+  height: 6px;
+  width: 65%;
+  border-radius: 3px;
+  background: var(--control-accent);
+  opacity: 0.85;
+}
+
+.swatchList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--CircularCornerRadius);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+.swatch:hover {
+  transform: scale(1.12);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--keyboard-focus-indicator);
+  outline-offset: 2px;
+}
+
+.swatchActive::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--CircularCornerRadius);
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.previewControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .swatchList {
+    justify-content: flex-start;
+  }
+}

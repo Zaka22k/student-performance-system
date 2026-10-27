@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ComboBox, type ModalFormRenderProps, TextField } from "@/components";
+import {
+  ComboBox,
+  type ModalFormRenderProps,
+  TextField,
+} from "@ui-kit/components";
 import { getGroups } from "@/actions/groups";
 import type { Student, StudentInput, StudentStatus, Group } from "@/models";
 import { STATUS_OPTIONS } from "./statuses";

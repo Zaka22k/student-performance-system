@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Page, Button } from "@/components";
+import { Page, Button } from "@ui-kit/components";
 import styles from "./NotFoundPage.module.css";
 
 export default function NotFoundPage() {

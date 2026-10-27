@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useModal, useToast } from "@/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import {
   getPerformanceOptions,

@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@/components";
+import type { DataGridColumn } from "@ui-kit/components";
 import type { Student } from "@/models";
 import { formatDate, fullName } from "@/utils";
 import { STATUS_LABELS } from "../statuses";

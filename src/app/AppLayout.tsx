@@ -3,13 +3,19 @@
 import { Suspense, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { NavigationView, NavItem, NavCategory, NavSubItem } from "@/components";
+import {
+  NavigationView,
+  NavItem,
+  NavCategory,
+  NavSubItem,
+} from "@ui-kit/components";
 import {
   JournalIcon,
   DictionariesIcon,
   SessionIcon,
   AnalyticsIcon,
   ReportsIcon,
+  SettingsIcon,
 } from "@/icons";
 
 const CATEGORY_PREFIXES = ["session", "analytics", "reports"];
@@ -152,6 +158,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               </NavSubItem>
             </NavCategory>
           </>
+        }
+        footerMenuItems={
+          <NavItem
+            icon={<SettingsIcon />}
+            as={Link}
+            href="/settings"
+            value="/settings"
+          >
+            Настройки
+          </NavItem>
         }
       >
         <Suspense fallback={null}>{children}</Suspense>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Page, Button } from "@/components";
+import { Page, Button } from "@ui-kit/components";
 import { CheckIcon } from "@/icons";
 import PerformanceForm from "./PerformanceForm";
 import { useEditPerformancePage } from "./useEditPerformancePage";

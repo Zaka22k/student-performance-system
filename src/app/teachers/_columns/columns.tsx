@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@/components";
+import type { DataGridColumn } from "@ui-kit/components";
 import type { Teacher } from "@/models";
 import { fullName } from "@/utils";
 import styles from "./columns.module.css";

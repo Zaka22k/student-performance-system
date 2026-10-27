@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useModal, useToast } from "@/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage, semesterLabel } from "@/utils";
 import * as actions from "@/actions/semesters";
 import type { Semester, SemesterInput } from "@/models";

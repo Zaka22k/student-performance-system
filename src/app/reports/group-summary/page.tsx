@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Page, Button, ComboBox } from "@/components";
+import { Page, Button, ComboBox } from "@ui-kit/components";
 import { semesterLabel } from "@/utils";
 import ReportActions from "../ReportActions";
 import ReportView from "../ReportView";

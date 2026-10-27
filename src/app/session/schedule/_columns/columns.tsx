@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@/components";
+import type { DataGridColumn } from "@ui-kit/components";
 import type { ScheduleItem } from "@/models";
 import { formatDate } from "@/utils";
 import { ASSESSMENT_LABELS } from "../../../performance/constants";

@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@/components";
+import type { DataGridColumn } from "@ui-kit/components";
 import type { Performance } from "@/models";
 import { formatDate, semesterLabel } from "@/utils";
 import { ASSESSMENT_LABELS, formatResult } from "../constants";

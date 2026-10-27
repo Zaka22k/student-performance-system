@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "@/components";
+import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getSchedule } from "@/actions/session";
 import { getSemesters } from "@/actions/semesters";

@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useModal, useToast } from "@/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { createSheet } from "@/actions/session";
 import { getGroups } from "@/actions/groups";
 import { getStudents } from "@/actions/students";
