@@ -1,10 +1,8 @@
-// 2026-01-11 → 11.01.2026 (строки из backend приходят как YYYY-MM-DD)
 export const formatDate = (iso: string): string => {
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
 };
 
-// «Иванов Иван Иванович» (отчество необязательно)
 export const fullName = (p: {
   last_name: string;
   first_name: string;

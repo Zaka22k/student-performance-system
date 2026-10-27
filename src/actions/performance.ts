@@ -1,7 +1,6 @@
-// src/actions/performance.ts
 "use server";
 
-import { prisma, buildSearchWhere, withActionError } from "@/server";
+import { prisma, buildSearchWhere, withActionError } from "@/server/lib";
 import { performanceInputSchema } from "@/schemas";
 import type {
   Performance,
@@ -200,44 +199,4 @@ export async function getPerformanceOptions(): Promise<PerformanceOptions> {
     getSemesters(),
   ]);
   return { students, subjects, teachers, semesters };
-}
-
-export async function deletePerformancesAction(
-  _prevState: unknown,
-  formData: FormData,
-): Promise<{
-  ok: boolean;
-  deletedIds: string[];
-  count: number;
-  error?: string;
-}> {
-  const rawIds = formData
-    .getAll("selectedIds")
-    .map((v) => String(v).trim())
-    .filter((v) => /^\d+$/.test(v));
-
-  if (rawIds.length === 0) {
-    return {
-      ok: false,
-      deletedIds: [],
-      count: 0,
-      error: "Не выбрано ни одной записи",
-    };
-  }
-
-  try {
-    const ids = rawIds.map((id) => BigInt(id));
-    const res = await prisma.student_performance.deleteMany({
-      where: { performance_id: { in: ids } },
-    });
-    return { ok: true, deletedIds: rawIds, count: res.count };
-  } catch (error) {
-    return {
-      ok: false,
-      deletedIds: [],
-      count: 0,
-      error:
-        error instanceof Error ? error.message : "Не удалось удалить записи",
-    };
-  }
 }

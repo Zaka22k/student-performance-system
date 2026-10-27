@@ -1,5 +1,3 @@
-/* Страницы отчётов: параметры сверху, результат ниже. Токены macOS */
-
 .layout {
   display: flex;
   flex-direction: column;
@@ -29,11 +27,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px;
-  background-color: var(--elevated-bg);
-  border: 1px solid var(--separator);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
 }
 
 .reportTitle {

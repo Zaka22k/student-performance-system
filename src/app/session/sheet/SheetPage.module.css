@@ -1,10 +1,8 @@
-/* Страница ведомости: карточки с параметрами и списком студентов, токены macOS */
-
 .form {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 16px 24px 32px;
 }
@@ -14,10 +12,6 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  background-color: var(--elevated-bg);
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
 }
 
 .sectionTitle {

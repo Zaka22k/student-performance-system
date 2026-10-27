@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/server";
+import { prisma } from "@/server/lib";
 import {
   buildGroupSheet,
   buildGroupSummary,
   buildStudentBook,
-} from "@/server/reports";
-import { toXml } from "@/server/reportXml";
-import { toHtml } from "@/server/reportHtml";
+  toXml,
+  toHtml,
+} from "@/server";
 import type { Report, ReportParams, ReportPath } from "@/models";
 
 const BUILDERS: Record<

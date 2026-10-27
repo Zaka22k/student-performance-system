@@ -15,25 +15,6 @@ export default function PerformancePage() {
       toolbar={{
         trailing: (
           <>
-            {p.selectedIds.size > 0 && (
-              <form action={p.bulkDeleteAction}>
-                {Array.from(p.selectedIds).map((id) => (
-                  <input
-                    key={id}
-                    type="hidden"
-                    name="selectedIds"
-                    value={String(id)}
-                  />
-                ))}
-                <Button
-                  type="submit"
-                  appearance="destructive"
-                  disabled={p.isBulkDeleting}
-                >
-                  Удалить ({p.selectedIds.size})
-                </Button>
-              </form>
-            )}
             <Button
               icon={<PlusIcon />}
               aria-label="Добавить запись"
@@ -51,9 +32,6 @@ export default function PerformancePage() {
       <DataGrid
         aria-label="Журнал успеваемости"
         rows={p.items}
-        selectable
-        selectedIds={p.selectedIds}
-        onSelectionChange={p.setSelectedIds}
         columns={performanceColumns}
         getRowId={(r) => r.performance_id}
         resetKey={p.query}

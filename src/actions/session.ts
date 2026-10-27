@@ -1,7 +1,6 @@
-// src/actions/session.ts
 "use server";
 
-import { prisma, buildSearchWhere, withActionError } from "@/server";
+import { prisma, buildSearchWhere, withActionError } from "@/server/lib";
 import { sheetInputSchema } from "@/schemas";
 import type { ScheduleItem, SheetInput, SheetResult } from "@/models";
 

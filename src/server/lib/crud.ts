@@ -1,4 +1,3 @@
-// src/server/crud.ts
 import { ZodError, type ZodType } from "zod";
 import { prisma } from "./prisma";
 
@@ -89,7 +88,6 @@ export interface CrudConfig<TInput, TDto> {
   messages: CrudMessages;
 }
 
-// Фабрика CRUD-операций для вызова из файлов с "use server"
 export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
   const {
     model,

@@ -1,7 +1,6 @@
-// src/actions/reports.ts
 "use server";
 
-import { prisma } from "@/server";
+import { prisma } from "@/server/lib";
 import {
   buildGroupSheet,
   buildGroupSummary,

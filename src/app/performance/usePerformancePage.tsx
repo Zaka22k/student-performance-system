@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { useModal, useToast, type DataGridRowId } from "@/components";
 import { getErrorMessage } from "@/utils";
 import type { Performance, PerformanceListResponse } from "@/models";
-import {
-  getPerformances,
-  deletePerformance,
-  deletePerformancesAction,
-} from "@/actions/performance";
+import { getPerformances, deletePerformance } from "@/actions/performance";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -20,9 +16,6 @@ export function usePerformancePage() {
 
   const [items, setItems] = useState<Performance[]>([]);
   const [query, setQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<DataGridRowId>>(
-    new Set(),
-  );
 
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -30,26 +23,6 @@ export function usePerformancePage() {
 
   const cursor = useRef<string | null>(null);
   const reqId = useRef(0);
-
-  const [, bulkDeleteAction, isBulkDeleting] = useActionState(
-    async (prev: unknown, formData: FormData) => {
-      const res = await deletePerformancesAction(prev, formData);
-      if (res.ok) {
-        const deletedSet = new Set<DataGridRowId>(res.deletedIds);
-        setItems((curr) =>
-          curr.filter((r) => !deletedSet.has(r.performance_id)),
-        );
-        setSelectedIds(new Set());
-        toast.success("Записи удалены", {
-          description: `Удалено записей из журнала: ${res.count}`,
-        });
-      } else if (res.error) {
-        toast.error("Ошибка удаления", { description: res.error });
-      }
-      return res;
-    },
-    null,
-  );
 
   const applyPage = (res: PerformanceListResponse, reset: boolean) => {
     cursor.current = res.nextCursor;
@@ -129,12 +102,7 @@ export function usePerformancePage() {
         setItems((prev) =>
           prev.filter((r) => r.performance_id !== row.performance_id),
         );
-        setSelectedIds((prev) => {
-          if (!prev.has(row.performance_id)) return prev;
-          const next = new Set(prev);
-          next.delete(row.performance_id);
-          return next;
-        });
+
         toast.success("Запись удалена", {
           description: `${row.student_name} — ${row.subject_name}`,
         });
@@ -146,10 +114,6 @@ export function usePerformancePage() {
     items,
     query,
     setQuery,
-    selectedIds,
-    setSelectedIds,
-    bulkDeleteAction,
-    isBulkDeleting,
     hasMore,
     loadingMore,
     loadError,

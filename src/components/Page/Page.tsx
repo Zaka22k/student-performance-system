@@ -5,8 +5,8 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Button from "../Button";
 import { ProgressRing } from "../ProgressRing";
-import { Toolbar } from "../Toolbar";
-import type { ToolbarProps } from "../Toolbar";
+import { Toolbar } from "./Toolbar";
+import type { ToolbarProps } from "./Toolbar";
 import {
   PageFrameContext,
   usePageTransition,

@@ -1,11 +1,10 @@
 export * from "./LiquidGlass";
 export * from "./NavigationView";
 export { default as Button } from "./Button";
-export { Page } from "./Page";
+export * from "./Page";
 export { ComboBox } from "./ComboBox";
 export * from "./Modal";
 export * from "./Fields";
-export * from "./Toolbar";
 export { ProgressRing } from "./ProgressRing";
 export * from "./Toggles";
 export * from "./DataGrid";

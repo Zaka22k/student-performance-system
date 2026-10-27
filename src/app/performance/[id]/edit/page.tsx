@@ -1,2 +1,2 @@
 "use client";
-export { default as EditPerformancePage } from "../../new";
+export { default } from "../../_editPerformance";

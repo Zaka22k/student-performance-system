@@ -35,13 +35,9 @@
   color: var(--label-secondary);
 }
 
-/* Таблице нужна высота: она занимает остаток, но не меньше 280px */
 .grid {
-  flex: 1 0 280px;
-  min-height: 280px;
   background-color: var(--elevated-bg);
   border: 1px solid var(--separator);
   border-radius: 10px;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
 }

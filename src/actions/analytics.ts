@@ -1,13 +1,7 @@
-// src/actions/analytics.ts
 "use server";
 
-import { prisma } from "@/server";
-import {
-  GRADES,
-  assignPlaces,
-  finalResults,
-  summarize,
-} from "@/server/analytics";
+import { prisma } from "@/server/lib";
+import { GRADES, assignPlaces, finalResults, summarize } from "@/server";
 import type { GroupStat, RatingItem, SubjectsResponse } from "@/models";
 
 const fullName = (p: {

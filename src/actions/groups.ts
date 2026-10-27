@@ -1,6 +1,6 @@
 "use server";
 
-import { createCrudService } from "@/server";
+import { createCrudService } from "@/server/lib";
 import { groupSchema } from "@/schemas";
 import type { Group, GroupInput } from "@/models";
 

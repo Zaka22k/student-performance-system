@@ -1,6 +1,6 @@
 "use server";
 
-import { createCrudService } from "@/server";
+import { createCrudService } from "@/server/lib";
 import { subjectSchema } from "@/schemas";
 import type { Subject, SubjectInput } from "@/models";
 

@@ -22,7 +22,7 @@ import Button from "../Button";
 import { ContextMenu } from "../ContextMenu/ContextMenu";
 import type { ContextMenuItem } from "../ContextMenu/ContextMenu";
 import ProgressRing from "../ProgressRing/ProgressRing";
-import { Checkbox } from "../Toggles/Toggles";
+import { Checkbox } from "../Toggles";
 import styles from "./DataGrid.module.css";
 
 /**
