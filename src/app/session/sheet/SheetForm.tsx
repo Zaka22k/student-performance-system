@@ -16,7 +16,6 @@ import styles from "./SheetPage.module.css";
 interface Props {
   formId: string;
   options: SheetOptions;
-  onPendingChange?: (isPending: boolean) => void;
   onSubmit: (data: SheetInput) => void | Promise<void>;
 }
 
@@ -27,10 +26,8 @@ interface FormState {
   error: string | null;
 }
 
-// YYYY-MM-DD в локальном часовом поясе
 const todayISO = () => new Date().toLocaleDateString("sv-SE");
 
-// ComboBox разрешает ввод своего текста, а нам нужен только вариант из списка
 function useOptionValidity(
   ref: RefObject<HTMLInputElement | null>,
   valid: boolean,
@@ -40,18 +37,16 @@ function useOptionValidity(
     ref.current?.setCustomValidity(valid ? "" : message);
   }, [ref, valid, message]);
 }
-export default function SheetForm({
-  formId,
-  options,
-  onPendingChange,
-  onSubmit,
-}: Props) {
+
+export default function SheetForm({ formId, options, onSubmit }: Props) {
   const { groups, students, subjects, teachers, semesters } = options;
 
-  // Управляемые состояния для фильтрации студентов выбранной группы и вида контроля
   const [groupId, setGroupId] = useState("");
-  // В semesters.actions сортировка desc, поэтому первый элемент — самый свежий семестр
-  const [semesterId, setSemesterId] = useState(semesters[0]?.semester_id ?? "");
+  const [semesterId, setSemesterId] = useState(
+    semesters[0]?.semester_id !== undefined
+      ? String(semesters[0].semester_id)
+      : "",
+  );
   const [subjectId, setSubjectId] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [type, setType] = useState<string>("exam");
@@ -59,7 +54,6 @@ export default function SheetForm({
   const isCredit = type === "credit";
   const groupSelected = groups.some((g) => String(g.group_id) === groupId);
 
-  // В ведомость попадают только студенты со статусом «Учится»
   const groupStudents = groupSelected
     ? students.filter(
         (s) => String(s.group_id) === groupId && s.status === "active",
@@ -95,11 +89,9 @@ export default function SheetForm({
   );
 
   const submitRef = useRef(onSubmit);
-  useEffect(() => {
-    submitRef.current = onSubmit;
-  });
+  submitRef.current = onSubmit;
 
-  const [state, formAction, isPending] = useActionState<FormState, FormData>(
+  const [state, formAction] = useActionState<FormState, FormData>(
     async (prev, formData) => {
       const attempt = String(formData.get("attempt_number") ?? "1");
       const date = String(formData.get("assessment_date") ?? todayISO());
@@ -155,10 +147,6 @@ export default function SheetForm({
       error: null,
     },
   );
-
-  useEffect(() => {
-    onPendingChange?.(isPending);
-  }, [isPending, onPendingChange]);
   return (
     <form id={formId} action={formAction} className={styles.form}>
       <section className={styles.section}>
@@ -178,7 +166,6 @@ export default function SheetForm({
             required
             placeholder="Выберите группу"
             onChange={(value) => setGroupId(value)}
-            disabled={isPending}
           />
           <ComboBox
             ref={semesterRef}
@@ -192,7 +179,6 @@ export default function SheetForm({
             required
             placeholder="Выберите семестр"
             onChange={(value) => setSemesterId(value)}
-            disabled={isPending}
           />
           <ComboBox
             ref={subjectRef}
@@ -206,7 +192,6 @@ export default function SheetForm({
             required
             placeholder="Выберите дисциплину"
             onChange={(value) => setSubjectId(value)}
-            disabled={isPending}
           />
           <ComboBox
             ref={teacherRef}
@@ -220,7 +205,6 @@ export default function SheetForm({
             required
             placeholder="Выберите преподавателя"
             onChange={(value) => setTeacherId(value)}
-            disabled={isPending}
           />
           <ComboBox
             ref={typeRef}
@@ -234,7 +218,6 @@ export default function SheetForm({
             required
             placeholder="Выберите вид контроля"
             onChange={(value) => setType(value)}
-            disabled={isPending}
           />
           <TextField
             className={styles.field}
@@ -246,7 +229,6 @@ export default function SheetForm({
             min={1}
             max={3}
             step={1}
-            disabled={isPending}
           />
           <TextField
             className={styles.field}
@@ -255,11 +237,9 @@ export default function SheetForm({
             type="date"
             defaultValue={state.date}
             required
-            disabled={isPending}
           />
         </div>
       </section>
-
       <section className={styles.section}>
         <h2 className={`BodyStrongTextBlockStyle ${styles.sectionTitle}`}>
           Студенты
@@ -317,7 +297,6 @@ export default function SheetForm({
                           min={2}
                           max={5}
                           step={1}
-                          disabled={isPending}
                         />
                       </td>
                     )}

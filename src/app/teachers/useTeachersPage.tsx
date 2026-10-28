@@ -1,39 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage, fullName } from "@/utils";
 import * as actions from "@/actions/teachers";
 import type { Teacher, TeacherInput } from "@/models";
+import { useDebounceValue } from "@/hooks";
 import TeacherForm from "./TeacherForm";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function useTeachersPage() {
+type OptimisticTeacherAction =
+  | { type: "create"; data: TeacherInput; tempId: Teacher["teacher_id"] }
+  | { type: "update"; teacherId: Teacher["teacher_id"]; data: TeacherInput }
+  | { type: "delete"; teacherId: Teacher["teacher_id"] };
+
+export function useTeachersPage(initialTeachers: Teacher[]) {
   const { openModal } = useModal();
   const toast = useToast();
 
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounceValue(query, SEARCH_DEBOUNCE_MS);
   const [loadFailed, setLoadFailed] = useState(false);
+
+  const [optimisticTeachers, applyOptimistic] = useOptimistic<
+    Teacher[],
+    OptimisticTeacherAction
+  >(teachers, (current, action) => {
+    switch (action.type) {
+      case "create":
+        return [
+          ...current,
+          { teacher_id: action.tempId, ...action.data } as Teacher,
+        ];
+      case "update":
+        return current.map((t) =>
+          t.teacher_id === action.teacherId ? { ...t, ...action.data } : t,
+        );
+      case "delete":
+        return current.filter((t) => t.teacher_id !== action.teacherId);
+    }
+  });
 
   const reqId = useRef(0);
 
-  const queryRef = useRef(query);
-  useEffect(() => {
-    queryRef.current = query;
-  }, [query]);
-
-  const load = async () => {
-    const id = ++reqId.current;
-    const rows = await actions.getTeachers(queryRef.current);
-    if (id === reqId.current) {
-      setTeachers(rows);
-      setLoadFailed(false);
-    }
-  };
-
-  const refresh = async (q: string = queryRef.current) => {
+  const refresh = async (q: string = debouncedQuery) => {
     const id = ++reqId.current;
     try {
       const rows = await actions.getTeachers(q);
@@ -53,17 +71,15 @@ export function useTeachersPage() {
     }
   };
 
-  const skipFirst = useRef(true);
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    if (skipFirst.current) {
-      skipFirst.current = false;
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
       return;
     }
-    reqId.current++;
-    const timer = setTimeout(() => void refresh(query), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    void refresh(debouncedQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [debouncedQuery]);
 
   const handleSubmitForm = async (
     teacherId: Teacher["teacher_id"] | undefined,
@@ -74,13 +90,26 @@ export function useTeachersPage() {
       toast.success("Преподаватель создан", {
         description: fullName(data),
       });
+
+      startTransition(async () => {
+        applyOptimistic({
+          type: "create",
+          data,
+          tempId: `temp-${Date.now()}` as unknown as Teacher["teacher_id"],
+        });
+        await refresh();
+      });
     } else {
       await actions.updateTeacher(teacherId, data);
       toast.success("Изменения сохранены", {
         description: fullName(data),
       });
+
+      startTransition(async () => {
+        applyOptimistic({ type: "update", teacherId, data });
+        await refresh();
+      });
     }
-    void refresh();
   };
 
   const openForm = (teacher?: Teacher) => {
@@ -118,15 +147,34 @@ export function useTeachersPage() {
           <strong className="BodyStrongTextBlockStyle">{name}</strong>?
         </p>
       ),
-      onAction: async () => {
-        await actions.deleteTeacher(teacher.teacher_id);
-        toast.success("Преподаватель удалён", {
-          description: name,
+      onAction: () => {
+        startTransition(async () => {
+          applyOptimistic({
+            type: "delete",
+            teacherId: teacher.teacher_id,
+          });
+          try {
+            await actions.deleteTeacher(teacher.teacher_id);
+            toast.success("Преподаватель удалён", {
+              description: name,
+            });
+            await refresh();
+          } catch (error) {
+            toast.error("Не удалось удалить преподавателя", {
+              description: getErrorMessage(error),
+            });
+          }
         });
-        void refresh();
       },
     });
   };
 
-  return { teachers, query, setQuery, loadFailed, load, openForm, openAlert };
+  return {
+    teachers: optimisticTeachers,
+    query,
+    setQuery,
+    loadFailed,
+    openForm,
+    openAlert,
+  };
 }

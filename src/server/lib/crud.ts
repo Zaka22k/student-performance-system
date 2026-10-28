@@ -26,7 +26,7 @@ export function buildSearchWhere(
     AND: tokens.map((token) => {
       const conditions: Record<string, unknown>[] = textFields.map(
         (path) =>
-          nest(path, { contains: token, mode: "insensitive" }) as Record<
+          nest(path, { startsWith: token, mode: "insensitive" }) as Record<
             string,
             unknown
           >,

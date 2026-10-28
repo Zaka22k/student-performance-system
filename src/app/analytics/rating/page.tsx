@@ -1,37 +1,8 @@
-"use client";
+import { getRating } from "@/actions/analytics";
+import RatingPageView from "./RatingPageView";
 
-import { Page, DataGrid, SearchField } from "@ui-kit/components";
-import { ratingColumns } from "./_columns";
-import { useRatingPage } from "./useRatingPage";
+export default async function RatingPage() {
+  const initialItems = await getRating("");
 
-export default function RatingPage() {
-  const p = useRatingPage();
-
-  return (
-    <Page
-      title="Рейтинг студентов"
-      onNavigate={p.load}
-      toolbar={{
-        trailing: (
-          <SearchField
-            placeholder="Поиск студентов"
-            value={p.query}
-            onChange={(e) => p.setQuery(e.target.value)}
-          />
-        ),
-      }}
-    >
-      {/* Порядок строк фиксированный: по убыванию суммы оценок, это смысл рейтинга */}
-      <DataGrid
-        aria-label="Рейтинг студентов"
-        rows={p.items}
-        columns={ratingColumns}
-        getRowId={(r) => r.student_id}
-        resetKey={p.query}
-        emptyContent={
-          p.loadFailed ? "Не удалось загрузить рейтинг" : "Студенты не найдены"
-        }
-      />
-    </Page>
-  );
+  return <RatingPageView initialItems={initialItems} />;
 }

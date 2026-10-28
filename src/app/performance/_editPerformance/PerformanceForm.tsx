@@ -20,9 +20,8 @@ import styles from "./EditPerformancePage.module.css";
 
 interface Props {
   formId: string;
-  initial?: Performance; // нет — создание, есть — изменение
+  initial?: Performance;
   options: PerformanceOptions;
-  onPendingChange?: (isPending: boolean) => void;
   onSubmit: (data: PerformanceInput) => void | Promise<void>;
   onDelete: () => void;
 }
@@ -51,23 +50,33 @@ function useOptionValidity(
     ref.current?.setCustomValidity(active && !valid ? message : "");
   }, [ref, valid, message, active]);
 }
+
 export default function PerformanceForm({
   formId,
   initial,
   options,
-  onPendingChange,
   onSubmit,
   onDelete,
 }: Props) {
   const { students, subjects, teachers, semesters } = options;
   const isEdit = initial !== undefined;
 
-  const [studentId, setStudentId] = useState(initial?.student_id ?? "");
-  const [subjectId, setSubjectId] = useState(initial?.subject_id ?? "");
-  const [teacherId, setTeacherId] = useState(initial?.teacher_id ?? "");
+  const [studentId, setStudentId] = useState(
+    initial?.student_id !== undefined ? String(initial.student_id) : "",
+  );
+  const [subjectId, setSubjectId] = useState(
+    initial?.subject_id !== undefined ? String(initial.subject_id) : "",
+  );
+  const [teacherId, setTeacherId] = useState(
+    initial?.teacher_id !== undefined ? String(initial.teacher_id) : "",
+  );
 
   const [semesterId, setSemesterId] = useState(
-    initial?.semester_id ?? semesters[0]?.semester_id ?? "",
+    initial?.semester_id !== undefined
+      ? String(initial.semester_id)
+      : semesters[0]?.semester_id !== undefined
+        ? String(semesters[0].semester_id)
+        : "",
   );
   const [type, setType] = useState<string>(initial?.assessment_type ?? "exam");
   const [passed, setPassed] = useState(
@@ -116,11 +125,9 @@ export default function PerformanceForm({
   );
 
   const submitRef = useRef(onSubmit);
-  useEffect(() => {
-    submitRef.current = onSubmit;
-  });
+  submitRef.current = onSubmit;
 
-  const [state, formAction, isPending] = useActionState<FormState, FormData>(
+  const [state, formAction] = useActionState<FormState, FormData>(
     async (prev, formData) => {
       const grade = isCredit ? prev.grade : String(formData.get("grade") ?? "");
       const attempt = String(formData.get("attempt_number") ?? "1");
@@ -156,9 +163,6 @@ export default function PerformanceForm({
     },
   );
 
-  useEffect(() => {
-    onPendingChange?.(isPending);
-  }, [isPending, onPendingChange]);
   return (
     <form id={formId} action={formAction} className={styles.form}>
       <section className={styles.section}>
@@ -178,7 +182,7 @@ export default function PerformanceForm({
             required
             placeholder="Начните вводить фамилию"
             onChange={(value) => setStudentId(value)}
-            disabled={isPending || isEdit}
+            disabled={isEdit}
           />
           <ComboBox
             ref={subjectRef}
@@ -192,7 +196,7 @@ export default function PerformanceForm({
             required
             placeholder="Выберите дисциплину"
             onChange={(value) => setSubjectId(value)}
-            disabled={isPending || isEdit}
+            disabled={isEdit}
           />
           <ComboBox
             ref={semesterRef}
@@ -206,7 +210,7 @@ export default function PerformanceForm({
             required
             placeholder="Выберите семестр"
             onChange={(value) => setSemesterId(value)}
-            disabled={isPending || isEdit}
+            disabled={isEdit}
           />
           <ComboBox
             ref={typeRef}
@@ -220,7 +224,7 @@ export default function PerformanceForm({
             required
             placeholder="Выберите вид контроля"
             onChange={(value) => setType(value)}
-            disabled={isPending || isEdit}
+            disabled={isEdit}
           />
         </div>
         {isEdit && (
@@ -248,7 +252,6 @@ export default function PerformanceForm({
             required
             placeholder="Выберите преподавателя"
             onChange={(value) => setTeacherId(value)}
-            disabled={isPending}
           />
           {isCredit ? (
             <ComboBox
@@ -262,7 +265,6 @@ export default function PerformanceForm({
               value={passed}
               required
               onChange={(value) => setPassed(value)}
-              disabled={isPending}
             />
           ) : (
             <TextField
@@ -275,7 +277,6 @@ export default function PerformanceForm({
               min={2}
               max={5}
               step={1}
-              disabled={isPending}
             />
           )}
           <TextField
@@ -288,7 +289,6 @@ export default function PerformanceForm({
             min={1}
             max={3}
             step={1}
-            disabled={isPending}
           />
           <TextField
             className={styles.field}
@@ -297,7 +297,6 @@ export default function PerformanceForm({
             type="date"
             defaultValue={state.date}
             required
-            disabled={isPending}
           />
         </div>
       </section>
@@ -307,7 +306,6 @@ export default function PerformanceForm({
           type="button"
           appearance="destructive"
           onClick={onDelete}
-          disabled={isPending}
           width="max-content"
         >
           Удалить запись

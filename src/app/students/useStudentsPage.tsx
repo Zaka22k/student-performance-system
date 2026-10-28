@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage, fullName } from "@/utils";
 import {
@@ -9,44 +15,70 @@ import {
   updateStudent,
   deleteStudent,
 } from "@/actions/students";
-import { getGroups } from "@/actions/groups";
 import type { Student, StudentInput, Group } from "@/models";
+import { useDebounceValue } from "@/hooks";
 import StudentForm from "./StudentForm";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function useStudentsPage() {
+type OptimisticStudentAction =
+  | { type: "create"; data: StudentInput; tempId: Student["student_id"] }
+  | { type: "update"; studentId: Student["student_id"]; data: StudentInput }
+  | { type: "delete"; studentId: Student["student_id"] };
+
+export function useStudentsPage(initialStudents: Student[], groups: Group[]) {
   const { openModal } = useModal();
   const toast = useToast();
 
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounceValue(query, SEARCH_DEBOUNCE_MS);
   const [loadFailed, setLoadFailed] = useState(false);
 
-  const [groups, setGroups] = useState<Group[]>([]);
-  const groupsRef = useRef<Group[]>([]);
+  const [optimisticStudents, applyOptimistic] = useOptimistic<
+    Student[],
+    OptimisticStudentAction
+  >(students, (current, action) => {
+    switch (action.type) {
+      case "create": {
+        const foundGroup = groups.find(
+          (g) => String(g.group_id) === String(action.data.group_id),
+        );
+
+        const newStudent: Student = {
+          ...action.data,
+          student_id: action.tempId,
+          group_id: String(action.data.group_id) as Student["group_id"],
+          group_code: foundGroup?.group_code ?? "",
+          group_name: foundGroup?.group_name ?? "",
+        };
+
+        return [...current, newStudent];
+      }
+      case "update": {
+        const foundGroup = groups.find(
+          (g) => String(g.group_id) === String(action.data.group_id),
+        );
+
+        return current.map((s) => {
+          if (s.student_id !== action.studentId) return s;
+          return {
+            ...s,
+            ...action.data,
+            group_id: String(action.data.group_id) as Student["group_id"],
+            group_code: foundGroup?.group_code ?? s.group_code,
+            group_name: foundGroup?.group_name ?? s.group_name,
+          };
+        });
+      }
+      case "delete":
+        return current.filter((s) => s.student_id !== action.studentId);
+    }
+  });
 
   const reqId = useRef(0);
-  const queryRef = useRef(query);
-  useEffect(() => {
-    queryRef.current = query;
-  }, [query]);
 
-  const load = async () => {
-    const id = ++reqId.current;
-    const [rows, groupRows] = await Promise.all([
-      getStudents(queryRef.current),
-      getGroups(),
-    ]);
-    if (id === reqId.current) {
-      groupsRef.current = groupRows;
-      setStudents(rows);
-      setGroups(groupRows);
-      setLoadFailed(false);
-    }
-  };
-
-  const refresh = async (q: string = queryRef.current) => {
+  const refresh = async (q: string = debouncedQuery) => {
     const id = ++reqId.current;
     try {
       const rows = await getStudents(q);
@@ -65,17 +97,16 @@ export function useStudentsPage() {
       }
     }
   };
-  const skipFirst = useRef(true);
+
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    if (skipFirst.current) {
-      skipFirst.current = false;
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
       return;
     }
-    reqId.current++;
-    const timer = setTimeout(() => void refresh(query), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    void refresh(debouncedQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [debouncedQuery]);
 
   const handleSubmitForm = async (
     studentId: Student["student_id"] | undefined,
@@ -87,13 +118,26 @@ export function useStudentsPage() {
       toast.success("Студент добавлен", {
         description: `Запись «${name}» успешно создана`,
       });
+
+      startTransition(async () => {
+        applyOptimistic({
+          type: "create",
+          data,
+          tempId: `temp-${Date.now()}` as unknown as Student["student_id"],
+        });
+        await refresh();
+      });
     } else {
       await updateStudent(studentId, data);
       toast.success("Данные обновлены", {
         description: `Изменения для «${name}» сохранены`,
       });
+
+      startTransition(async () => {
+        applyOptimistic({ type: "update", studentId, data });
+        await refresh();
+      });
     }
-    void refresh();
   };
 
   const openForm = (student?: Student) => {
@@ -111,7 +155,7 @@ export function useStudentsPage() {
         <StudentForm
           {...form}
           initial={student}
-          groups={groupsRef.current}
+          groups={groups}
           onSubmit={(data) => handleSubmitForm(studentId, data)}
         />
       ),
@@ -132,23 +176,33 @@ export function useStudentsPage() {
           <strong className="BodyStrongTextBlockStyle">{name}</strong>?
         </p>
       ),
-      onAction: async () => {
-        await deleteStudent(student.student_id);
-        toast.success("Студент удалён", {
-          description: `Запись «${name}» удалена`,
+      onAction: () => {
+        startTransition(async () => {
+          applyOptimistic({
+            type: "delete",
+            studentId: student.student_id,
+          });
+          try {
+            await deleteStudent(student.student_id);
+            toast.success("Студент удалён", {
+              description: `Запись «${name}» удалена`,
+            });
+            await refresh();
+          } catch (error) {
+            toast.error("Не удалось удалить студента", {
+              description: getErrorMessage(error),
+            });
+          }
         });
-        void refresh();
       },
     });
   };
 
   return {
-    students,
-    groups,
+    students: optimisticStudents,
     query,
     setQuery,
     loadFailed,
-    load,
     openForm,
     openAlert,
   };

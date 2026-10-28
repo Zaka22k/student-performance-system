@@ -6,7 +6,6 @@ import {
   type ModalFormRenderProps,
   TextField,
 } from "@ui-kit/components";
-import { getGroups } from "@/actions/groups";
 import type { Student, StudentInput, StudentStatus, Group } from "@/models";
 import { STATUS_OPTIONS } from "./statuses";
 
@@ -32,28 +31,19 @@ export default function StudentForm({
   isSubmitting,
   registerAction,
   initial,
-  groups: initialGroups,
+  groups,
   onSubmit,
 }: Props) {
-  const [groupList, setGroupList] = useState<Group[]>(initialGroups);
   const [status, setStatus] = useState<string>(initial?.status ?? "active");
   const [groupId, setGroupId] = useState<string>(
     initial?.group_id !== undefined ? String(initial.group_id) : "",
   );
 
-  useEffect(() => {
-    if (initialGroups.length > 0) {
-      setGroupList(initialGroups);
-      return;
-    }
-    void getGroups().then((loaded) => {
-      setGroupList(loaded);
-    });
-  }, [initialGroups]);
-
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLInputElement>(null);
   const groupRef = useRef<HTMLInputElement>(null);
+  const onSubmitRef = useRef(onSubmit);
+  onSubmitRef.current = onSubmit;
 
   useEffect(() => {
     statusRef.current?.setCustomValidity(
@@ -65,21 +55,11 @@ export default function StudentForm({
 
   useEffect(() => {
     groupRef.current?.setCustomValidity(
-      groupList.some((g) => String(g.group_id) === groupId)
+      groups.some((g) => String(g.group_id) === groupId)
         ? ""
         : "Выберите группу из списка",
     );
-  }, [groupList, groupId]);
-
-  const submitRef = useRef(onSubmit);
-  const statusValueRef = useRef(status);
-  const groupIdValueRef = useRef(groupId);
-
-  useEffect(() => {
-    submitRef.current = onSubmit;
-    statusValueRef.current = status;
-    groupIdValueRef.current = groupId;
-  });
+  }, [groups, groupId]);
 
   useEffect(() => {
     registerAction(async () => {
@@ -88,18 +68,19 @@ export default function StudentForm({
 
       const formData = new FormData(form);
 
-      await submitRef.current({
+      await onSubmitRef.current({
         student_number: String(formData.get("student_number") ?? "").trim(),
         last_name: String(formData.get("last_name") ?? "").trim(),
         first_name: String(formData.get("first_name") ?? "").trim(),
         middle_name: String(formData.get("middle_name") ?? "").trim() || null,
         birth_date: String(formData.get("birth_date") ?? ""),
         email: String(formData.get("email") ?? "").trim() || null,
-        status: statusValueRef.current as StudentStatus,
-        group_id: Number(groupIdValueRef.current),
+        status: String(formData.get("status") ?? "active") as StudentStatus,
+        group_id: Number(formData.get("group_id")),
       });
     });
   }, [registerAction]);
+
   return (
     <form
       ref={formRef}
@@ -163,6 +144,7 @@ export default function StudentForm({
       />
       <ComboBox
         ref={statusRef}
+        name="status"
         label="Статус"
         options={STATUS_OPTIONS}
         valueKey="value"
@@ -170,19 +152,20 @@ export default function StudentForm({
         value={status}
         required
         placeholder="Выберите статус"
-        onChange={(value) => setStatus(value)}
+        onChange={setStatus}
         disabled={isSubmitting}
       />
       <ComboBox
         ref={groupRef}
+        name="group_id"
         label="Группа"
-        options={groupList}
+        options={groups}
         getOptionValue={(g) => String(g.group_id)}
         getOptionLabel={(g) => g.group_code}
         value={groupId}
         required
         placeholder="Выберите группу"
-        onChange={(value) => setGroupId(value)}
+        onChange={setGroupId}
         disabled={isSubmitting}
       />
     </form>

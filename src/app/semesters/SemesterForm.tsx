@@ -20,10 +20,7 @@ export default function SemesterForm({
   const startRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
   const submitRef = useRef(onSubmit);
-
-  useEffect(() => {
-    submitRef.current = onSubmit;
-  });
+  submitRef.current = onSubmit;
 
   const syncDatesValidity = () => {
     const start = startRef.current?.value ?? "";

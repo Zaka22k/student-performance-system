@@ -1,1 +1,1 @@
-export { default } from "./EditPerformacePage";
+export { default } from "./EditPerformancePageView";

@@ -27,10 +27,7 @@ export default function SubjectForm({
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitRef = useRef(onSubmit);
-
-  useEffect(() => {
-    submitRef.current = onSubmit;
-  });
+  submitRef.current = onSubmit;
 
   useEffect(() => {
     registerAction(async () => {

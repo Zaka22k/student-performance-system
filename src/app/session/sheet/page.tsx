@@ -1,40 +1,22 @@
-"use client";
+import { getGroups } from "@/actions/groups";
+import { getStudents } from "@/actions/students";
+import { getSubjects } from "@/actions/subjects";
+import { getTeachers } from "@/actions/teachers";
+import { getSemesters } from "@/actions/semesters";
+import SheetPageView from "./SheetPageView";
 
-import { useState } from "react";
-import { Page, Button } from "@ui-kit/components";
-import SheetForm from "./SheetForm";
-import { useSheetPage } from "./useSheetPage";
-
-export default function SheetPage() {
-  const p = useSheetPage();
-  const [isPending, setIsPending] = useState(false);
+export default async function SheetPage() {
+  const [groups, students, subjects, teachers, semesters] = await Promise.all([
+    getGroups(),
+    getStudents(),
+    getSubjects(),
+    getTeachers(),
+    getSemesters(),
+  ]);
 
   return (
-    <Page
-      title="Формирование ведомости группы"
-      onNavigate={p.load}
-      toolbar={{
-        trailing: (
-          <Button
-            type="submit"
-            form={p.formId}
-            appearance="primary"
-            disabled={p.options === null || isPending}
-          >
-            Сформировать
-          </Button>
-        ),
-      }}
-    >
-      {p.options && (
-        <SheetForm
-          key={p.formKey}
-          formId={p.formId}
-          options={p.options}
-          onPendingChange={setIsPending}
-          onSubmit={p.save}
-        />
-      )}
-    </Page>
+    <SheetPageView
+      options={{ groups, students, subjects, teachers, semesters }}
+    />
   );
 }

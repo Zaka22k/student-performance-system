@@ -4,51 +4,35 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getSchedule } from "@/actions/session";
-import { getSemesters } from "@/actions/semesters";
-import { getGroups } from "@/actions/groups";
 import type { Group, ScheduleItem, Semester } from "@/models";
 
 const DEBOUNCE_MS = 300;
 
-export function useSchedulePage() {
+interface UseSchedulePageParams {
+  groups: Group[];
+  semesters: Semester[];
+  initialSemesterId: string;
+  initialRows: ScheduleItem[];
+}
+
+const keyOf = (sem: string, grp: string, q: string) => `${sem}|${grp}|${q}`;
+
+export function useSchedulePage({
+  groups,
+  semesters,
+  initialSemesterId,
+  initialRows,
+}: UseSchedulePageParams) {
   const toast = useToast();
 
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [semesters, setSemesters] = useState<Semester[]>([]);
-
-  const [semesterId, setSemesterId] = useState("");
+  const [semesterId, setSemesterId] = useState(initialSemesterId);
   const [groupId, setGroupId] = useState("");
   const [query, setQuery] = useState("");
-  const [rows, setRows] = useState<ScheduleItem[]>([]);
+  const [rows, setRows] = useState<ScheduleItem[]>(initialRows);
   const [loadFailed, setLoadFailed] = useState(false);
 
   const reqId = useRef(0);
-
-  const loadedKey = useRef("||");
-  const keyOf = (sem: string, grp: string, q: string) => `${sem}|${grp}|${q}`;
-
-  const load = async () => {
-    const id = ++reqId.current;
-    const [grps, sems] = await Promise.all([getGroups(), getSemesters()]);
-    const sem =
-      (semesterId && sems.some((s) => s.semester_id === semesterId)
-        ? semesterId
-        : sems.at(0)?.semester_id) ?? "";
-    const list = sem
-      ? await getSchedule({
-          semester_id: sem,
-          group_id: groupId || undefined,
-          q: query || undefined,
-        })
-      : [];
-    if (id !== reqId.current) return;
-    loadedKey.current = keyOf(sem, groupId, query);
-    setGroups(grps);
-    setSemesters(sems);
-    setSemesterId(sem);
-    setRows(list);
-    setLoadFailed(false);
-  };
+  const loadedKey = useRef(keyOf(initialSemesterId, "", ""));
 
   const refresh = async (sem: string, grp: string, q: string) => {
     const id = ++reqId.current;
@@ -76,9 +60,11 @@ export function useSchedulePage() {
     }
   };
 
-  const semesterValid = semesters.some((s) => s.semester_id === semesterId);
+  const semesterValid = semesters.some(
+    (s) => String(s.semester_id) === semesterId,
+  );
   const groupValid =
-    groupId === "" || groups.some((g) => g.group_id === groupId);
+    groupId === "" || groups.some((g) => String(g.group_id) === groupId);
 
   useEffect(() => {
     if (!semesterValid || !groupValid) return;
@@ -103,6 +89,5 @@ export function useSchedulePage() {
     setQuery,
     rows,
     loadFailed,
-    load,
   };
 }

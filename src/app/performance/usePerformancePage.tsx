@@ -1,40 +1,56 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
-import { useModal, useToast, type DataGridRowId } from "@ui-kit/components";
+import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import type { Performance, PerformanceListResponse } from "@/models";
 import { getPerformances, deletePerformance } from "@/actions/performance";
+import { useDebounceValue } from "@/hooks";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function usePerformancePage() {
+type OptimisticPerformanceAction = {
+  type: "delete";
+  performanceId: Performance["performance_id"];
+};
+
+export function usePerformancePage(initialData: PerformanceListResponse) {
   const { openModal } = useModal();
   const toast = useToast();
   const router = useRouter();
 
-  const [items, setItems] = useState<Performance[]>([]);
+  const [items, setItems] = useState<Performance[]>(initialData.items);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounceValue(query, SEARCH_DEBOUNCE_MS);
 
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialData.nextCursor !== null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
-  const cursor = useRef<string | null>(null);
+  const [optimisticItems, applyOptimistic] = useOptimistic<
+    Performance[],
+    OptimisticPerformanceAction
+  >(items, (current, action) => {
+    switch (action.type) {
+      case "delete":
+        return current.filter((r) => r.performance_id !== action.performanceId);
+    }
+  });
+
+  const cursor = useRef<string | null>(initialData.nextCursor);
   const reqId = useRef(0);
 
   const applyPage = (res: PerformanceListResponse, reset: boolean) => {
     cursor.current = res.nextCursor;
     setItems((prev) => (reset ? res.items : [...prev, ...res.items]));
     setHasMore(res.nextCursor !== null);
-  };
-
-  const load = async () => {
-    const id = ++reqId.current;
-    const res = await getPerformances({ q: query });
-    if (id === reqId.current) applyPage(res, true);
-    setLoadError(false);
   };
 
   const loadInto = async (reset: boolean, q: string) => {
@@ -60,26 +76,21 @@ export function usePerformancePage() {
     }
   };
 
-  const loadMore = () => void loadInto(false, query);
+  const loadMore = () => void loadInto(false, debouncedQuery);
 
-  const skipFirst = useRef(true);
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    if (skipFirst.current) {
-      skipFirst.current = false;
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
       return;
     }
-    reqId.current++;
     cursor.current = null;
     setHasMore(false);
     setLoadError(false);
     setLoadingMore(false);
-    const timer = setTimeout(
-      () => void loadInto(true, query),
-      SEARCH_DEBOUNCE_MS,
-    );
-    return () => clearTimeout(timer);
+    void loadInto(true, debouncedQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [debouncedQuery]);
 
   const openCreate = () => router.push("/performance/new");
   const openEdit = (row: Performance) =>
@@ -92,32 +103,46 @@ export function usePerformancePage() {
       actionAppearance: "destructive",
       errorMessage: getErrorMessage,
       content: (
-        <p>
-          Вы действительно хотите удалить запись: <b>{row.student_name}</b> (
-          {row.subject_name})?
+        <p className="BodyTextBlockStyle">
+          Вы действительно хотите удалить запись:{" "}
+          <strong className="BodyStrongTextBlockStyle">
+            {row.student_name}
+          </strong>{" "}
+          ({row.subject_name})?
         </p>
       ),
-      onAction: async () => {
-        await deletePerformance(row.performance_id);
-        setItems((prev) =>
-          prev.filter((r) => r.performance_id !== row.performance_id),
-        );
+      onAction: () => {
+        startTransition(async () => {
+          applyOptimistic({
+            type: "delete",
+            performanceId: row.performance_id,
+          });
 
-        toast.success("Запись удалена", {
-          description: `${row.student_name} — ${row.subject_name}`,
+          try {
+            await deletePerformance(row.performance_id);
+            setItems((prev) =>
+              prev.filter((r) => r.performance_id !== row.performance_id),
+            );
+            toast.success("Запись удалена", {
+              description: `${row.student_name} — ${row.subject_name}`,
+            });
+          } catch (error) {
+            toast.error("Не удалось удалить запись", {
+              description: getErrorMessage(error),
+            });
+          }
         });
       },
     });
   };
 
   return {
-    items,
+    items: optimisticItems,
     query,
     setQuery,
     hasMore,
     loadingMore,
     loadError,
-    load,
     loadMore,
     openCreate,
     openEdit,

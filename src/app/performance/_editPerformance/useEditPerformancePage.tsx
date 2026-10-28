@@ -1,41 +1,23 @@
 "use client";
 
-import { useId, useState } from "react";
+import { startTransition, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import {
-  getPerformanceOptions,
-  getPerformance,
   createPerformance,
   updatePerformance,
   deletePerformance,
 } from "@/actions/performance";
-import type {
-  Performance,
-  PerformanceInput,
-  PerformanceOptions,
-} from "@/models";
+import type { Performance, PerformanceInput } from "@/models";
 
 const LIST_PATH = "/performance";
 
-export function useEditPerformancePage(id?: string) {
+export function useEditPerformancePage(id?: string, record?: Performance) {
   const router = useRouter();
   const { openModal } = useModal();
   const toast = useToast();
   const formId = useId();
-
-  const [options, setOptions] = useState<PerformanceOptions | null>(null);
-  const [record, setRecord] = useState<Performance | undefined>();
-
-  const load = async () => {
-    const [opts, rec] = await Promise.all([
-      getPerformanceOptions(),
-      id ? getPerformance(id) : Promise.resolve(undefined),
-    ]);
-    setOptions(opts);
-    setRecord(rec);
-  };
 
   const goBack = () => {
     router.push(LIST_PATH);
@@ -53,7 +35,10 @@ export function useEditPerformancePage(id?: string) {
         description: "Новая запись добавлена в журнал успеваемости",
       });
     }
-    router.push(LIST_PATH);
+
+    startTransition(() => {
+      router.push(LIST_PATH);
+    });
   };
 
   const openAlert = () => {
@@ -89,16 +74,16 @@ export function useEditPerformancePage(id?: string) {
             ? `${record.student_name} — ${record.subject_name}`
             : undefined,
         });
-        router.push(LIST_PATH);
+
+        startTransition(() => {
+          router.push(LIST_PATH);
+        });
       },
     });
   };
 
   return {
-    options,
-    record,
     formId,
-    load,
     goBack,
     save,
     openAlert,

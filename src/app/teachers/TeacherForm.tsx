@@ -29,10 +29,7 @@ export default function TeacherForm({
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const submitRef = useRef(onSubmit);
-
-  useEffect(() => {
-    submitRef.current = onSubmit;
-  });
+  submitRef.current = onSubmit;
 
   useEffect(() => {
     registerAction(async () => {

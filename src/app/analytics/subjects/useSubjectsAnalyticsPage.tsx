@@ -4,49 +4,38 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import { getSubjectsAnalytics } from "@/actions/analytics";
-import { getSemesters } from "@/actions/semesters";
-import { getGroups } from "@/actions/groups";
 import type { Group, GradeBucket, Semester, SubjectStat } from "@/models";
 
 const DEBOUNCE_MS = 300;
 
-export function useSubjectsAnalyticsPage() {
+interface UseSubjectsAnalyticsPageParams {
+  semesters: Semester[];
+  groups: Group[];
+  initialRows: SubjectStat[];
+  initialDistribution: GradeBucket[];
+}
+
+const keyOf = (sem: string, grp: string) => `${sem}|${grp}`;
+
+export function useSubjectsAnalyticsPage({
+  semesters,
+  groups,
+  initialRows,
+  initialDistribution,
+}: UseSubjectsAnalyticsPageParams) {
   const toast = useToast();
 
-  const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
   // Значения ComboBox: id пункта или свой текст пользователя; пусто — все семестры / все группы
   const [semesterId, setSemesterId] = useState("");
   const [groupId, setGroupId] = useState("");
-  const [rows, setRows] = useState<SubjectStat[]>([]);
-  const [distribution, setDistribution] = useState<GradeBucket[]>([]);
+  const [rows, setRows] = useState<SubjectStat[]>(initialRows);
+  const [distribution, setDistribution] =
+    useState<GradeBucket[]>(initialDistribution);
   const [loadFailed, setLoadFailed] = useState(false);
 
-  const reqId = useRef(0); // номер последнего запроса: ответы устаревших игнорируются
-  const loadedKey = useRef("|"); // параметры, для которых данные уже загружены
-  const keyOf = (sem: string, grp: string) => `${sem}|${grp}`;
+  const reqId = useRef(0);
+  const loadedKey = useRef("|");
 
-  // Первая загрузка для Page: ошибка пробрасывается, Page покажет «Повторить».
-  const load = async () => {
-    const id = ++reqId.current;
-    const [sems, grps, stats] = await Promise.all([
-      getSemesters(),
-      getGroups(),
-      getSubjectsAnalytics({
-        semester_id: semesterId || undefined,
-        group_id: groupId || undefined,
-      }),
-    ]);
-    if (id !== reqId.current) return;
-    loadedKey.current = keyOf(semesterId, groupId);
-    setSemesters(sems);
-    setGroups(grps);
-    setRows(stats.rows);
-    setDistribution(stats.distribution);
-    setLoadFailed(false);
-  };
-
-  // Смена параметров: ошибка не пробрасывается, а показывается вместо пустой таблицы.
   const refresh = async (sem: string, grp: string) => {
     const id = ++reqId.current;
     try {
@@ -76,14 +65,15 @@ export function useSubjectsAnalyticsPage() {
 
   // Текст, не совпавший с вариантом списка, запрос не запускает
   const semesterValid =
-    semesterId === "" || semesters.some((s) => s.semester_id === semesterId);
+    semesterId === "" ||
+    semesters.some((s) => String(s.semester_id) === semesterId);
   const groupValid =
-    groupId === "" || groups.some((g) => g.group_id === groupId);
+    groupId === "" || groups.some((g) => String(g.group_id) === groupId);
 
   useEffect(() => {
     if (!semesterValid || !groupValid) return;
     if (keyOf(semesterId, groupId) === loadedKey.current) return;
-    reqId.current++; // ответ на прежний запрос уже не нужен
+    reqId.current++;
     const timer = setTimeout(
       () => void refresh(semesterId, groupId),
       DEBOUNCE_MS,
@@ -102,6 +92,5 @@ export function useSubjectsAnalyticsPage() {
     rows,
     distribution,
     loadFailed,
-    load,
   };
 }

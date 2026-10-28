@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -9,6 +9,7 @@ import {
   NavCategory,
   NavSubItem,
 } from "@ui-kit/components";
+import { useOnlineStatus } from "@/hooks";
 import {
   JournalIcon,
   DictionariesIcon,
@@ -42,6 +43,7 @@ const categoryFromSelected = (selected: string): string | undefined => {
 };
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  useOnlineStatus();
   const pathname = usePathname();
   const selected = selectedFromPath(pathname);
   const openCategory = categoryFromSelected(selected);
@@ -170,7 +172,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </NavItem>
         }
       >
-        <Suspense fallback={null}>{children}</Suspense>
+        {children}
       </NavigationView>
     </div>
   );

@@ -1,39 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import { useModal, useToast } from "@ui-kit/components";
 import { getErrorMessage } from "@/utils";
 import * as actions from "@/actions/groups";
 import type { Group, GroupInput } from "@/models";
+import { useDebounceValue } from "@/hooks";
 import GroupForm from "./GroupForm";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function useGroupsPage() {
+type OptimisticAction =
+  | { type: "create"; data: GroupInput; tempId: Group["group_id"] }
+  | { type: "update"; groupId: Group["group_id"]; data: GroupInput }
+  | { type: "delete"; groupId: Group["group_id"] };
+
+export function useGroupsPage(initialGroups: Group[]) {
   const { openModal } = useModal();
   const toast = useToast();
 
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [groups, setGroups] = useState<Group[]>(initialGroups);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounceValue(query, SEARCH_DEBOUNCE_MS);
   const [loadFailed, setLoadFailed] = useState(false);
+
+  const [optimisticGroups, applyOptimistic] = useOptimistic<
+    Group[],
+    OptimisticAction
+  >(groups, (currentGroups, action) => {
+    switch (action.type) {
+      case "create":
+        return [
+          ...currentGroups,
+          { group_id: action.tempId, ...action.data } as Group,
+        ];
+      case "update":
+        return currentGroups.map((g) =>
+          g.group_id === action.groupId ? { ...g, ...action.data } : g,
+        );
+      case "delete":
+        return currentGroups.filter((g) => g.group_id !== action.groupId);
+    }
+  });
 
   const reqId = useRef(0);
 
-  const queryRef = useRef(query);
-  useEffect(() => {
-    queryRef.current = query;
-  }, [query]);
-
-  const load = async () => {
-    const id = ++reqId.current;
-    const rows = await actions.getGroups(queryRef.current);
-    if (id === reqId.current) {
-      setGroups(rows);
-      setLoadFailed(false);
-    }
-  };
-
-  const refresh = async (q: string = queryRef.current) => {
+  const refresh = async (q: string = debouncedQuery) => {
     const id = ++reqId.current;
     try {
       const rows = await actions.getGroups(q);
@@ -53,17 +71,16 @@ export function useGroupsPage() {
     }
   };
 
-  const skipFirst = useRef(true);
+  // Эффект реагирует только на отложенный поисковый запрос (пропуская начальный пустой ввод)
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    if (skipFirst.current) {
-      skipFirst.current = false;
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
       return;
     }
-    reqId.current++;
-    const timer = setTimeout(() => void refresh(query), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+    void refresh(debouncedQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [debouncedQuery]);
 
   const handleSubmitForm = async (
     groupId: Group["group_id"] | undefined,
@@ -74,13 +91,26 @@ export function useGroupsPage() {
       toast.success("Группа создана", {
         description: `Группа «${data.group_code}» добавлена`,
       });
+
+      startTransition(async () => {
+        applyOptimistic({
+          type: "create",
+          data,
+          tempId: `temp-${Date.now()}` as unknown as Group["group_id"],
+        });
+        await refresh();
+      });
     } else {
       await actions.updateGroup(groupId, data);
       toast.success("Группа обновлена", {
         description: `Изменения в группе «${data.group_code}» сохранены`,
       });
+
+      startTransition(async () => {
+        applyOptimistic({ type: "update", groupId, data });
+        await refresh();
+      });
     }
-    void refresh();
   };
 
   const openForm = (group?: Group) => {
@@ -117,15 +147,31 @@ export function useGroupsPage() {
           ?
         </p>
       ),
-      onAction: async () => {
-        await actions.deleteGroup(group.group_id);
-        toast.success("Группа удалена", {
-          description: `Группа «${group.group_code}» удалена`,
+      onAction: () => {
+        startTransition(async () => {
+          applyOptimistic({ type: "delete", groupId: group.group_id });
+          try {
+            await actions.deleteGroup(group.group_id);
+            toast.success("Группа удалена", {
+              description: `Группа «${group.group_code}» удалена`,
+            });
+            await refresh();
+          } catch (error) {
+            toast.error("Не удалось удалить группу", {
+              description: getErrorMessage(error),
+            });
+          }
         });
-        void refresh();
       },
     });
   };
 
-  return { groups, query, setQuery, loadFailed, load, openForm, openAlert };
+  return {
+    groups: optimisticGroups,
+    query,
+    setQuery,
+    loadFailed,
+    openForm,
+    openAlert,
+  };
 }
