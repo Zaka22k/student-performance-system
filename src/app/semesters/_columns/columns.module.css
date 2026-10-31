@@ -1,6 +1,3 @@
-/* Колонки справочника «Семестры».
-   Цвет только у одного значения: у семестра, который идёт сейчас. Остальное держится на иерархии шрифта. */
-
 .stackCell {
   display: flex;
   flex-direction: column;
@@ -36,6 +33,7 @@
   gap: 6px;
   color: var(--label-secondary);
   white-space: nowrap;
+  padding-left: 3px;
 }
 
 .statusCurrent {
@@ -51,18 +49,16 @@
   border-radius: 50%;
 }
 
-/* идёт сейчас: акцентная точка с мягким ореолом */
 .dotCurrent {
   background-color: var(--control-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--control-accent) 25%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--control-accent) 25%, transparent);
 }
 
-/* завершён: серая точка */
 .dotPast {
   background-color: var(--system-gray-2);
 }
 
-/* впереди: пустое кольцо */
 .dotUpcoming {
   border: 1.5px solid var(--system-gray-2);
 }
