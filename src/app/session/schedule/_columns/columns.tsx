@@ -14,23 +14,70 @@ export const scheduleRowId = (r: ScheduleItem) =>
     r.teacher_id,
   ].join("|");
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Даты приходят строками YYYY-MM-DD. Сегодня берём в часовом поясе пользователя
+// (toISOString дал бы дату по UTC)
+const todayISO = (): string => new Date().toLocaleDateString("sv-SE");
+const dayNumber = (iso: string): number => Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
+
+// 2027-01-11 → «пн»
+const weekday = (iso: string): string =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("ru-RU", {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+
+// Сколько дней до события: отрицательное значение значит, что оно уже прошло
+const daysUntil = (iso: string): number => dayNumber(iso) - dayNumber(todayISO());
+
+function relativeLabel(days: number): string {
+  if (days === 0) return "сегодня";
+  if (days === 1) return "завтра";
+  if (days === -1) return "вчера";
+  return days > 0 ? `через ${days} дн.` : `${-days} дн. назад`;
+}
+
+// «Иванов Иван Иванович» → «ИИ»
+const initials = (name: string): string =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join("");
+
 export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
   {
     id: "date",
     header: "Дата",
-    width: 120,
-    cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.dateTag}`}>
-        {formatDate(r.assessment_date)}
-      </span>
-    ),
+    width: 170,
+    cell: (r) => {
+      const days = daysUntil(r.assessment_date);
+      return (
+        <div className={`${styles.stackCell} ${days < 0 ? styles.past : ""}`}>
+          <span
+            className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.primaryText}`}
+          >
+            {formatDate(r.assessment_date)}
+          </span>
+          <span
+            className={`CaptionTextBlockStyle ${styles.subtext} ${
+              days === 0 ? styles.today : ""
+            }`}
+          >
+            {weekday(r.assessment_date)}, {relativeLabel(days)}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: "group",
     header: "Группа",
     width: 120,
     cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.groupBadge}`}>
+      <span className={`CaptionTextBlockStyle ${styles.groupTag}`}>
         {r.group_code}
       </span>
     ),
@@ -41,7 +88,7 @@ export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
     width: 280,
     cell: (r) => (
       <span
-        className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.subjectText}`}
+        className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.primaryText}`}
         title={r.subject_name}
       >
         {r.subject_name}
@@ -51,35 +98,40 @@ export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
   {
     id: "type",
     header: "Вид контроля",
-    width: 250,
+    width: 300,
     cell: (r) => (
-      <div className={styles.typeCell}>
+      <span className={styles.typeCell}>
         <span
-          className={`CaptionTextBlockStyle ${styles.typePill} ${
-            styles[`type_${r.assessment_type}`] ?? ""
-          }`}
-        >
+          className={`${styles.marker} ${styles[`type_${r.assessment_type}`] ?? ""}`}
+          aria-hidden="true"
+        />
+        <span className={`BodyTextBlockStyle ${styles.typeLabel}`}>
           {ASSESSMENT_LABELS[r.assessment_type]}
         </span>
         {r.attempt_number > 1 && (
-          <span className={`CaptionTextBlockStyle ${styles.attemptBadge}`}>
-            попытка {r.attempt_number}
+          <span className={`CaptionTextBlockStyle ${styles.attempt}`}>
+            {r.attempt_number}-я попытка
           </span>
         )}
-      </div>
+      </span>
     ),
   },
   {
     id: "teacher",
     header: "Преподаватель",
-    width: 220,
+    width: 240,
     cell: (r) => (
-      <span
-        className={`BodyTextBlockStyle ${styles.teacherText}`}
-        title={r.teacher_name}
-      >
-        {r.teacher_name}
-      </span>
+      <div className={styles.person} title={r.teacher_name}>
+        <span
+          className={`CaptionTextBlockStyle ${styles.avatar}`}
+          aria-hidden="true"
+        >
+          {initials(r.teacher_name)}
+        </span>
+        <span className={`BodyTextBlockStyle ${styles.personName}`}>
+          {r.teacher_name}
+        </span>
+      </div>
     ),
   },
   {
@@ -87,7 +139,7 @@ export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
     header: "Студентов",
     align: "end",
     cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.countPill}`}>
+      <span className={`BodyTextBlockStyle ${styles.count}`}>
         {r.students_count}
       </span>
     ),

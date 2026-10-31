@@ -28,14 +28,21 @@ export interface IconProps {
   className?: string;
 }
 
+/** Главная: домик с дверью */
+export const HomeIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M3.5 11.5 12 4l8.5 7.5" />
+    <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />
+    <path d="M10 20v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+  </Svg>
+);
+
 /** Журнал успеваемости: тетрадь с отметкой */
 export const JournalIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M5 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" />
     <path d="M9 3v18" />
-    {/* Убрали дробные значения (3.5 и 10.5) для идеальной пиксельной сетки */}
     <path d="M12 11l2 2 4-4" />
-    {/* Сдвинули линию чуть ниже для баланса с галочкой */}
     <path d="M12 18h5" />
   </Svg>
 );
@@ -45,12 +52,9 @@ export const DictionariesIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <rect x="3" y="4" width="4" height="16" rx="1" />
     <rect x="9" y="4" width="4" height="16" rx="1" />
-    {/* Упростили координаты наклоненной книги и добавили <g> для применения скругления `rx`, 
-        так как path не поддерживает rx. Это сделает углы консистентными */}
     <g strokeLinejoin="round">
       <path d="M15 6l4-1 3 14-4 1z" />
     </g>
-    {/* Добавили корешки всем книгам, чтобы они смотрелись как единый набор */}
     <path d="M3 8h4" />
     <path d="M9 8h4" />
     <path d="M15 6l4-1" />
@@ -64,7 +68,6 @@ export const SessionIcon = ({ size, className }: IconProps) => (
     <path d="M3 10h18" />
     <path d="M8 2v4" />
     <path d="M16 2v4" />
-    {/* Отцентровали галочку относительно пустой области календаря */}
     <path d="M9 16l2 2 4-4" />
   </Svg>
 );
@@ -72,9 +75,7 @@ export const SessionIcon = ({ size, className }: IconProps) => (
 /** Аналитика: столбчатая диаграмма */
 export const AnalyticsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
-    {/* Базовая линия (ось X), чтобы столбцы не "висели в воздухе" */}
     <path d="M3 21h18" />
-    {/* Высота пересчитана так, чтобы столбцы стояли ровно на оси X (y=21) */}
     <rect x="4" y="12" width="4" height="9" rx="1" />
     <rect x="10" y="5" width="4" height="16" rx="1" />
     <rect x="16" y="9" width="4" height="12" rx="1" />
@@ -86,8 +87,6 @@ export const ReportsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
     <path d="M14 3v5h5" />
-    {/* Сделали вторую линию короче первой — это создает имитацию реального текста 
-        и визуально отличает иконку от обычной "бумаги" */}
     <path d="M9 13h6" />
     <path d="M9 17h4" />
   </Svg>
@@ -162,9 +161,7 @@ export const XmlIcon = ({ size, className }: IconProps) => (
 
 export const SettingsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
-    {/* Центральное отверстие шестерни */}
     <circle cx="12" cy="12" r="3" />
-    {/* Симметричные зубцы шестерни с закруглёнными переходами */}
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </Svg>
 );

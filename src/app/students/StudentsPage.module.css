@@ -1,0 +1,159 @@
+/* Карточки студентов: фамилия, группа и номер. Цвет только у статуса, который отличается от нормы. */
+
+.studentsList {
+  --list-item-radius: 16px;
+  --list-card-bg: var(--elevated-bg);
+}
+
+.studentCard {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--separator);
+  border-radius: 16px;
+  background: var(--list-card-bg, var(--elevated-bg));
+  color: var(--label-primary);
+  transition:
+    border-color var(--ControlAnimationDuration, 200ms)
+      var(--ControlAnimationEasing, ease),
+    background-color var(--ControlAnimationDuration, 200ms)
+      var(--ControlAnimationEasing, ease),
+    box-shadow var(--ControlAnimationDuration, 200ms)
+      var(--ControlAnimationEasing, ease);
+}
+
+.studentCard:hover {
+  background: color-mix(in srgb, var(--label-primary) 3%, var(--list-card-bg, var(--elevated-bg)));
+}
+
+.studentCard[data-selected] {
+  border-color: var(--control-accent);
+  box-shadow: inset 0 0 0 1px var(--control-accent);
+}
+
+.studentCard[data-active] {
+  outline: 2px solid var(--keyboard-focus-indicator);
+  outline-offset: -2px;
+}
+
+/* ───────────── Кто это ───────────── */
+
+.identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--fill-secondary);
+  color: var(--label-secondary);
+  font-size: var(--font-body, 0.875rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.names {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lastName {
+  overflow: hidden;
+  color: var(--label-primary);
+  font-size: var(--font-body-large, 1.125rem);
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.givenNames {
+  overflow: hidden;
+  color: var(--label-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ───────────── Группа, номер и статус ───────────── */
+
+.footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.groupTag {
+  flex: none;
+  padding: 0 6px;
+  border-radius: calc(var(--ControlCornerRadius, 8px) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.number {
+  flex: none;
+}
+
+.status {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  color: var(--label-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+}
+
+/* академический отпуск: пауза */
+.status_academic_leave {
+  background: var(--system-orange);
+}
+
+/* отчислен */
+.status_expelled {
+  background: var(--system-red);
+}
+
+/* выпустился: завершено, без сигнала */
+.status_graduated {
+  background: var(--system-gray-2);
+}

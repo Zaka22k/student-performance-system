@@ -1,3 +1,9 @@
+/* Колонки журнала успеваемости.
+   Цвет несёт только результат (один оттенок акцента разной насыщенности и красный для неудачи).
+   Остальное держится на иерархии: жирное и обычное, плашки, значки-формы, монограммы. */
+
+/* ───────────── Общие ───────────── */
+
 .stackCell {
   display: flex;
   flex-direction: column;
@@ -7,7 +13,7 @@
 
 .primaryText {
   display: block;
-  color: var(--text-primary);
+  color: var(--label-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -16,7 +22,8 @@
 .subtext {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
   color: var(--label-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -24,122 +31,184 @@
   font-variant-numeric: tabular-nums;
 }
 
-.groupAccent {
-  color: var(--system-blue);
+/* ───────────── Студент ───────────── */
+
+/* Группа: тихая плашка, чтобы код читался отдельно от номера */
+.groupTag {
+  flex: none;
+  padding: 0 6px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
   font-weight: 600;
+  line-height: 1.5;
 }
 
-.dotSeparator {
-  color: var(--label-tertiary);
+.number {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.typeBadge {
+/* ───────────── Вид контроля ───────────── */
+
+.typeCell {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 600;
+  gap: 8px;
+  min-width: 0;
+  color: var(--label-secondary); /* цвет значка берётся отсюда */
+}
+
+.typeLabel {
+  overflow: hidden;
+  color: var(--label-primary);
+  text-overflow: ellipsis;
   white-space: nowrap;
-  border: 1px solid transparent;
 }
 
+/* Виды различаются формой, а не цветом: цвет в таблице оставлен под результат */
+.marker {
+  flex: none;
+  box-sizing: border-box;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+}
+
+/* экзамен: закрашенный круг */
 .type_exam {
-  background-color: rgba(var(--system-indigo-rgb), 0.14);
-  border-color: rgba(var(--system-indigo-rgb), 0.28);
-  color: var(--system-indigo);
+  border-radius: 50%;
+  background-color: currentColor;
 }
 
+/* зачёт: кольцо */
 .type_credit {
-  background-color: rgba(var(--system-mint-rgb), 0.14);
-  border-color: rgba(var(--system-mint-rgb), 0.28);
-  color: var(--system-mint);
+  border-radius: 50%;
 }
 
+/* дифференцированный зачёт: полукруг */
 .type_differentiated_credit {
-  background-color: rgba(var(--system-cyan-rgb), 0.14);
-  border-color: rgba(var(--system-cyan-rgb), 0.28);
-  color: var(--system-cyan);
+  border-radius: 50%;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
 }
 
+/* курсовая: закрашенный квадрат */
 .type_coursework {
-  background-color: rgba(var(--system-purple-rgb), 0.14);
-  border-color: rgba(var(--system-purple-rgb), 0.28);
-  color: var(--system-purple);
+  border-radius: 2px;
+  background-color: currentColor;
 }
+
+/* ───────────── Результат ───────────── */
 
 .resultCell {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 10px;
 }
 
-.attemptBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  border-radius: 5px;
-  background-color: var(--fill-tertiary);
-  border: 1px solid var(--separator);
+.attempt {
   color: var(--label-secondary);
-  font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.resultPill {
+.result {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 10px;
-  border-radius: 999px;
+  box-sizing: border-box;
+  min-width: 32px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  color: var(--label-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  border: 1px solid transparent;
 }
 
-.resultExcellent {
-  background-color: rgba(var(--system-green-rgb), 0.14);
-  border-color: rgba(var(--system-green-rgb), 0.28);
-  color: var(--system-green);
+/* 5: самый насыщенный акцент */
+.result_excellent {
+  background-color: color-mix(in srgb, var(--control-accent) 20%, transparent);
+  color: var(--control-accent);
 }
 
-.resultGood {
-  background-color: rgba(var(--system-teal-rgb), 0.14);
-  border-color: rgba(var(--system-teal-rgb), 0.28);
-  color: var(--system-teal);
+/* 4: тот же акцент слабее */
+.result_good {
+  background-color: color-mix(in srgb, var(--control-accent) 10%, transparent);
 }
 
-.resultSatisfactory {
-  background-color: rgba(var(--system-orange-rgb), 0.14);
-  border-color: rgba(var(--system-orange-rgb), 0.28);
-  color: var(--system-orange);
+/* 3: нейтральная заливка */
+.result_satisfactory {
+  background-color: var(--fill-secondary);
+  color: var(--label-secondary);
 }
 
-.resultFail {
-  background-color: rgba(var(--system-red-rgb), 0.14);
-  border-color: rgba(var(--system-red-rgb), 0.28);
+/* «Сдано»: как пятёрка, с галочкой, чтобы зачёт читался как положительный итог */
+.result_passed {
+  background-color: color-mix(in srgb, var(--control-accent) 14%, transparent);
+  color: var(--control-accent);
+}
+
+.result_passed::before {
+  content: "✓";
+  margin-inline-end: 6px;
+  font-weight: 700;
+}
+
+/* 2 и «Не сдано»: красный несёт смысл, поэтому остаётся */
+.result_fail {
+  background-color: color-mix(in srgb, var(--system-red) 14%, transparent);
   color: var(--system-red);
 }
 
-.teacherText {
-  display: block;
+/* ───────────── Преподаватель ───────────── */
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Монограмма: нейтральный круг, разбивает сплошной текст и помогает найти строку глазами */
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--fill-secondary);
   color: var(--label-secondary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.personName {
+  display: block;
+  color: var(--label-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dateTag {
+/* ───────────── Дата ───────────── */
+
+.date {
   display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: var(--fill-tertiary);
-  border: 1px solid var(--separator);
-  color: var(--label-secondary);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
+  align-items: baseline;
+  gap: 8px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekday {
+  color: var(--label-secondary);
+}
+
+.dateValue {
+  color: var(--label-primary);
 }

@@ -62,6 +62,7 @@ export default function GroupsAnalyticsPageView({
           <DataGrid
             aria-label="Успеваемость по группам"
             rows={p.rows}
+            height={"max-content"}
             columns={groupStatColumns}
             getRowId={(g) => g.group_id}
             resetKey={p.semesterId}

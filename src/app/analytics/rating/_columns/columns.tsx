@@ -3,67 +3,52 @@ import type { RatingItem } from "@/models";
 import { formatAverage } from "../../format";
 import styles from "./columns.module.css";
 
-function getPlaceClass(place: number): string {
-  if (place === 1) return styles.place1;
-  if (place === 2) return styles.place2;
-  if (place === 3) return styles.place3;
-  return styles.placeDefault;
-}
+// Тройка лидеров выделена одним оттенком акцента разной насыщенности, остальные места без плашки
+const PLACE_CLASS: Record<number, string> = {
+  1: styles.place1,
+  2: styles.place2,
+  3: styles.place3,
+};
 
-function getAvgClass(avg: number | null): string {
-  if (avg === null) return styles.avgEmpty;
-  if (avg >= 4.5) return styles.avgHigh;
-  if (avg >= 3.5) return styles.avgMedium;
-  return styles.avgLow;
-}
+// Оценки лежат в диапазоне 2–5: шкала показывает, где средний балл между ними
+const MIN_GRADE = 2;
+const MAX_GRADE = 5;
+
+const scaleShare = (avg: number): number =>
+  Math.min(1, Math.max(0, (avg - MIN_GRADE) / (MAX_GRADE - MIN_GRADE)));
 
 export const ratingColumns: DataGridColumn<RatingItem>[] = [
   {
     id: "place",
     header: "Место",
-    width: 90,
-    align: "end",
+    width: 80,
     cell: (r) => (
       <span
-        className={`CaptionTextBlockStyle ${styles.placeBadge} ${getPlaceClass(
-          r.place,
-        )}`}
+        className={`BodyTextBlockStyle ${styles.place} ${PLACE_CLASS[r.place] ?? styles.placeOther}`}
       >
-        #{r.place}
+        {r.place}
       </span>
     ),
   },
   {
     id: "student",
     header: "Студент",
-    width: 280,
+    width: 320,
     cell: (r) => (
-      <span
-        className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.studentName}`}
-        title={r.student_name}
+      <div
+        className={styles.stackCell}
+        title={`${r.student_name} (${r.group_code}, № ${r.student_number})`}
       >
-        {r.student_name}
-      </span>
-    ),
-  },
-  {
-    id: "number",
-    header: "Номер",
-    width: 130,
-    cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.numberBadge}`}>
-        {r.student_number}
-      </span>
-    ),
-  },
-  {
-    id: "group",
-    header: "Группа",
-    width: 120,
-    cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.groupBadge}`}>
-        {r.group_code}
-      </span>
+        <span
+          className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.studentName}`}
+        >
+          {r.student_name}
+        </span>
+        <span className={`CaptionTextBlockStyle ${styles.subtext}`}>
+          <span className={styles.groupTag}>{r.group_code}</span>
+          <span>№ {r.student_number}</span>
+        </span>
+      </div>
     ),
   },
   {
@@ -72,7 +57,7 @@ export const ratingColumns: DataGridColumn<RatingItem>[] = [
     width: 150,
     align: "end",
     cell: (r) => (
-      <span className={`CaptionTextBlockStyle ${styles.sumBadge}`}>
+      <span className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.sum}`}>
         {r.summ_balls}
       </span>
     ),
@@ -83,17 +68,21 @@ export const ratingColumns: DataGridColumn<RatingItem>[] = [
     align: "end",
     cell: (r) =>
       r.average_grade === null ? (
-        <span className={`BodyTextBlockStyle ${styles.avgEmpty}`}>
+        <span className={`BodyTextBlockStyle ${styles.empty}`}>
           {formatAverage(r.average_grade)}
         </span>
       ) : (
-        <span
-          className={`CaptionTextBlockStyle ${styles.avgPill} ${getAvgClass(
-            r.average_grade,
-          )}`}
-        >
-          {formatAverage(r.average_grade)}
-        </span>
+        <div className={styles.average}>
+          <span className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.averageValue}`}>
+            {formatAverage(r.average_grade)}
+          </span>
+          <span className={styles.track} aria-hidden="true">
+            <span
+              className={`${styles.fill} ${r.average_grade < 3 ? styles.fillLow : ""}`}
+              style={{ width: `${scaleShare(r.average_grade) * 100}%` }}
+            />
+          </span>
+        </div>
       ),
   },
 ];

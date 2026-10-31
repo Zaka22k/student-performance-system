@@ -36,6 +36,7 @@ export default function PerformancePageView({
       }}
     >
       <DataGrid
+        striped
         aria-label="Журнал успеваемости"
         rows={p.items}
         columns={performanceColumns}

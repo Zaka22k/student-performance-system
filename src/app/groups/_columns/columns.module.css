@@ -1,20 +1,26 @@
-.codeBadge {
+/* Колонки справочника «Группы».
+   Те же приёмы, что в журнале: тихие серые плашки и иерархия шрифта, без цветных рамок. */
+
+/* ───────────── Код ───────────── */
+
+.codeTag {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: rgba(var(--system-blue-rgb), 0.14);
-  border: 1px solid rgba(var(--system-blue-rgb), 0.28);
-  color: var(--system-blue);
+  padding: 0 8px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+  line-height: 1.6;
   white-space: nowrap;
 }
 
+/* ───────────── Название и направление ───────────── */
+
 .nameText {
   display: block;
-  color: var(--text-primary);
+  color: var(--label-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -28,39 +34,47 @@
   white-space: nowrap;
 }
 
-.yearTag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: var(--fill-tertiary);
-  border: 1px solid var(--separator);
-  color: var(--label-primary);
-  font-weight: 500;
+/* ───────────── Год набора и курс ───────────── */
+
+.yearCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
   font-variant-numeric: tabular-nums;
 }
 
-.countPill {
+.yearValue {
+  color: var(--label-primary);
+}
+
+.course {
+  color: var(--label-secondary);
+  white-space: nowrap;
+}
+
+/* ───────────── Число студентов ───────────── */
+
+/* Квадратик как у оценок в журнале: число читается как значение, а не как текст */
+.count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 22px;
+  box-sizing: border-box;
+  min-width: 32px;
+  height: 26px;
   padding: 0 8px;
-  border-radius: 999px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  border: 1px solid transparent;
 }
 
-.countActive {
-  background-color: rgba(var(--system-green-rgb), 0.14);
-  border-color: rgba(var(--system-green-rgb), 0.28);
-  color: var(--system-green);
-}
-
+/* Пустая группа: без заливки, только контур */
 .countEmpty {
-  background-color: var(--fill-quaternary);
-  border-color: var(--separator);
-  color: var(--label-tertiary);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--separator);
+  color: var(--label-secondary);
+  font-weight: 500;
 }

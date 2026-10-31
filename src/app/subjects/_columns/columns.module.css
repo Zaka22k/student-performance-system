@@ -1,61 +1,69 @@
-.codeBadge {
+/* Колонки справочника «Дисциплины».
+   Те же приёмы, что в журнале и группах: тихие серые плашки и иерархия шрифта, без цвета. */
+
+/* ───────────── Код ───────────── */
+
+.codeTag {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: rgba(var(--system-purple-rgb), 0.14);
-  border: 1px solid rgba(var(--system-purple-rgb), 0.28);
-  color: var(--system-purple);
+  padding: 0 8px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+  line-height: 1.6;
   white-space: nowrap;
 }
 
+/* ───────────── Название ───────────── */
+
 .nameText {
   display: block;
-  color: var(--text-primary);
+  color: var(--label-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hoursTag {
+/* ───────────── Часы ───────────── */
+
+.amount {
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: var(--fill-tertiary);
-  border: 1px solid var(--separator);
-  color: var(--label-primary);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
   white-space: nowrap;
+}
+
+.amountValue {
+  color: var(--label-primary);
 }
 
 .unit {
   color: var(--label-secondary);
-  font-weight: 400;
 }
 
-.creditsPill {
+/* ───────────── Зачётные единицы ───────────── */
+
+/* Квадратик как у числа студентов в группах: значение читается отдельно от текста */
+.creditsChip {
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
   gap: 4px;
-  min-width: 48px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background-color: rgba(var(--system-teal-rgb), 0.14);
-  border: 1px solid rgba(var(--system-teal-rgb), 0.28);
-  color: var(--system-teal);
+  box-sizing: border-box;
+  min-width: 56px;
+  padding: 3px 10px;
+  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  background-color: var(--fill-secondary);
+  color: var(--label-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .creditsUnit {
+  color: var(--label-secondary);
   font-weight: 400;
-  opacity: 0.75;
 }

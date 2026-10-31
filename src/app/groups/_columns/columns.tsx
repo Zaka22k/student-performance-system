@@ -2,13 +2,22 @@ import type { DataGridColumn } from "@ui-kit/components";
 import type { Group } from "@/models";
 import styles from "./columns.module.css";
 
+// Курс группы по году набора: учебный год начинается в сентябре.
+// Для давно выпущенных и будущих групп курс не показываем
+function getCourse(admissionYear: number): number | null {
+  const now = new Date();
+  const academicYearStart = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  const course = academicYearStart - admissionYear + 1;
+  return course >= 1 && course <= 6 ? course : null;
+}
+
 export const groupColumns: DataGridColumn<Group>[] = [
   {
     id: "group_code",
     header: "Код",
     width: 140,
     cell: (g) => (
-      <span className={`CaptionTextBlockStyle ${styles.codeBadge}`}>
+      <span className={`CaptionTextBlockStyle ${styles.codeTag}`}>
         {g.group_code}
       </span>
     ),
@@ -44,11 +53,21 @@ export const groupColumns: DataGridColumn<Group>[] = [
     header: "Год набора",
     width: 130,
     align: "end",
-    cell: (g) => (
-      <span className={`CaptionTextBlockStyle ${styles.yearTag}`}>
-        {g.admission_year}
-      </span>
-    ),
+    cell: (g) => {
+      const course = getCourse(g.admission_year);
+      return (
+        <div className={styles.yearCell}>
+          <span className={`BodyTextBlockStyle ${styles.yearValue}`}>
+            {g.admission_year}
+          </span>
+          {course !== null && (
+            <span className={`CaptionTextBlockStyle ${styles.course}`}>
+              {course} курс
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     id: "students_count",
@@ -58,9 +77,10 @@ export const groupColumns: DataGridColumn<Group>[] = [
       const count = g.students_count ?? 0;
       return (
         <span
-          className={`CaptionTextBlockStyle ${styles.countPill} ${
-            count > 0 ? styles.countActive : styles.countEmpty
+          className={`BodyTextBlockStyle ${styles.count} ${
+            count > 0 ? "" : styles.countEmpty
           }`}
+          title={count > 0 ? undefined : "В группе нет студентов"}
         >
           {count}
         </span>

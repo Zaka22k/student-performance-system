@@ -17,6 +17,7 @@ import {
   AnalyticsIcon,
   ReportsIcon,
   SettingsIcon,
+  HomeIcon,
 } from "@/icons";
 
 const CATEGORY_PREFIXES = ["session", "analytics", "reports"];
@@ -30,7 +31,7 @@ const DICTIONARY_PAGES = [
 
 const selectedFromPath = (pathname: string): string => {
   const [first, second] = pathname.split("/").filter(Boolean);
-  if (!first) return "/performance";
+  if (!first) return "/";
   if (CATEGORY_PREFIXES.includes(first) && second) return `/${first}/${second}`;
   return `/${first}`;
 };
@@ -52,6 +53,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div style={{ height: "100vh" }}>
       <NavigationView
         paneTitle="АСУ «Успеваемость»"
+        extendContentUnderPane
         selectedValue={selected}
         pageKey={pathname}
         defaultOpenCategories={openCategory ? [openCategory] : []}
@@ -60,6 +62,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }
         menuItems={
           <>
+            <NavItem as={Link} href="/" value="home" icon={<HomeIcon />}>
+              Главная
+            </NavItem>
+
             <NavItem
               as={Link}
               href="/performance"

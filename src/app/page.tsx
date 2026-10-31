@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import { getHomeSummary } from "@/server/home";
+import HomePageView from "./_home";
 
-export default function RootPage() {
-  redirect("/performance");
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const summary = await getHomeSummary();
+  return <HomePageView summary={summary} />;
 }

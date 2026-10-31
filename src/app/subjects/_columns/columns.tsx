@@ -2,13 +2,16 @@ import type { DataGridColumn } from "@ui-kit/components";
 import type { Subject } from "@/models";
 import styles from "./columns.module.css";
 
+// Зачётные единицы могут быть дробными: 3.5 → «3,5»
+const formatCredits = (credits: number): string => String(credits).replace(".", ",");
+
 export const subjectColumns: DataGridColumn<Subject>[] = [
   {
     id: "subject_code",
     header: "Код",
     width: 140,
     cell: (s) => (
-      <span className={`CaptionTextBlockStyle ${styles.codeBadge}`}>
+      <span className={`CaptionTextBlockStyle ${styles.codeTag}`}>
         {s.subject_code}
       </span>
     ),
@@ -32,9 +35,9 @@ export const subjectColumns: DataGridColumn<Subject>[] = [
     width: 110,
     align: "end",
     cell: (s) => (
-      <span className={`CaptionTextBlockStyle ${styles.hoursTag}`}>
-        {s.total_hours}
-        <span className={styles.unit}>ч.</span>
+      <span className={`BodyTextBlockStyle ${styles.amount}`}>
+        <span className={styles.amountValue}>{s.total_hours}</span>
+        <span className={`CaptionTextBlockStyle ${styles.unit}`}>ч</span>
       </span>
     ),
   },
@@ -43,9 +46,9 @@ export const subjectColumns: DataGridColumn<Subject>[] = [
     header: "Зачётные единицы",
     align: "end",
     cell: (s) => (
-      <span className={`CaptionTextBlockStyle ${styles.creditsPill}`}>
-        {s.credits}
-        <span className={styles.creditsUnit}>з.е.</span>
+      <span className={`BodyTextBlockStyle ${styles.creditsChip}`}>
+        <span>{formatCredits(s.credits)}</span>
+        <span className={`CaptionTextBlockStyle ${styles.creditsUnit}`}>з.е.</span>
       </span>
     ),
   },

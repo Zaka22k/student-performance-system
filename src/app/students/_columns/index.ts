@@ -1,1 +1,0 @@
-export { studentColumns } from "./columns";

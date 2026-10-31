@@ -1,10 +1,11 @@
 "use client";
 
-import { Page, DataGrid, Button, SearchField } from "@ui-kit/components";
+import { List, Page, Button, SearchField } from "@ui-kit/components";
 import { PlusIcon, EditIcon, TrashIcon } from "@/icons";
 import type { Student, Group } from "@/models";
-import { studentColumns } from "./_columns";
+import StudentCard from "./StudentCard";
 import { useStudentsPage } from "./useStudentsPage";
+import styles from "./StudentsPage.module.css";
 
 interface StudentsPageViewProps {
   initialStudents: Student[];
@@ -37,24 +38,30 @@ export default function StudentsPageView({
         ),
       }}
     >
-      <DataGrid
+      <List
         aria-label="Студенты"
-        rows={p.students}
-        columns={studentColumns}
-        getRowId={(r) => r.student_id}
+        className={styles.studentsList}
+        layout="grid"
+        items={p.students}
+        getItemId={(student) => student.student_id}
+        itemWidth={260}
+        itemHeight={128}
+        gap={16}
+        selectable
+        itemAppearance="none"
         resetKey={p.query}
         emptyContent={
           p.loadFailed
             ? "Не удалось загрузить список студентов"
             : "Студенты не найдены"
         }
-        onRowActivate={(r) => p.openForm(r)}
-        rowMenu={({ row }) => [
+        onItemActivate={(student) => p.openForm(student)}
+        itemMenu={({ item: student }) => [
           {
             id: "edit",
             label: "Редактировать",
             icon: <EditIcon />,
-            onSelect: () => p.openForm(row),
+            onSelect: () => p.openForm(student),
           },
           { type: "separator" },
           {
@@ -62,9 +69,16 @@ export default function StudentsPageView({
             danger: true,
             label: "Удалить",
             icon: <TrashIcon />,
-            onSelect: () => p.openAlert(row),
+            onSelect: () => p.openAlert(student),
           },
         ]}
+        renderItem={(student, state) => (
+          <StudentCard
+            student={student}
+            selected={state.selected}
+            active={state.active}
+          />
+        )}
       />
     </Page>
   );

@@ -55,7 +55,7 @@ export default async function RootLayout({
       <body>
         <noscript>Для работы приложения нужно включить JavaScript.</noscript>
         <ThemeProvider initialTheme={theme} initialAccent={accent}>
-          <ToastProvider position="bottom-right" duration={5000}>
+          <ToastProvider position="top-center" duration={5000}>
             <ModalProvider>
               <AppLayout>{children}</AppLayout>
             </ModalProvider>
