@@ -46,3 +46,60 @@
 .signOut {
   width: 100%;
 }
+
+/* ───────────── Экран «Сессия завершена» ───────────── */
+
+.ended {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: clamp(24px, 6vw, 72px);
+  background: var(--window-bg);
+}
+
+.endedBody {
+  display: grid;
+  width: 100%;
+  max-width: 400px;
+  justify-items: start;
+  gap: 12px;
+}
+
+.endedTitle {
+  color: var(--text-primary);
+  font-size: var(--font-title);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.endedText {
+  color: var(--label-secondary);
+  font-size: var(--font-body);
+  line-height: 1.55;
+}
+
+.endedLink {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 0 20px;
+  border-radius: var(--ControlCornerRadius);
+  background: var(--selected-content-bg);
+  color: var(--text-selected);
+  font-size: var(--font-body);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--ControlAnimationDuration)
+    var(--ControlAnimationEasing);
+}
+
+.endedLink:hover {
+  background: color-mix(in srgb, var(--selected-content-bg) 88%, #000);
+}
+
+.endedLink:focus-visible {
+  outline: 2px solid var(--keyboard-focus-indicator);
+  outline-offset: 2px;
+}

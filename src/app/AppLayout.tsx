@@ -10,6 +10,7 @@ import {
   NavSubItem,
 } from "@ui-kit/components";
 import { useOnlineStatus } from "@/hooks";
+import styles from "./AppLayout.module.css";
 import {
   JournalIcon,
   DictionariesIcon,
@@ -67,21 +68,16 @@ export default function AppLayout({
   if (!currentUser) {
     if (pathname === "/login") return <>{children}</>;
     return (
-      <main
-        style={{
-          minHeight: "100vh",
-          display: "grid",
-          placeItems: "center",
-          padding: 24,
-        }}
-      >
-        <div style={{ display: "grid", gap: 12, textAlign: "center" }}>
-          <h1 className="SubtitleTextBlockStyle">Сессия завершена</h1>
-          <p className="BodyTextBlockStyle">
+      <main className={styles.ended}>
+        <div className={styles.endedBody}>
+          <h1 className={styles.endedTitle}>Сессия завершена</h1>
+          <p className={styles.endedText}>
             Войдите снова: сессия могла истечь или быть отозвана
             администратором.
           </p>
-          <Link href="/login">Перейти ко входу</Link>
+          <Link href="/login" className={styles.endedLink}>
+            Войти снова
+          </Link>
         </div>
       </main>
     );

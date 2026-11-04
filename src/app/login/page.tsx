@@ -2,8 +2,9 @@
 
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, FrostedGlass, TextField } from "@ui-kit/components";
+import { Button, TextField } from "@ui-kit/components";
 import { login } from "@/actions/auth";
+import LoginSheet from "./LoginSheet";
 import styles from "./Login.module.css";
 
 export default function LoginPage() {
@@ -39,73 +40,68 @@ export default function LoginPage() {
 
   return (
     <main className={styles.screen}>
-      <div className={`${styles.orb} ${styles.orbOne}`} aria-hidden="true" />
-      <div className={`${styles.orb} ${styles.orbTwo}`} aria-hidden="true" />
-
-      <FrostedGlass
-        width="min(100%, 440px)"
-        height="auto"
-        radius={24}
-        className={styles.card}
-      >
-        <div className={styles.brand}>
-          <div className={styles.brandMark} aria-hidden="true">АС</div>
-          <div>
-            <p className={styles.brandName}>АСУ «Успеваемость»</p>
-            <p className={styles.brandCaption}>Система учёта учебных результатов</p>
-          </div>
+      <div className={styles.sheet}>
+        <div className={styles.lattice} aria-hidden="true">
+          <LoginSheet />
         </div>
-
-        <div className={styles.heading}>
-          <h1 className={styles.title}>Вход в систему</h1>
-          <p className={styles.subtitle}>
-            Введите логин и пароль, назначенные администратором.
+        <div className={styles.brand}>
+          <p className={styles.wordmark}>АСУ «Успеваемость»</p>
+          <p className={styles.tagline}>
+            Журнал оценок, сессия, аналитика и отчёты.
           </p>
         </div>
+      </div>
 
-        <form className={styles.form} onSubmit={submit}>
-          <TextField
-            label="Логин"
-            placeholder="Введите логин"
-            autoComplete="username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            maxLength={80}
-            required
-            disabled={pending}
-          />
-          <TextField
-            label="Пароль"
-            type="password"
-            placeholder="Введите пароль"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            maxLength={128}
-            required
-            disabled={pending}
-          />
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-          <Button
-            appearance="primary"
-            type="submit"
-            width="100%"
-            height={42}
-            disabled={pending}
-          >
-            {pending ? "Проверяем данные…" : "Войти"}
-          </Button>
-        </form>
+      <div className={styles.panel}>
+        <div className={styles.panelInner}>
+          <h1 className={styles.title}>Вход в систему</h1>
 
-        <div className={styles.footer}>
-          <span className={styles.footerDot} aria-hidden="true" />
-          Авторизация защищена серверной сессией
+          <form className={styles.form} onSubmit={submit}>
+            <TextField
+              label="Логин"
+              name="username"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              maxLength={80}
+              required
+              disabled={pending}
+            />
+            <TextField
+              label="Пароль"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              maxLength={128}
+              required
+              disabled={pending}
+            />
+            {error && (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            )}
+            <Button
+              appearance="primary"
+              type="submit"
+              width="100%"
+              height={40}
+              disabled={pending}
+            >
+              {pending ? "Входим…" : "Войти"}
+            </Button>
+          </form>
+
+          <p className={styles.note}>
+            Логин и пароль выдаёт администратор. Если забыли пароль, обратитесь
+            к нему.
+          </p>
         </div>
-      </FrostedGlass>
+      </div>
     </main>
   );
 }
