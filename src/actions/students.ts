@@ -3,7 +3,7 @@
 import { createCrudService, withActionError, prisma } from "@/server/lib";
 import { studentSchema } from "@/schemas";
 import type { Student, StudentInput } from "@/models";
-import { requireAnyPermission } from "@/server/auth/session";
+import { requireAnyPermission, requirePermission } from "@/server/auth/session";
 
 export interface StudentPerformanceItem {
   performance_id: string;
@@ -91,7 +91,6 @@ export async function updateStudent(
 }
 
 export async function deleteStudent(id: string): Promise<void> {
-  const { requirePermission } = await import("@/server/auth/session");
   await requirePermission("dictionaries.manage");
   return withActionError(
     async () => {
