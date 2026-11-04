@@ -1,34 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Button,
-  Checkbox,
-  ComboBox,
-  Page,
-  useModal,
-  useToast,
-} from "@ui-kit/components";
-import { TrashIcon } from "@/icons";
-import {
-  createRole,
-  deleteRole,
-  replaceRolePermissions,
-} from "@/actions/access-control";
-import { getErrorMessage } from "@/utils";
-import { RoleCreateForm, type AdminRoleOption } from "../UserForms";
+import { Button, Checkbox, ComboBox, Page } from "@ui-kit/components";
+import { PlusIcon, TrashIcon } from "@/icons";
+import type { AdminPermission } from "./useRolesPage";
+import { useRolesPage } from "./useRolesPage";
 import styles from "../Admin.module.css";
-
-type Role = AdminRoleOption & {
-  description: string | null;
-  permission_ids: string[];
-};
-type Permission = {
-  permission_id: string;
-  permission_code: string;
-  permission_name: string;
-};
 
 const CATEGORY_LABELS: Record<string, string> = {
   home: "Главная",
@@ -43,144 +19,21 @@ const CATEGORY_LABELS: Record<string, string> = {
   audit: "Аудит",
 };
 
-export default function RolesAdminView({
-  initialData,
-}: {
-  initialData: { roles: Role[]; permissions: Permission[] };
-}) {
-  const router = useRouter();
-  const { openModal } = useModal();
-  const toast = useToast();
-  const [roles, setRoles] = useState(initialData.roles);
-  const [activeRoleId, setActiveRoleId] = useState(initialData.roles[0]?.role_id ?? "");
-  const activeRole = roles.find((role) => role.role_id === activeRoleId);
-  const [selected, setSelected] = useState<string[]>(activeRole?.permission_ids ?? []);
-
-  const grouped = useMemo(() => {
-    const map = new Map<string, Permission[]>();
-    for (const permission of initialData.permissions) {
-      const category = permission.permission_code.split(".")[0] ?? "other";
-      const list = map.get(category) ?? [];
-      list.push(permission);
-      map.set(category, list);
-    }
-    return [...map.entries()];
-  }, [initialData.permissions]);
-
-  const originalIds = [...(activeRole?.permission_ids ?? [])].sort();
-  const selectedIds = [...selected].sort();
-  const isDirty =
-    originalIds.length !== selectedIds.length ||
-    originalIds.some((id, index) => id !== selectedIds[index]);
-
-  const selectedRoleOption = roles.find((role) => role.role_id === activeRoleId);
-
-  const openCreate = () => {
-    openModal({
-      title: "Создать роль",
-      actionText: "Создать роль",
-      closeOnBackdropClick: false,
-      errorMessage: getErrorMessage,
-      content: (form) => (
-        <RoleCreateForm
-          {...form}
-          onSubmit={async (data) => {
-            const created = await createRole(data);
-            const role: Role = {
-              role_id: created.role_id,
-              role_code: data.role_code.toLowerCase(),
-              role_name: data.role_name,
-              description: data.description || null,
-              permission_ids: [],
-            };
-            setRoles((current) => [...current, role]);
-            setActiveRoleId(role.role_id);
-            setSelected([]);
-            toast.success("Роль создана", {
-              description: "Теперь настрой разрешения для новой роли.",
-            });
-            router.refresh();
-          }}
-        />
-      ),
-    });
+interface RolesPageViewProps {
+  initialData: {
+    roles: Array<{
+      role_id: string;
+      role_code: string;
+      role_name: string;
+      description: string | null;
+      permission_ids: string[];
+    }>;
+    permissions: AdminPermission[];
   };
+}
 
-  const savePermissions = () => {
-    if (!activeRole || !isDirty) return;
-    openModal({
-      title: "Сохранить разрешения",
-      actionText: "Сохранить",
-      closeOnBackdropClick: false,
-      errorMessage: getErrorMessage,
-      content: (
-        <div className={styles.form}>
-          <p className="BodyTextBlockStyle">
-            Будет обновлён набор разрешений роли <strong className="BodyStrongTextBlockStyle">{activeRole.role_name}</strong>.
-          </p>
-          <p className={styles.formHint}>
-            Все действующие сессии пользователей этой роли будут удалены. После этого им потребуется войти снова.
-          </p>
-        </div>
-      ),
-      onAction: async () => {
-        await replaceRolePermissions(activeRole.role_id, selected);
-        setRoles((current) =>
-          current.map((role) =>
-            role.role_id === activeRole.role_id
-              ? { ...role, permission_ids: selected }
-              : role,
-          ),
-        );
-        toast.success("Разрешения сохранены", {
-          description: `Сессии пользователей роли «${activeRole.role_name}» отозваны.`,
-        });
-        router.refresh();
-      },
-    });
-  };
-
-  const confirmDelete = () => {
-    if (!activeRole) return;
-    openModal({
-      title: "Удалить роль",
-      actionText: "Удалить",
-      actionAppearance: "destructive",
-      errorMessage: getErrorMessage,
-      content: (
-        <div className={styles.form}>
-          <p className="BodyTextBlockStyle">
-            Удалить роль <strong className="BodyStrongTextBlockStyle">{activeRole.role_name}</strong>?
-          </p>
-          <p className={styles.formHint}>
-            Базовые роли нельзя удалять. Роль не должна быть назначена ни одному пользователю.
-          </p>
-        </div>
-      ),
-      onAction: async () => {
-        await deleteRole(activeRole.role_id);
-        const remaining = roles.filter((role) => role.role_id !== activeRole.role_id);
-        setRoles(remaining);
-        setActiveRoleId(remaining[0]?.role_id ?? "");
-        setSelected(remaining[0]?.permission_ids ?? []);
-        toast.success("Роль удалена");
-        router.refresh();
-      },
-    });
-  };
-
-  const togglePermission = (permissionId: string, checked: boolean) => {
-    setSelected((current) =>
-      checked
-        ? [...new Set([...current, permissionId])]
-        : current.filter((id) => id !== permissionId),
-    );
-  };
-
-  const selectedCount = selected.length;
-  const builtInRole = activeRole
-    ? ["admin", "teacher", "student"].includes(activeRole.role_code)
-    : true;
+export default function RolesAdminView({ initialData }: RolesPageViewProps) {
+  const page = useRolesPage({ initialData });
 
   return (
     <Page
@@ -188,15 +41,13 @@ export default function RolesAdminView({
       toolbar={{
         trailing: (
           <>
-            <Button onClick={openCreate}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
-                <span aria-hidden="true">＋</span> Новая роль
-              </span>
+            <Button icon={<PlusIcon />} onClick={page.openCreate}>
+              Новая роль
             </Button>
             <Button
               appearance="primary"
-              disabled={!activeRole || !isDirty}
-              onClick={savePermissions}
+              disabled={!page.activeRole || !page.isDirty}
+              onClick={page.savePermissions}
             >
               Сохранить изменения
             </Button>
@@ -204,87 +55,67 @@ export default function RolesAdminView({
         ),
       }}
     >
-      <div className={styles.content}>
-        <div className={styles.intro}>
-          <div className={styles.introCopy}>
-            <span className={styles.eyebrow}>Ролевая модель доступа</span>
-            <p className={styles.description}>
-              Разрешения определяют действия пользователя в системе. При изменении состава прав PostgreSQL отзывает все сессии соответствующей роли.
-            </p>
-          </div>
-        </div>
+      <div className={styles.roleLayout}>
+        {page.activeRole ? (
+          <>
+            <section className={styles.roleHeader}>
+              <div className={styles.roleMeta}>
+                <h2 className="SubtitleTextBlockStyle">
+                  {page.activeRole.role_name}
+                </h2>
+                <span className={styles.roleCode}>
+                  {page.activeRole.role_code}
+                </span>
+                <p className={styles.description}>
+                  {page.activeRole.description ||
+                    "Описание для этой роли пока не задано."}
+                </p>
+              </div>
 
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>Ролей в системе</span>
-            <strong className={styles.statValue}>{roles.length}</strong>
-            <span className={styles.statHint}>Базовые и пользовательские</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>Всего разрешений</span>
-            <strong className={styles.statValue}>{initialData.permissions.length}</strong>
-            <span className={styles.statHint}>Доступные системные действия</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>У роли выбрано</span>
-            <strong className={styles.statValue}>{selectedCount}</strong>
-            <span className={styles.statHint}>Разрешения текущего профиля</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>Состояние редактора</span>
-            <strong className={styles.statValue} style={{ fontSize: "var(--font-subtitle)" }}>
-              {isDirty ? "Есть изменения" : "Сохранено"}
-            </strong>
-            <span className={styles.statHint}>Сверка с текущими правами в БД</span>
-          </div>
-        </div>
-
-        {activeRole ? (
-          <div className={styles.roleLayout}>
-            <section className={styles.panel}>
-              <div className={styles.roleHeader}>
-                <div className={styles.roleMeta}>
-                  <span className={styles.eyebrow}>Выбранная роль</span>
-                  <h2 className={styles.panelTitle}>{activeRole.role_name}</h2>
-                  <span className={styles.roleCode}>{activeRole.role_code}</span>
-                  <p className={styles.panelDescription}>
-                    {activeRole.description || "Описание для этой роли пока не задано."}
-                  </p>
-                </div>
-                <div className={styles.form}>
-                  <ComboBox
-                    className={styles.roleSelector}
-                    label="Переключиться на роль"
-                    options={roles}
-                    getOptionValue={(role) => role.role_id}
-                    getOptionLabel={(role) => `${role.role_name} · ${role.role_code}`}
-                    value={activeRoleId}
-                    onChange={(value) => {
-                      const next = roles.find((role) => role.role_id === value);
-                      setActiveRoleId(value);
-                      setSelected(next?.permission_ids ?? []);
-                    }}
+              <div className={styles.roleControls}>
+                <ComboBox
+                  className={styles.roleSelector}
+                  label="Выбранная роль"
+                  options={page.roles}
+                  getOptionValue={(role) => role.role_id}
+                  getOptionLabel={(role) =>
+                    `${role.role_name} · ${role.role_code}`
+                  }
+                  value={page.activeRoleId}
+                  onChange={page.changeActiveRole}
+                />
+                {!page.builtInRole && (
+                  <Button
+                    appearance="destructive"
+                    icon={<TrashIcon />}
+                    aria-label="Удалить роль"
+                    onClick={page.confirmDelete}
                   />
-                  {selectedRoleOption && !builtInRole && (
-                    <Button
-                      appearance="destructive"
-                      onClick={confirmDelete}
-                      icon={<TrashIcon />}
-                      aria-label="Удалить роль"
-                      width={36}
-                    />
-                  )}
-                </div>
+                )}
               </div>
             </section>
 
+            <div className={styles.permissionSummary}>
+              <span>
+                Выбрано разрешений: {page.selectedCount} из{" "}
+                {page.permissions.length}
+              </span>
+              {page.isDirty && (
+                <span className={styles.unsaved}>Есть несохранённые изменения</span>
+              )}
+            </div>
+
             <div className={styles.permissionGroups}>
-              {grouped.map(([category, permissions]) => {
+              {page.grouped.map(([category, permissions]) => {
                 const groupSelected = permissions.filter((permission) =>
-                  selected.includes(permission.permission_id),
+                  page.selected.includes(permission.permission_id),
                 ).length;
                 const allChecked = groupSelected === permissions.length;
                 const someChecked = groupSelected > 0 && !allChecked;
+                const permissionIds = permissions.map(
+                  (permission) => permission.permission_id,
+                );
+
                 return (
                   <section key={category} className={styles.permissionGroup}>
                     <header className={styles.permissionGroupHeader}>
@@ -295,38 +126,53 @@ export default function RolesAdminView({
                         {groupSelected} / {permissions.length}
                       </span>
                     </header>
+
                     <div className={styles.permissionList}>
                       <div className={styles.permissionItem}>
                         <div className={styles.permissionText}>
-                          <span className={styles.permissionName}>Все разрешения раздела</span>
-                          <span className={styles.permissionCode}>Выбрать группу целиком</span>
+                          <span className={styles.permissionName}>
+                            Все разрешения раздела
+                          </span>
+                          <span className={styles.permissionCode}>
+                            Выбрать группу целиком
+                          </span>
                         </div>
                         <Checkbox
                           aria-label={`Выбрать все разрешения раздела ${category}`}
                           checked={allChecked}
                           indeterminate={someChecked}
-                          onChange={(event) => {
-                            const ids = permissions.map((permission) => permission.permission_id);
-                            setSelected((current) => {
-                              const next = new Set(current);
-                              if (event.target.checked) ids.forEach((id) => next.add(id));
-                              else ids.forEach((id) => next.delete(id));
-                              return [...next];
-                            });
-                          }}
+                          onChange={(event) =>
+                            page.togglePermissionGroup(
+                              permissionIds,
+                              event.target.checked,
+                            )
+                          }
                         />
                       </div>
+
                       {permissions.map((permission) => (
-                        <div key={permission.permission_id} className={styles.permissionItem}>
+                        <div
+                          key={permission.permission_id}
+                          className={styles.permissionItem}
+                        >
                           <div className={styles.permissionText}>
-                            <span className={styles.permissionName}>{permission.permission_name}</span>
-                            <span className={styles.permissionCode}>{permission.permission_code}</span>
+                            <span className={styles.permissionName}>
+                              {permission.permission_name}
+                            </span>
+                            <span className={styles.permissionCode}>
+                              {permission.permission_code}
+                            </span>
                           </div>
                           <Checkbox
                             aria-label={permission.permission_name}
-                            checked={selected.includes(permission.permission_id)}
+                            checked={page.selected.includes(
+                              permission.permission_id,
+                            )}
                             onChange={(event) =>
-                              togglePermission(permission.permission_id, event.target.checked)
+                              page.togglePermission(
+                                permission.permission_id,
+                                event.target.checked,
+                              )
                             }
                           />
                         </div>
@@ -337,19 +183,18 @@ export default function RolesAdminView({
               })}
             </div>
 
-            {isDirty && (
-              <div className={styles.formHint}>
-                Изменения ещё не сохранены. После сохранения пользователям роли потребуется войти повторно.
-              </div>
+            {page.isDirty && (
+              <p className={styles.formHint}>
+                При сохранении набора прав активные сессии пользователей этой
+                роли будут отозваны. Им потребуется войти повторно.
+              </p>
             )}
-          </div>
+          </>
         ) : (
-          <section className={styles.panel}>
-            <div className={styles.emptyState}>
-              <strong>Ролей пока нет</strong>
-              <span>Создай первую роль, чтобы настроить для неё разрешения.</span>
-            </div>
-          </section>
+          <div className={styles.emptyState}>
+            <strong>Ролей пока нет</strong>
+            <span>Создай первую роль, чтобы настроить для неё разрешения.</span>
+          </div>
         )}
       </div>
     </Page>
