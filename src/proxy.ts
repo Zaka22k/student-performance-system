@@ -4,17 +4,24 @@ const COOKIE_NAME = "app-session";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname === "/login") return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-app-pathname", pathname);
 
-  // Пустые запросы отправляются на страницу входа. Содержимое cookie
-  // не считается доказательством авторизации: все права проверяются сервером.
-  if (!request.cookies.has(COOKIE_NAME)) {
+  if (pathname === "/login") {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  // API-маршруты сами возвращают 401/403 в JSON. Для страниц
+  // отсутствие cookie можно сразу перенаправить на форму входа.
+  if (!request.cookies.has(COOKIE_NAME) && !pathname.startsWith("/api/")) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // Наличие cookie не считается подтверждением авторизации:
+  // RootLayout и серверные действия проверяют сессию по hash в PostgreSQL.
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
