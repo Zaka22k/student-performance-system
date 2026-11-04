@@ -141,9 +141,21 @@ export default function UsersAdminView({
               role_id: nextRoleId,
               role_code: role.role_code,
               role_name: role.role_name,
-              student_id: role.role_code === "student" ? linkedEntityId ?? null : null,
-              teacher_id: role.role_code === "teacher" ? linkedEntityId ?? null : null,
-              linked_name: linkedName,
+              student_id: role.role_code === "student"
+                ? linkedEntityId ?? null
+                : role.role_code === "admin" || role.role_code === "teacher"
+                  ? null
+                  : user.student_id,
+              teacher_id: role.role_code === "teacher"
+                ? linkedEntityId ?? null
+                : role.role_code === "admin" || role.role_code === "student"
+                  ? null
+                  : user.teacher_id,
+              linked_name: role.role_code === "student" || role.role_code === "teacher"
+                ? linkedName
+                : role.role_code === "admin"
+                  ? null
+                  : user.linked_name,
               active_sessions: 0,
             }
           : item));
