@@ -8,6 +8,7 @@ import {
   toHtml,
 } from "@/server";
 import type { Report, ReportParams, ReportPath } from "@/models";
+import { requireAnyPermission, requirePermission } from "@/server/auth/session";
 
 const BUILDERS: Record<
   ReportPath,
@@ -31,7 +32,25 @@ export async function GET(
   const query = Object.fromEntries(request.nextUrl.searchParams.entries());
 
   try {
-    const report = await builder(prisma, query);
+    let securedQuery: ReportParams = query;
+    if (type === "group-sheet") {
+      await requirePermission("reports.group_sheet");
+    } else if (type === "group-summary") {
+      await requirePermission("reports.group_summary");
+    } else if (type === "student-book") {
+      const auth = await requireAnyPermission(["reports.student_book.all", "reports.student_book.own"]);
+      if (
+        auth.permissions.has("reports.student_book.own") &&
+        !auth.permissions.has("reports.student_book.all")
+      ) {
+        if (!auth.studentId) {
+          return NextResponse.json({ message: "Учётная запись не связана со студентом" }, { status: 403 });
+        }
+        securedQuery = { ...query, student_id: String(auth.studentId) };
+      }
+    }
+
+    const report = await builder(prisma, securedQuery);
 
     if (query.format === "xml") {
       const headers: Record<string, string> = {
