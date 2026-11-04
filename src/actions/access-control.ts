@@ -136,7 +136,7 @@ export async function createUser(input: {
   return { user_id: String(user.user_id) };
 }
 
-export async function changeUserRole(userId: string, roleId: string) {
+export async function changeUserRole(userId: string, roleId: string, linkedEntityId?: string | null) {
   const actor = await requirePermission("users.manage");
   const id = parseId(userId, "пользователь");
   const nextRoleId = parseId(roleId, "роль");
@@ -168,19 +168,49 @@ export async function changeUserRole(userId: string, roleId: string) {
       : 0;
     if (activeAdmins <= 1) throw new Error("Нельзя снять роль admin с последнего активного администратора");
   }
-  if (role.role_code === "student" && (!user.student_id || user.teacher_id)) {
-    throw new Error("Для роли student у пользователя должна быть привязка к студенту");
-  }
-  if (role.role_code === "teacher" && (!user.teacher_id || user.student_id)) {
-    throw new Error("Для роли teacher у пользователя должна быть привязка к преподавателю");
-  }
-  if (role.role_code === "admin" && (user.student_id || user.teacher_id)) {
-    throw new Error("Перед назначением admin удалите привязку к студенту/преподавателю");
+  let nextStudentId: bigint | null = user.student_id;
+  let nextTeacherId: bigint | null = user.teacher_id;
+
+  if (role.role_code === "student") {
+    nextStudentId = linkedEntityId
+      ? parseId(linkedEntityId, "студент")
+      : user.student_id;
+    nextTeacherId = null;
+    if (!nextStudentId) throw new Error("Для роли student выберите студента");
+    const linkedStudent = await prisma.students.findUnique({
+      where: { student_id: nextStudentId },
+      select: { student_id: true },
+    });
+    if (!linkedStudent) throw new Error("Выбранный студент не найден");
+  } else if (role.role_code === "teacher") {
+    nextTeacherId = linkedEntityId
+      ? parseId(linkedEntityId, "преподаватель")
+      : user.teacher_id;
+    nextStudentId = null;
+    if (!nextTeacherId) throw new Error("Для роли teacher выберите преподавателя");
+    const linkedTeacher = await prisma.teachers.findUnique({
+      where: { teacher_id: nextTeacherId },
+      select: { teacher_id: true },
+    });
+    if (!linkedTeacher) throw new Error("Выбранный преподаватель не найден");
+  } else if (role.role_code === "admin") {
+    // Административная учётная запись не должна наследовать привязку к карточке.
+    nextStudentId = null;
+    nextTeacherId = null;
   }
 
-  await prisma.users.update({ where: { user_id: id }, data: { role_id: nextRoleId } });
+  await prisma.users.update({
+    where: { user_id: id },
+    data: {
+      role_id: nextRoleId,
+      student_id: nextStudentId,
+      teacher_id: nextTeacherId,
+    },
+  });
   await writeAudit(actor.userId, "users.role.change", "user", String(id), {
     new_role: role.role_code,
+    student_id: nextStudentId === null ? null : String(nextStudentId),
+    teacher_id: nextTeacherId === null ? null : String(nextTeacherId),
   });
   return { ok: true };
 }
