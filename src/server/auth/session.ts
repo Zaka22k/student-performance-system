@@ -90,7 +90,8 @@ export async function createSession(userId: bigint): Promise<void> {
       student_id: bigint | null;
       teacher_id: bigint | null;
       is_active: boolean;
-    }>>`SELECT user_id, role_id, student_id, teacher_id, is_active
+      username: string;
+    }>>`SELECT user_id, role_id, student_id, teacher_id, is_active, username
          FROM public.users
         WHERE user_id = ${userId}
         FOR UPDATE`;
@@ -130,7 +131,7 @@ export async function createSession(userId: bigint): Promise<void> {
         action: "auth.login",
         target_type: "session",
         target_id: session.session_id,
-        details: { username: user.user_id.toString() },
+        details: { username: user.username },
       },
     });
   });
