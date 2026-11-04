@@ -137,7 +137,7 @@ export default function UsersAdminView({
         await setUserActive(user.user_id, !user.is_active);
         setUsers((current) =>
           current.map((item) =>
-            item.user_id === user.user_id ? { ...item, is_active: !item.is_active } : item,
+            item.user_id === user.user_id ? { ...item, is_active: !item.is_active, active_sessions: 0 } : item,
           ),
         );
         setNotice(user.is_active ? "Пользователь заблокирован, его сессии удалены" : "Пользователь активирован");
