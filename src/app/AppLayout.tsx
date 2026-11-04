@@ -153,6 +153,9 @@ export default function AppLayout({
                 {can("roles.manage") && (
                   <NavSubItem as={Link} href="/admin/roles" value="/admin/roles">Роли и разрешения</NavSubItem>
                 )}
+                {can("audit.read") && (
+                  <NavSubItem as={Link} href="/admin/audit" value="/admin/audit">Журнал действий</NavSubItem>
+                )}
               </NavCategory>
             )}
           </>
