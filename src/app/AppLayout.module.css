@@ -1,0 +1,48 @@
+.userPane {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 10px 12px;
+  padding: 10px;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: var(--fill-quaternary);
+}
+
+.userAvatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent-base) 18%, var(--grouped-bg));
+  color: var(--control-accent);
+  font-size: var(--font-body);
+  font-weight: 700;
+}
+
+.userIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.userName {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--font-caption);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userRole {
+  color: var(--label-secondary);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.signOut {
+  width: 100%;
+}
