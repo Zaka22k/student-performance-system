@@ -1,15 +1,33 @@
 "use client";
 
-import { type FormEvent, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  DataGrid,
+  Page,
+  SearchField,
+  useModal,
+  useToast,
+  type DataGridColumn,
+} from "@ui-kit/components";
+import { EditIcon, PlusIcon, TrashIcon } from "@/icons";
 import {
   changeUserRole,
   createUser,
-  setUserActive,
   resetUserPassword,
+  setUserActive,
 } from "@/actions/access-control";
+import { getErrorMessage } from "@/utils";
+import {
+  UserCreateForm,
+  UserPasswordForm,
+  UserRoleForm,
+  type AdminRoleOption,
+  type LinkedOption,
+} from "../UserForms";
+import styles from "../Admin.module.css";
 
-type Role = { role_id: string; role_code: string; role_name: string };
 type User = {
   user_id: string;
   username: string;
@@ -31,269 +49,340 @@ export default function UsersAdminView({
   teachers,
 }: {
   initialUsers: User[];
-  roles: Role[];
-  students: { student_id: string; label: string }[];
-  teachers: { teacher_id: string; label: string }[];
+  roles: AdminRoleOption[];
+  students: LinkedOption[];
+  teachers: LinkedOption[];
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const { openModal } = useModal();
+  const toast = useToast();
   const [users, setUsers] = useState(initialUsers);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [roleId, setRoleId] = useState(roles[0]?.role_id ?? "");
-  const [studentId, setStudentId] = useState("");
-  const [teacherId, setTeacherId] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [query, setQuery] = useState("");
 
-  const selectedRole = roles.find((role) => role.role_id === roleId);
-  const needsStudent = selectedRole?.role_code === "student";
-  const needsTeacher = selectedRole?.role_code === "teacher";
+  const filteredUsers = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase("ru");
+    if (!q) return users;
+    return users.filter((user) =>
+      [user.username, user.role_name, user.role_code, user.linked_name ?? ""]
+        .join(" ")
+        .toLocaleLowerCase("ru")
+        .includes(q),
+    );
+  }, [query, users]);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setNotice("");
-    startTransition(async () => {
-      try {
-        const created = await createUser({
-          username,
-          password,
-          role_id: roleId,
-          student_id: needsStudent ? studentId : null,
-          teacher_id: needsTeacher ? teacherId : null,
-        });
-        const newRole = roles.find((role) => role.role_id === roleId);
-        const linkedName = needsStudent
-          ? students.find((item) => item.student_id === studentId)?.label ?? null
-          : needsTeacher
-            ? teachers.find((item) => item.teacher_id === teacherId)?.label ?? null
-            : null;
-        setUsers((current) => [...current, {
-          user_id: created.user_id,
-          username,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          role_id: roleId,
-          role_code: newRole?.role_code ?? "",
-          role_name: newRole?.role_name ?? "",
-          student_id: needsStudent ? studentId : null,
-          teacher_id: needsTeacher ? teacherId : null,
-          linked_name: linkedName,
-          active_sessions: 0,
-        }]);
-        setUsername("");
-        setPassword("");
-        setStudentId("");
-        setTeacherId("");
-        setNotice("Учётная запись создана");
-        router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось создать пользователя");
-      }
-    });
-  }
+  const activeCount = users.filter((user) => user.is_active).length;
+  const blockedCount = users.length - activeCount;
+  const sessionCount = users.reduce((sum, user) => sum + user.active_sessions, 0);
 
-  function updateRole(user: User, nextRoleId: string) {
-    const role = roles.find((item) => item.role_id === nextRoleId);
-    if (!role) return;
-
-    let linkedEntityId: string | null | undefined;
-    if (role.role_code === "student") {
-      linkedEntityId = user.student_id;
-      if (!linkedEntityId) {
-        const available = students.map((item) => item.student_id).join(", ");
-        const entered = window.prompt(`Введите student_id для пользователя ${user.username}. Доступные ID: ${available}`);
-        if (entered === null) return;
-        if (!students.some((item) => item.student_id === entered.trim())) {
-          setError("Укажите student_id из списка студентов");
-          return;
-        }
-        linkedEntityId = entered.trim();
-      }
-    } else if (role.role_code === "teacher") {
-      linkedEntityId = user.teacher_id;
-      if (!linkedEntityId) {
-        const available = teachers.map((item) => item.teacher_id).join(", ");
-        const entered = window.prompt(`Введите teacher_id для пользователя ${user.username}. Доступные ID: ${available}`);
-        if (entered === null) return;
-        if (!teachers.some((item) => item.teacher_id === entered.trim())) {
-          setError("Укажите teacher_id из списка преподавателей");
-          return;
-        }
-        linkedEntityId = entered.trim();
-      }
-    }
-
-    setError("");
-    setNotice("");
-    startTransition(async () => {
-      try {
-        await changeUserRole(user.user_id, nextRoleId, linkedEntityId);
-        const linkedName = role.role_code === "student"
-          ? students.find((item) => item.student_id === linkedEntityId)?.label ?? null
-          : role.role_code === "teacher"
-            ? teachers.find((item) => item.teacher_id === linkedEntityId)?.label ?? null
-            : null;
-        setUsers((current) => current.map((item) => item.user_id === user.user_id
-          ? {
-              ...item,
-              role_id: nextRoleId,
-              role_code: role.role_code,
-              role_name: role.role_name,
-              student_id: role.role_code === "student"
-                ? linkedEntityId ?? null
-                : role.role_code === "admin" || role.role_code === "teacher"
-                  ? null
-                  : user.student_id,
-              teacher_id: role.role_code === "teacher"
-                ? linkedEntityId ?? null
-                : role.role_code === "admin" || role.role_code === "student"
-                  ? null
-                  : user.teacher_id,
-              linked_name: role.role_code === "student" || role.role_code === "teacher"
-                ? linkedName
-                : role.role_code === "admin"
-                  ? null
-                  : user.linked_name,
+  const openCreate = () => {
+    openModal({
+      title: "Новая учётная запись",
+      actionText: "Создать пользователя",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (form) => (
+        <UserCreateForm
+          {...form}
+          roles={roles}
+          students={students}
+          teachers={teachers}
+          onSubmit={async (data) => {
+            const created = await createUser(data);
+            const role = roles.find((item) => item.role_id === data.role_id);
+            const linkedName = data.student_id
+              ? students.find((item) => item.id === data.student_id)?.label ?? null
+              : data.teacher_id
+                ? teachers.find((item) => item.id === data.teacher_id)?.label ?? null
+                : null;
+            const nextUser: User = {
+              user_id: created.user_id,
+              username: data.username,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              role_id: data.role_id,
+              role_code: role?.role_code ?? "",
+              role_name: role?.role_name ?? "",
+              student_id: data.student_id,
+              teacher_id: data.teacher_id,
+              linked_name: linkedName,
               active_sessions: 0,
-            }
-          : item));
-        setNotice(`Роль пользователя ${user.username} обновлена. Его сессии удалены.`);
-        router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось изменить роль");
-      }
+            };
+            setUsers((current) =>
+              [...current, nextUser].sort((a, b) => a.username.localeCompare(b.username, "ru")),
+            );
+            toast.success("Пользователь создан", {
+              description: `Учётная запись «${data.username}» добавлена в систему.`,
+            });
+            router.refresh();
+          }}
+        />
+      ),
     });
-  }
+  };
 
-  function changePassword(user: User) {
-    const nextPassword = window.prompt("Введите новый пароль (не менее 12 символов)");
-    if (!nextPassword) return;
-    setError("");
-    startTransition(async () => {
-      try {
-        await resetUserPassword(user.user_id, nextPassword);
-        setNotice(`Пароль пользователя ${user.username} изменён. Его сессии удалены.`);
-        setUsers((current) => current.map((item) => item.user_id === user.user_id
-          ? { ...item, active_sessions: 0 }
-          : item));
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось изменить пароль");
-      }
+  const openChangeRole = (user: User) => {
+    openModal({
+      title: `Роль пользователя «${user.username}»`,
+      actionText: "Сохранить роль",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (form) => (
+        <UserRoleForm
+          {...form}
+          user={user}
+          roles={roles}
+          students={students}
+          teachers={teachers}
+          onSubmit={async (roleId, linkedEntityId) => {
+            await changeUserRole(user.user_id, roleId, linkedEntityId);
+            const role = roles.find((item) => item.role_id === roleId);
+            const studentId = role?.role_code === "student" ? linkedEntityId ?? null : null;
+            const teacherId = role?.role_code === "teacher" ? linkedEntityId ?? null : null;
+            const linkedName = studentId
+              ? students.find((item) => item.id === studentId)?.label ?? null
+              : teacherId
+                ? teachers.find((item) => item.id === teacherId)?.label ?? null
+                : null;
+            setUsers((current) =>
+              current.map((item) =>
+                item.user_id === user.user_id
+                  ? {
+                      ...item,
+                      role_id: roleId,
+                      role_code: role?.role_code ?? item.role_code,
+                      role_name: role?.role_name ?? item.role_name,
+                      student_id: role?.role_code === "student" ? studentId : role?.role_code === "admin" || role?.role_code === "teacher" ? null : item.student_id,
+                      teacher_id: role?.role_code === "teacher" ? teacherId : role?.role_code === "admin" || role?.role_code === "student" ? null : item.teacher_id,
+                      linked_name: role?.role_code === "admin" || role?.role_code === "custom" ? null : linkedName ?? item.linked_name,
+                      active_sessions: 0,
+                    }
+                  : item,
+              ),
+            );
+            toast.success("Роль обновлена", {
+              description: `Сессии пользователя «${user.username}» отозваны.`,
+            });
+            router.refresh();
+          }}
+        />
+      ),
     });
-  }
+  };
 
-  function toggleActive(user: User) {
-    setError("");
-    setNotice("");
-    startTransition(async () => {
-      try {
-        await setUserActive(user.user_id, !user.is_active);
+  const openResetPassword = (user: User) => {
+    openModal({
+      title: "Сброс пароля",
+      actionText: "Изменить пароль",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (form) => (
+        <UserPasswordForm
+          {...form}
+          username={user.username}
+          onSubmit={async (password) => {
+            await resetUserPassword(user.user_id, password);
+            setUsers((current) =>
+              current.map((item) =>
+                item.user_id === user.user_id
+                  ? { ...item, active_sessions: 0 }
+                  : item,
+              ),
+            );
+            toast.success("Пароль изменён", {
+              description: `Все активные сессии «${user.username}» отозваны.`,
+            });
+            router.refresh();
+          }}
+        />
+      ),
+    });
+  };
+
+  const openToggleActive = (user: User) => {
+    const nextActive = !user.is_active;
+    openModal({
+      title: nextActive ? "Активировать пользователя" : "Заблокировать пользователя",
+      actionText: nextActive ? "Активировать" : "Заблокировать",
+      actionAppearance: nextActive ? "primary" : "destructive",
+      errorMessage: getErrorMessage,
+      content: (
+        <p className="BodyTextBlockStyle">
+          {nextActive
+            ? <>Учётная запись <strong className="BodyStrongTextBlockStyle">{user.username}</strong> снова сможет входить в систему.</>
+            : <>Пользователь <strong className="BodyStrongTextBlockStyle">{user.username}</strong> потеряет доступ, а все его активные сессии будут удалены.</>}
+        </p>
+      ),
+      onAction: async () => {
+        await setUserActive(user.user_id, nextActive);
         setUsers((current) =>
           current.map((item) =>
-            item.user_id === user.user_id ? { ...item, is_active: !item.is_active, active_sessions: 0 } : item,
+            item.user_id === user.user_id
+              ? { ...item, is_active: nextActive, active_sessions: 0 }
+              : item,
           ),
         );
-        setNotice(user.is_active ? "Пользователь заблокирован, его сессии удалены" : "Пользователь активирован");
+        toast.success(nextActive ? "Пользователь активирован" : "Пользователь заблокирован");
         router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось изменить состояние");
-      }
+      },
     });
-  }
+  };
+
+  const columns = useMemo<DataGridColumn<User>[]>(() => [
+    {
+      id: "username",
+      header: "Учётная запись",
+      width: 220,
+      minWidth: 170,
+      cell: (user) => (
+        <div className={styles.cellMain}>
+          <span className={styles.cellTitle}>{user.username}</span>
+          <span className={styles.cellMeta}>
+            Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "role",
+      header: "Роль",
+      width: 190,
+      cell: (user) => (
+        <div className={styles.cellMain}>
+          <span className={styles.cellTitle}>{user.role_name}</span>
+          <span className={styles.cellMeta}>{user.role_code}</span>
+        </div>
+      ),
+    },
+    {
+      id: "binding",
+      header: "Связанная запись",
+      width: 270,
+      cell: (user) => user.linked_name ?? <span className={styles.cellMeta}>Без привязки</span>,
+    },
+    {
+      id: "sessions",
+      header: "Активные сессии",
+      width: 135,
+      align: "center",
+      cell: (user) => String(user.active_sessions),
+    },
+    {
+      id: "status",
+      header: "Состояние",
+      width: 135,
+      cell: (user) => (
+        <span className={`${styles.status} ${user.is_active ? styles.statusActive : styles.statusInactive}`}>
+          {user.is_active ? "Активен" : "Заблокирован"}
+        </span>
+      ),
+    },
+  ], []);
 
   return (
-    <main style={{ display: "grid", gap: 24, padding: 24 }}>
-      <header>
-        <h1>Управление пользователями</h1>
-        <p>Создание учётных записей, назначение ролей и блокировка доступа.</p>
-      </header>
-
-      <section style={{ border: "1px solid var(--border, #ddd)", borderRadius: 12, padding: 20, display: "grid", gap: 14 }}>
-        <h2>Создать пользователя</h2>
-        <form onSubmit={submit} style={{ display: "grid", gap: 12, maxWidth: 520 }}>
-          <label style={{ display: "grid", gap: 5 }}>
-            Логин
-            <input value={username} onChange={(event) => setUsername(event.target.value)} required maxLength={80} autoComplete="off" />
-          </label>
-          <label style={{ display: "grid", gap: 5 }}>
-            Пароль (не менее 12 символов)
-            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={12} maxLength={128} autoComplete="new-password" />
-          </label>
-          <label style={{ display: "grid", gap: 5 }}>
-            Роль
-            <select value={roleId} onChange={(event) => setRoleId(event.target.value)} required>
-              {roles.map((role) => <option key={role.role_id} value={role.role_id}>{role.role_name} ({role.role_code})</option>)}
-            </select>
-          </label>
-          {needsStudent && (
-            <label style={{ display: "grid", gap: 5 }}>
-              Студент
-              <select value={studentId} onChange={(event) => setStudentId(event.target.value)} required>
-                <option value="">Выберите студента</option>
-                {students.map((student) => <option key={student.student_id} value={student.student_id}>{student.label}</option>)}
-              </select>
-            </label>
-          )}
-          {needsTeacher && (
-            <label style={{ display: "grid", gap: 5 }}>
-              Преподаватель
-              <select value={teacherId} onChange={(event) => setTeacherId(event.target.value)} required>
-                <option value="">Выберите преподавателя</option>
-                {teachers.map((teacher) => <option key={teacher.teacher_id} value={teacher.teacher_id}>{teacher.label}</option>)}
-              </select>
-            </label>
-          )}
-          <button type="submit" disabled={pending || !roleId}>{pending ? "Сохранение..." : "Создать учётную запись"}</button>
-        </form>
-      </section>
-
-      {error && <p role="alert" style={{ color: "#b42318" }}>{error}</p>}
-      {notice && <p role="status">{notice}</p>}
-
-      <section style={{ display: "grid", gap: 12 }}>
-        <h2>Учётные записи ({users.length})</h2>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780 }}>
-            <thead><tr>
-              <th style={{ textAlign: "left", padding: 10 }}>Пользователь</th>
-              <th style={{ textAlign: "left", padding: 10 }}>Привязка</th>
-              <th style={{ textAlign: "left", padding: 10 }}>Роль</th>
-              <th style={{ textAlign: "left", padding: 10 }}>Сессии</th>
-              <th style={{ textAlign: "left", padding: 10 }}>Состояние</th>
-              <th style={{ textAlign: "left", padding: 10 }}>Действие</th>
-            </tr></thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.user_id} style={{ borderTop: "1px solid var(--border, #ddd)" }}>
-                  <td style={{ padding: 10 }}>
-                    <strong>{user.username}</strong>
-                    <div style={{ fontSize: 12, opacity: 0.65 }}>{new Date(user.created_at).toLocaleDateString("ru-RU")}</div>
-                  </td>
-                  <td style={{ padding: 10 }}>{user.linked_name ?? "—"}</td>
-                  <td style={{ padding: 10 }}>
-                    <select value={user.role_id} disabled={pending} onChange={(event) => updateRole(user, event.target.value)}>
-                      {roles.map((role) => <option key={role.role_id} value={role.role_id}>{role.role_name}</option>)}
-                    </select>
-                  </td>
-                  <td style={{ padding: 10 }}>{user.active_sessions}</td>
-                  <td style={{ padding: 10 }}>{user.is_active ? "Активен" : "Заблокирован"}</td>
-                  <td style={{ padding: 10 }}>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <button type="button" disabled={pending} onClick={() => toggleActive(user)}>
-                        {user.is_active ? "Заблокировать" : "Активировать"}
-                      </button>
-                      <button type="button" disabled={pending} onClick={() => changePassword(user)}>Сбросить пароль</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && <tr><td colSpan={6} style={{ padding: 12 }}>Пользователей пока нет</td></tr>}
-            </tbody>
-          </table>
+    <Page
+      title="Пользователи"
+      toolbar={{
+        trailing: (
+          <>
+            <SearchField
+              className={styles.toolbarSearch}
+              width="min(30vw, 320px)"
+              placeholder="Поиск пользователей"
+              aria-label="Поиск по логину, роли или привязке"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <Button appearance="primary" onClick={openCreate}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                <PlusIcon size={16} /> Создать
+              </span>
+            </Button>
+          </>
+        ),
+      }}
+    >
+      <div className={styles.content}>
+        <div className={styles.intro}>
+          <div className={styles.introCopy}>
+            <span className={styles.eyebrow}>Контроль доступа</span>
+            <p className={styles.description}>
+              Учётные записи системы, назначенные роли и привязки к карточкам студентов или преподавателей.
+              При смене роли, пароля или состояния активные сессии автоматически отзываются.
+            </p>
+          </div>
         </div>
-      </section>
-    </main>
+
+        <div className={styles.stats}>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Всего пользователей</span>
+            <strong className={styles.statValue}>{users.length}</strong>
+            <span className={styles.statHint}>Учётные записи в системе</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Активные</span>
+            <strong className={styles.statValue}>{activeCount}</strong>
+            <span className={styles.statHint}>Могут проходить авторизацию</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Заблокированные</span>
+            <strong className={styles.statValue}>{blockedCount}</strong>
+            <span className={styles.statHint}>Вход в систему запрещён</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Текущие сессии</span>
+            <strong className={styles.statValue}>{sessionCount}</strong>
+            <span className={styles.statHint}>Серверные сессии в БД</span>
+          </div>
+        </div>
+
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <h2 className={styles.panelTitle}>Список учётных записей</h2>
+              <p className={styles.panelDescription}>
+                Найдено: {filteredUsers.length} из {users.length}. Двойной клик по строке открывает смену роли.
+              </p>
+            </div>
+          </div>
+          <div className={styles.tableWrap}>
+            <DataGrid
+              striped
+              aria-label="Учётные записи пользователей"
+              rows={filteredUsers}
+              columns={columns}
+              getRowId={(user) => user.user_id}
+              resetKey={query}
+              emptyContent={
+                <div className={styles.emptyState}>
+                  <strong>Пользователи не найдены</strong>
+                  <span>Измени поисковый запрос или создай новую учётную запись.</span>
+                </div>
+              }
+              onRowActivate={openChangeRole}
+              rowMenu={({ row }) => [
+                {
+                  id: "change-role",
+                  label: "Изменить роль и привязку",
+                  icon: <EditIcon />,
+                  onSelect: () => openChangeRole(row),
+                },
+                {
+                  id: "reset-password",
+                  label: "Сбросить пароль",
+                  onSelect: () => openResetPassword(row),
+                },
+                { type: "separator" },
+                {
+                  id: "toggle-active",
+                  label: row.is_active ? "Заблокировать" : "Активировать",
+                  danger: row.is_active,
+                  onSelect: () => openToggleActive(row),
+                },
+              ]}
+            />
+          </div>
+        </section>
+      </div>
+    </Page>
   );
 }
