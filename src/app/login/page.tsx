@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/actions/auth";
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
         </label>
         <label style={{ display: "grid", gap: 6 }}>
           Пароль
-          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
         </label>
         {error && <p role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</p>}
         <button type="submit" disabled={pending}>{pending ? "Вход..." : "Войти"}</button>
