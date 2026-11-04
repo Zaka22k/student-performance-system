@@ -28,61 +28,64 @@ export default function UsersPageView({
 }: UsersPageViewProps) {
   const page = useUsersPage({ initialUsers, roles, students, teachers });
 
-  const columns = useMemo<DataGridColumn<AdminUser>[]>(() => [
-    {
-      id: "username",
-      header: "Учётная запись",
-      width: 220,
-      minWidth: 170,
-      cell: (user) => (
-        <div className={styles.cellMain}>
-          <span className={styles.cellTitle}>{user.username}</span>
-          <span className={styles.cellMeta}>
-            Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "role",
-      header: "Роль",
-      width: 190,
-      cell: (user) => (
-        <div className={styles.cellMain}>
-          <span className={styles.cellTitle}>{user.role_name}</span>
-          <span className={styles.cellMeta}>{user.role_code}</span>
-        </div>
-      ),
-    },
-    {
-      id: "binding",
-      header: "Связанная запись",
-      width: 270,
-      cell: (user) =>
-        user.linked_name ?? (
-          <span className={styles.cellMeta}>Без привязки</span>
+  const columns = useMemo<DataGridColumn<AdminUser>[]>(
+    () => [
+      {
+        id: "username",
+        header: "Учётная запись",
+        width: 220,
+        minWidth: 170,
+        cell: (user) => (
+          <div className={styles.cellMain}>
+            <span className={styles.cellTitle}>{user.username}</span>
+            <span className={styles.cellMeta}>
+              Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
+            </span>
+          </div>
         ),
-    },
-    {
-      id: "sessions",
-      header: "Активные сессии",
-      width: 135,
-      align: "center",
-      cell: (user) => String(user.active_sessions),
-    },
-    {
-      id: "status",
-      header: "Состояние",
-      width: 135,
-      cell: (user) => (
-        <span
-          className={`${styles.status} ${user.is_active ? styles.statusActive : styles.statusInactive}`}
-        >
-          {user.is_active ? "Активен" : "Заблокирован"}
-        </span>
-      ),
-    },
-  ], []);
+      },
+      {
+        id: "role",
+        header: "Роль",
+        width: 190,
+        cell: (user) => (
+          <div className={styles.cellMain}>
+            <span className={styles.cellTitle}>{user.role_name}</span>
+            <span className={styles.cellMeta}>{user.role_code}</span>
+          </div>
+        ),
+      },
+      {
+        id: "binding",
+        header: "Связанная запись",
+        width: 270,
+        cell: (user) =>
+          user.linked_name ?? (
+            <span className={styles.cellMeta}>Без привязки</span>
+          ),
+      },
+      {
+        id: "sessions",
+        header: "Активные сессии",
+        width: 135,
+        align: "center",
+        cell: (user) => String(user.active_sessions),
+      },
+      {
+        id: "status",
+        header: "Состояние",
+        width: 135,
+        cell: (user) => (
+          <span
+            className={`${styles.status} ${user.is_active ? styles.statusActive : styles.statusInactive}`}
+          >
+            {user.is_active ? "Активен" : "Заблокирован"}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
   return (
     <Page
@@ -97,12 +100,11 @@ export default function UsersPageView({
               value={page.query}
               onChange={(event) => page.setQuery(event.target.value)}
             />
-            <Button appearance="primary" onClick={page.openCreate}>
-              <span className={styles.buttonContent}>
-                <PlusIcon size={16} />
-                Создать
-              </span>
-            </Button>
+            <Button
+              icon={<PlusIcon />}
+              onClick={page.openCreate}
+              aria-label="Создать нового пользователя"
+            />
           </>
         ),
       }}
@@ -126,14 +128,14 @@ export default function UsersPageView({
           {
             id: "reset-password",
             label: "Сбросить пароль",
-            icon: <RefreshIcon size={16} />,
+            icon: <RefreshIcon />,
             onSelect: () => page.openResetPassword(row),
           },
           { type: "separator" },
           {
             id: "toggle-active",
             label: row.is_active ? "Заблокировать" : "Активировать",
-            icon: <LockIcon size={16} />,
+            icon: <LockIcon />,
             danger: row.is_active,
             onSelect: () => page.openToggleActive(row),
           },
@@ -141,7 +143,7 @@ export default function UsersPageView({
           {
             id: "delete-user",
             label: "Удалить пользователя",
-            icon: <TrashIcon size={16} />,
+            icon: <TrashIcon />,
             danger: true,
             onSelect: () => page.openDeleteUser(row),
           },

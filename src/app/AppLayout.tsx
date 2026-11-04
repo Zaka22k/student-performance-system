@@ -25,8 +25,20 @@ type AuthView = {
   permissions: string[];
 };
 
-const CATEGORY_PREFIXES = ["session", "analytics", "reports", "admin", "settings"];
-const DICTIONARY_PAGES = ["groups", "students", "teachers", "subjects", "semesters"];
+const CATEGORY_PREFIXES = [
+  "session",
+  "analytics",
+  "reports",
+  "admin",
+  "settings",
+];
+const DICTIONARY_PAGES = [
+  "groups",
+  "students",
+  "teachers",
+  "subjects",
+  "semesters",
+];
 
 const selectedFromPath = (pathname: string): string => {
   const [first, second] = pathname.split("/").filter(Boolean);
@@ -55,10 +67,20 @@ export default function AppLayout({
   if (!currentUser) {
     if (pathname === "/login") return <>{children}</>;
     return (
-      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "grid",
+          placeItems: "center",
+          padding: 24,
+        }}
+      >
         <div style={{ display: "grid", gap: 12, textAlign: "center" }}>
           <h1 className="SubtitleTextBlockStyle">Сессия завершена</h1>
-          <p className="BodyTextBlockStyle">Войдите снова: сессия могла истечь или быть отозвана администратором.</p>
+          <p className="BodyTextBlockStyle">
+            Войдите снова: сессия могла истечь или быть отозвана
+            администратором.
+          </p>
           <Link href="/login">Перейти ко входу</Link>
         </div>
       </main>
@@ -66,13 +88,20 @@ export default function AppLayout({
   }
 
   const permissions = new Set(currentUser.permissions);
-  const can = (...codes: string[]) => codes.some((code) => permissions.has(code));
+  const can = (...codes: string[]) =>
+    codes.some((code) => permissions.has(code));
   const selected = selectedFromPath(pathname);
   const openCategory = categoryFromSelected(selected);
-  const canSeeSchedule = can("session.schedule.read.all", "session.schedule.read.own");
+  const canSeeSchedule = can(
+    "session.schedule.read.all",
+    "session.schedule.read.own",
+  );
   const canFormSheet = can("session.sheet.form");
   const canSeeGroupSheet = can("reports.group_sheet");
-  const canSeeStudentBook = can("reports.student_book.all", "reports.student_book.own");
+  const canSeeStudentBook = can(
+    "reports.student_book.all",
+    "reports.student_book.own",
+  );
   const canSeeGroupSummary = can("reports.group_summary");
   const canSeeDictionaries = can("dictionaries.read");
   const canSeeAdmin = can("users.manage", "roles.manage", "audit.read");
@@ -85,7 +114,9 @@ export default function AppLayout({
         selectedValue={selected}
         pageKey={pathname}
         defaultOpenCategories={openCategory ? [openCategory] : []}
-        pageTransition={(info) => info.relation === "peer" ? "entrance" : "slide"}
+        pageTransition={(info) =>
+          info.relation === "peer" ? "entrance" : "slide"
+        }
         menuItems={
           <>
             {can("home.view") && (
@@ -95,30 +126,61 @@ export default function AppLayout({
             )}
 
             {can("grades.read.all", "grades.read.own") && (
-              <NavItem as={Link} href="/performance" value="/performance" icon={<JournalIcon />}>
+              <NavItem
+                as={Link}
+                href="/performance"
+                value="/performance"
+                icon={<JournalIcon />}
+              >
                 Журнал успеваемости
               </NavItem>
             )}
 
             {canSeeDictionaries && (
-              <NavCategory value="dictionaries" icon={<DictionariesIcon />} title="Справочники">
-                <NavSubItem as={Link} href="/groups" value="/groups">Группы</NavSubItem>
-                <NavSubItem as={Link} href="/students" value="/students">Студенты</NavSubItem>
-                <NavSubItem as={Link} href="/teachers" value="/teachers">Преподаватели</NavSubItem>
-                <NavSubItem as={Link} href="/subjects" value="/subjects">Дисциплины</NavSubItem>
-                <NavSubItem as={Link} href="/semesters" value="/semesters">Семестры</NavSubItem>
+              <NavCategory
+                value="dictionaries"
+                icon={<DictionariesIcon />}
+                title="Справочники"
+              >
+                <NavSubItem as={Link} href="/groups" value="/groups">
+                  Группы
+                </NavSubItem>
+                <NavSubItem as={Link} href="/students" value="/students">
+                  Студенты
+                </NavSubItem>
+                <NavSubItem as={Link} href="/teachers" value="/teachers">
+                  Преподаватели
+                </NavSubItem>
+                <NavSubItem as={Link} href="/subjects" value="/subjects">
+                  Дисциплины
+                </NavSubItem>
+                <NavSubItem as={Link} href="/semesters" value="/semesters">
+                  Семестры
+                </NavSubItem>
               </NavCategory>
             )}
 
             {(canSeeSchedule || canFormSheet) && (
-              <NavCategory value="session" icon={<SessionIcon />} title="Сессия">
+              <NavCategory
+                value="session"
+                icon={<SessionIcon />}
+                title="Сессия"
+              >
                 {canSeeSchedule && (
-                  <NavSubItem as={Link} href="/session/schedule" value="/session/schedule">
+                  <NavSubItem
+                    as={Link}
+                    href="/session/schedule"
+                    value="/session/schedule"
+                  >
                     Расписание экзаменов и зачётов
                   </NavSubItem>
                 )}
                 {canFormSheet && (
-                  <NavSubItem as={Link} href="/session/sheet" value="/session/sheet">
+                  <NavSubItem
+                    as={Link}
+                    href="/session/sheet"
+                    value="/session/sheet"
+                  >
                     Формирование ведомости группы
                   </NavSubItem>
                 )}
@@ -126,57 +188,129 @@ export default function AppLayout({
             )}
 
             {can("analytics.read") && (
-              <NavCategory value="analytics" icon={<AnalyticsIcon />} title="Аналитика">
-                <NavSubItem as={Link} href="/analytics/rating" value="/analytics/rating">Рейтинг студентов</NavSubItem>
-                <NavSubItem as={Link} href="/analytics/groups" value="/analytics/groups">Успеваемость по группам</NavSubItem>
-                <NavSubItem as={Link} href="/analytics/subjects" value="/analytics/subjects">Успеваемость по дисциплинам</NavSubItem>
+              <NavCategory
+                value="analytics"
+                icon={<AnalyticsIcon />}
+                title="Аналитика"
+              >
+                <NavSubItem
+                  as={Link}
+                  href="/analytics/rating"
+                  value="/analytics/rating"
+                >
+                  Рейтинг студентов
+                </NavSubItem>
+                <NavSubItem
+                  as={Link}
+                  href="/analytics/groups"
+                  value="/analytics/groups"
+                >
+                  Успеваемость по группам
+                </NavSubItem>
+                <NavSubItem
+                  as={Link}
+                  href="/analytics/subjects"
+                  value="/analytics/subjects"
+                >
+                  Успеваемость по дисциплинам
+                </NavSubItem>
               </NavCategory>
             )}
 
             {(canSeeGroupSheet || canSeeStudentBook || canSeeGroupSummary) && (
-              <NavCategory value="reports" icon={<ReportsIcon />} title="Отчёты">
+              <NavCategory
+                value="reports"
+                icon={<ReportsIcon />}
+                title="Отчёты"
+              >
                 {canSeeGroupSheet && (
-                  <NavSubItem as={Link} href="/reports/group-sheet" value="/reports/group-sheet">Ведомость группы по дисциплине</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/reports/group-sheet"
+                    value="/reports/group-sheet"
+                  >
+                    Ведомость группы по дисциплине
+                  </NavSubItem>
                 )}
                 {canSeeStudentBook && (
-                  <NavSubItem as={Link} href="/reports/student-book" value="/reports/student-book">Зачётная книжка студента</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/reports/student-book"
+                    value="/reports/student-book"
+                  >
+                    Зачётная книжка студента
+                  </NavSubItem>
                 )}
                 {canSeeGroupSummary && (
-                  <NavSubItem as={Link} href="/reports/group-summary" value="/reports/group-summary">Сводный отчёт по группе</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/reports/group-summary"
+                    value="/reports/group-summary"
+                  >
+                    Сводный отчёт по группе
+                  </NavSubItem>
                 )}
               </NavCategory>
             )}
 
             {canSeeAdmin && (
-              <NavCategory value="admin" icon={<AdminIcon />} title="Администрирование">
+              <NavCategory
+                value="admin"
+                icon={<AdminIcon />}
+                title="Администрирование"
+              >
                 {can("users.manage") && (
-                  <NavSubItem as={Link} href="/admin/users" value="/admin/users">Пользователи</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/admin/users"
+                    value="/admin/users"
+                  >
+                    Пользователи
+                  </NavSubItem>
                 )}
                 {can("roles.manage") && (
-                  <NavSubItem as={Link} href="/admin/roles" value="/admin/roles">Роли и разрешения</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/admin/roles"
+                    value="/admin/roles"
+                  >
+                    Роли и разрешения
+                  </NavSubItem>
                 )}
                 {can("audit.read") && (
-                  <NavSubItem as={Link} href="/admin/audit" value="/admin/audit">Журнал действий</NavSubItem>
+                  <NavSubItem
+                    as={Link}
+                    href="/admin/audit"
+                    value="/admin/audit"
+                  >
+                    Журнал действий
+                  </NavSubItem>
                 )}
               </NavCategory>
             )}
-            <NavCategory value="settings" icon={<SettingsIcon />} title="Настройки">
-              <NavSubItem
-                as={Link}
-                href="/settings/appearance"
-                value="/settings/appearance"
-              >
-                Оформление
-              </NavSubItem>
-              <NavSubItem
-                as={Link}
-                href="/settings/account"
-                value="/settings/account"
-              >
-                Учётная запись
-              </NavSubItem>
-            </NavCategory>
           </>
+        }
+        footerMenuItems={
+          <NavCategory
+            value="settings"
+            icon={<SettingsIcon />}
+            title="Настройки"
+          >
+            <NavSubItem
+              as={Link}
+              href="/settings/appearance"
+              value="/settings/appearance"
+            >
+              Оформление
+            </NavSubItem>
+            <NavSubItem
+              as={Link}
+              href="/settings/account"
+              value="/settings/account"
+            >
+              Учётная запись
+            </NavSubItem>
+          </NavCategory>
         }
       >
         {children}

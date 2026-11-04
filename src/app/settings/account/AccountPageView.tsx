@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { Button, DataGrid, Page, type DataGridColumn } from "@ui-kit/components";
+import {
+  Button,
+  DataGrid,
+  Page,
+  type DataGridColumn,
+} from "@ui-kit/components";
 import { LockIcon, LogOutIcon } from "@/icons";
 import { useAccountPage } from "./useAccountPage";
 import type { AccountSessionRecord } from "@/server/account";
@@ -31,37 +36,42 @@ export default function AccountPageView({
 }: AccountPageViewProps) {
   const page = useAccountPage(initialSessions, currentSessionId);
 
-  const columns = useMemo<DataGridColumn<AccountSessionRecord>[]>(() => [
-    {
-      id: "session",
-      header: "Сессия",
-      width: 190,
-      cell: (session) => (
-        <div className={styles.sessionIdentity}>
-          <strong>{session.is_current ? "Это устройство" : "Другое устройство"}</strong>
-          <span>{session.session_id.slice(0, 8)}…</span>
-        </div>
-      ),
-    },
-    {
-      id: "created",
-      header: "Создана",
-      width: 190,
-      cell: (session) => formatDate(session.created_at),
-    },
-    {
-      id: "last-seen",
-      header: "Последняя активность",
-      width: 210,
-      cell: (session) => formatDate(session.last_seen_at),
-    },
-    {
-      id: "expires",
-      header: "Истекает",
-      width: 190,
-      cell: (session) => formatDate(session.expires_at),
-    },
-  ], []);
+  const columns = useMemo<DataGridColumn<AccountSessionRecord>[]>(
+    () => [
+      {
+        id: "session",
+        header: "Сессия",
+        width: 190,
+        cell: (session) => (
+          <div className={styles.sessionIdentity}>
+            <strong>
+              {session.is_current ? "Это устройство" : "Другое устройство"}
+            </strong>
+            <span>{session.session_id.slice(0, 8)}…</span>
+          </div>
+        ),
+      },
+      {
+        id: "created",
+        header: "Создана",
+        width: 190,
+        cell: (session) => formatDate(session.created_at),
+      },
+      {
+        id: "last-seen",
+        header: "Последняя активность",
+        width: 210,
+        cell: (session) => formatDate(session.last_seen_at),
+      },
+      {
+        id: "expires",
+        header: "Истекает",
+        width: 190,
+        cell: (session) => formatDate(session.expires_at),
+      },
+    ],
+    [],
+  );
 
   return (
     <Page title="Учётная запись">
@@ -75,13 +85,11 @@ export default function AccountPageView({
               {username}
             </h2>
             <p className="CaptionTextBlockStyle">
-              {roleName} · <span className={styles.accountRoleCode}>{roleCode}</span>
+              {roleName} ·{" "}
+              <span className={styles.accountRoleCode}>{roleCode}</span>
             </p>
           </div>
-          <Button
-            appearance="destructive"
-            onClick={page.signOut}
-          >
+          <Button appearance="destructive" onClick={page.signOut}>
             Выйти из системы
           </Button>
         </section>
@@ -108,7 +116,7 @@ export default function AccountPageView({
               {
                 id: "revoke-session",
                 label: row.is_current ? "Выйти" : "Отозвать сессию",
-                icon: row.is_current ? <LogOutIcon size={16} /> : <LockIcon size={16} />,
+                icon: row.is_current ? <LogOutIcon /> : <LockIcon />,
                 danger: true,
                 onSelect: () => page.revokeSession(row),
               },

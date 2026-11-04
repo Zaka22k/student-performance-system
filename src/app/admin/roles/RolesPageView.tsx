@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Checkbox, ComboBox, Page } from "@ui-kit/components";
-import { PlusIcon, TrashIcon } from "@/icons";
+import { PlusIcon, TrashIcon, CheckIcon } from "@/icons";
 import type { AdminPermission } from "./useRolesPage";
 import { useRolesPage } from "./useRolesPage";
 import styles from "../Admin.module.css";
@@ -41,19 +41,18 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
       toolbar={{
         trailing: (
           <>
-            <Button onClick={page.openCreate}>
-              <span className={styles.buttonContent}>
-                <PlusIcon size={16} />
-                Новая роль
-              </span>
-            </Button>
             <Button
+              icon={<PlusIcon />}
+              aria-label="Новая роль"
+              onClick={page.openCreate}
+            />
+            <Button
+              icon={<CheckIcon />}
               appearance="primary"
               disabled={!page.activeRole || !page.isDirty}
               onClick={page.savePermissions}
-            >
-              Сохранить изменения
-            </Button>
+              aria-label="Сохранить изменения"
+            />
           </>
         ),
       }}
@@ -108,7 +107,9 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                 {page.permissions.length}
               </span>
               {page.isDirty && (
-                <span className={styles.unsaved}>Есть несохранённые изменения</span>
+                <span className={styles.unsaved}>
+                  Есть несохранённые изменения
+                </span>
               )}
             </div>
 
