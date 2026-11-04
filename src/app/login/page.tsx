@@ -21,7 +21,11 @@ export default function LoginPage() {
         setError(result.message ?? "Не удалось войти");
         return;
       }
-      router.replace("/");
+      const requestedPath = new URLSearchParams(window.location.search).get("next");
+      const destination = requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+        ? requestedPath
+        : "/";
+      router.replace(destination);
       router.refresh();
     } catch {
       setError("Не удалось выполнить вход. Проверьте подключение к серверу.");
