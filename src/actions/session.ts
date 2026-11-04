@@ -3,6 +3,7 @@
 import { prisma, buildSearchWhere, withActionError } from "@/server/lib";
 import { sheetInputSchema } from "@/schemas";
 import type { ScheduleItem, SheetInput, SheetResult } from "@/models";
+import { requireAnyPermission, requirePermission } from "@/server/auth/session";
 
 const SCHEDULE_SEARCH = {
   textFields: [
@@ -35,6 +36,7 @@ export async function getSchedule(params: {
   group_id?: string;
   q?: string;
 }): Promise<ScheduleItem[]> {
+  const auth = await requireAnyPermission(["session.schedule.read.all", "session.schedule.read.own"]);
   const { semester_id, group_id, q } = params;
 
   const conditions: any[] = [
@@ -43,6 +45,21 @@ export async function getSchedule(params: {
   ];
   if (group_id) {
     conditions.push({ students: { group_id: parseId(group_id, "группа") } });
+  }
+  if (
+    auth.permissions.has("session.schedule.read.own") &&
+    !auth.permissions.has("session.schedule.read.all")
+  ) {
+    if (!auth.studentId) return [];
+    const ownStudent = await prisma.students.findUnique({
+      where: { student_id: auth.studentId },
+      select: { group_id: true },
+    });
+    if (!ownStudent) return [];
+    if (group_id && parseId(group_id, "группа") !== ownStudent.group_id) {
+      throw new Error("Доступ разрешён только к расписанию своей группы");
+    }
+    conditions.push({ students: { group_id: ownStudent.group_id } });
   }
 
   const rows = await prisma.student_performance.findMany({
@@ -90,6 +107,7 @@ export async function getSchedule(params: {
   );
 }
 export async function createSheet(rawInput: SheetInput): Promise<SheetResult> {
+  await requirePermission("session.sheet.form");
   return withActionError(
     async () => {
       const body = sheetInputSchema.parse(rawInput);
