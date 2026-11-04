@@ -80,6 +80,7 @@ model students {
   reyting             reyting?
   student_performance student_performance[]
   student_groups      student_groups        @relation(fields: [group_id], references: [group_id], onUpdate: NoAction)
+  users               users[]
 
   @@index([group_id], map: "idx_students_group_id")
   @@index([last_name, first_name], map: "idx_students_name")
@@ -93,6 +94,7 @@ model subjects {
   total_hours         Int                   @db.SmallInt
   credits             Decimal               @db.Decimal(4, 1)
   student_performance student_performance[]
+  users               users[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -103,4 +105,88 @@ model teachers {
   middle_name         String?               @db.VarChar(50)
   email               String?               @unique(map: "uq_teachers_email") @db.VarChar(254)
   student_performance student_performance[]
+}
+
+
+model roles {
+  role_id         BigInt            @id @default(autoincrement())
+  role_code       String            @unique(map: "uq_roles_code") @db.VarChar(50)
+  role_name       String            @db.VarChar(100)
+  description     String?
+  role_permissions role_permissions[]
+  users           users[]
+
+  @@map("roles")
+}
+
+model permissions {
+  permission_id   BigInt            @id @default(autoincrement())
+  permission_code String            @unique(map: "uq_permissions_code") @db.VarChar(100)
+  permission_name String            @db.VarChar(150)
+  role_permissions role_permissions[]
+
+  @@map("permissions")
+}
+
+model role_permissions {
+  role_id       BigInt
+  permission_id BigInt
+  roles         roles       @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
+  permissions   permissions @relation(fields: [permission_id], references: [permission_id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@index([permission_id], map: "idx_role_permissions_permission")
+  @@map("role_permissions")
+}
+
+model users {
+  user_id       BigInt     @id @default(autoincrement())
+  username      String     @unique(map: "uq_users_username") @db.VarChar(80)
+  password_hash String
+  role_id       BigInt
+  student_id    BigInt?    @unique(map: "uq_users_student")
+  teacher_id    BigInt?    @unique(map: "uq_users_teacher")
+  is_active     Boolean    @default(true)
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  roles         roles      @relation(fields: [role_id], references: [role_id], onDelete: Restrict)
+  students      students?  @relation(fields: [student_id], references: [student_id], onDelete: SetNull)
+  teachers      teachers?  @relation(fields: [teacher_id], references: [teacher_id], onDelete: SetNull)
+  sessions      sessions[]
+  audit_logs    audit_logs[]
+
+  @@index([role_id], map: "idx_users_role_id")
+  @@map("users")
+}
+
+model sessions {
+  session_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token_hash   String   @unique(map: "uq_sessions_token") @db.VarChar(64)
+  user_id      BigInt
+  role_code    String   @db.VarChar(50)
+  permissions  String[]
+  student_id   BigInt?
+  teacher_id   BigInt?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  last_seen_at DateTime @default(now()) @db.Timestamptz(6)
+  expires_at   DateTime @db.Timestamptz(6)
+  users        users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_sessions_user_id")
+  @@index([expires_at], map: "idx_sessions_expires_at")
+  @@map("sessions")
+}
+
+model audit_logs {
+  audit_id      BigInt    @id @default(autoincrement())
+  actor_user_id BigInt?
+  action        String    @db.VarChar(100)
+  target_type   String?   @db.VarChar(100)
+  target_id     String?
+  details       Json?     @db.JsonB
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  users         users?    @relation(fields: [actor_user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([actor_user_id, created_at], map: "idx_audit_actor_created")
+  @@index([target_type, target_id], map: "idx_audit_target")
+  @@map("audit_logs")
 }
