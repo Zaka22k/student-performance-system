@@ -12,6 +12,7 @@ import { getStudents } from "./students";
 import { getSubjects } from "./subjects";
 import { getTeachers } from "./teachers";
 import { getSemesters } from "./semesters";
+import { requireAnyPermission, requirePermission } from "@/server/auth/session";
 
 const DEFAULT_LIMIT = 50;
 
@@ -95,11 +96,17 @@ export async function getPerformances(params?: {
   cursor?: string | null;
   limit?: number;
 }): Promise<PerformanceListResponse> {
+  const auth = await requireAnyPermission(["grades.read.all", "grades.read.own"]);
+  const ownOnly = auth.permissions.has("grades.read.own") && !auth.permissions.has("grades.read.all");
   const q = params?.q;
   const cursor = params?.cursor;
   const limit = Math.min(Math.max(params?.limit ?? DEFAULT_LIMIT, 1), 100);
 
   const conditions: any[] = [buildSearchWhere(q, SEARCH)];
+  if (ownOnly) {
+    if (!auth.studentId) return { items: [], nextCursor: null };
+    conditions.push({ student_id: auth.studentId });
+  }
 
   if (cursor) {
     const c = decodeCursor(cursor);
@@ -129,6 +136,7 @@ export async function getPerformances(params?: {
 }
 
 export async function getPerformance(id: string): Promise<Performance> {
+  const auth = await requireAnyPermission(["grades.read.all", "grades.read.own"]);
   return withActionError(
     async () => {
       const row = await prisma.student_performance.findUnique({
@@ -136,6 +144,11 @@ export async function getPerformance(id: string): Promise<Performance> {
         include: INCLUDE,
       });
       if (!row) throw new Error(MESSAGES.notFound);
+      if (
+        auth.permissions.has("grades.read.own") &&
+        !auth.permissions.has("grades.read.all") &&
+        String(auth.studentId) !== String(row.student_id)
+      ) throw new Error("Доступ разрешён только к собственным оценкам");
       return toDto(row);
     },
     MESSAGES,
@@ -146,6 +159,7 @@ export async function getPerformance(id: string): Promise<Performance> {
 export async function createPerformance(
   rawInput: PerformanceInput,
 ): Promise<Performance> {
+  await requirePermission("grades.create");
   return withActionError(
     async () => {
       const data = performanceInputSchema.parse(rawInput);
@@ -164,6 +178,7 @@ export async function updatePerformance(
   id: string,
   rawInput: PerformanceInput,
 ): Promise<Performance> {
+  await requirePermission("grades.update");
   return withActionError(
     async () => {
       const data = performanceInputSchema.parse(rawInput);
@@ -180,6 +195,7 @@ export async function updatePerformance(
 }
 
 export async function deletePerformance(id: string): Promise<void> {
+  await requirePermission("grades.delete");
   return withActionError(
     async () => {
       await prisma.student_performance.delete({
@@ -192,6 +208,7 @@ export async function deletePerformance(id: string): Promise<void> {
 }
 
 export async function getPerformanceOptions(): Promise<PerformanceOptions> {
+  await requireAnyPermission(["grades.create", "grades.update"]);
   const [students, subjects, teachers, semesters] = await Promise.all([
     getStudents(),
     getSubjects(),
