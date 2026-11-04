@@ -20,6 +20,7 @@ import {
   SettingsIcon,
   HomeIcon,
 } from "@/icons";
+import styles from "./AppLayout.module.css";
 
 type AuthView = {
   username: string;
@@ -29,6 +30,12 @@ type AuthView = {
 
 const CATEGORY_PREFIXES = ["session", "analytics", "reports", "admin"];
 const DICTIONARY_PAGES = ["groups", "students", "teachers", "subjects", "semesters"];
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Администратор",
+  teacher: "Преподаватель",
+  student: "Студент",
+};
 
 const selectedFromPath = (pathname: string): string => {
   const [first, second] = pathname.split("/").filter(Boolean);
@@ -60,8 +67,8 @@ export default function AppLayout({
     return (
       <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
         <div style={{ display: "grid", gap: 12, textAlign: "center" }}>
-          <h1>Сессия завершена</h1>
-          <p>Войдите снова: сессия могла истечь или быть отозвана администратором.</p>
+          <h1 className="SubtitleTextBlockStyle">Сессия завершена</h1>
+          <p className="BodyTextBlockStyle">Войдите снова: сессия могла истечь или быть отозвана администратором.</p>
           <Link href="/login">Перейти ко входу</Link>
         </div>
       </main>
@@ -90,6 +97,19 @@ export default function AppLayout({
     <div style={{ height: "100vh" }}>
       <NavigationView
         paneTitle="АСУ «Успеваемость»"
+        paneHeader={
+          <div className={styles.userPane}>
+            <div className={styles.userAvatar} aria-hidden="true">
+              {currentUser.username.slice(0, 2).toLocaleUpperCase("ru")}
+            </div>
+            <div className={styles.userIdentity}>
+              <span className={styles.userName}>{currentUser.username}</span>
+              <span className={styles.userRole}>
+                {ROLE_LABELS[currentUser.roleCode] ?? currentUser.roleCode}
+              </span>
+            </div>
+          </div>
+        }
         extendContentUnderPane
         selectedValue={selected}
         pageKey={pathname}
@@ -98,7 +118,7 @@ export default function AppLayout({
         menuItems={
           <>
             {can("home.view") && (
-              <NavItem as={Link} href="/" value="home" icon={<HomeIcon />}>
+              <NavItem as={Link} href="/" value="/" icon={<HomeIcon />}>
                 Главная
               </NavItem>
             )}
@@ -178,12 +198,9 @@ export default function AppLayout({
                 Настройки
               </NavItem>
             )}
-            <div style={{ padding: "12px 16px", display: "grid", gap: 8 }}>
-              <span style={{ fontSize: 13, opacity: 0.75 }}>
-                {currentUser.username} · {currentUser.roleCode}
-              </span>
-              <button type="button" onClick={signOut}>Выйти</button>
-            </div>
+            <NavItem onClick={signOut}>
+              Выйти из системы
+            </NavItem>
           </>
         }
       >
