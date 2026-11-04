@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import "./globals.css";
 import {
   ModalProvider,
@@ -54,6 +55,9 @@ export default async function RootLayout({
   const currentUser = session
     ? { username: session.username, roleCode: session.roleCode, permissions: [...session.permissions] }
     : null;
+  const pathname = (await headers()).get("x-app-pathname");
+  if (!session && pathname !== "/login") redirect("/login");
+  if (session && pathname === "/login") redirect("/");
 
   return (
     <html lang="ru" data-theme={theme} data-accent={accent}>
