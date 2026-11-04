@@ -113,7 +113,7 @@ export async function createSession(userId: bigint): Promise<void> {
         ORDER BY p.permission_code
         FOR SHARE OF rp`;
 
-    await tx.sessions.create({
+    const session = await tx.sessions.create({
       data: {
         token_hash: hashSessionToken(token),
         user_id: user.user_id,
@@ -122,6 +122,15 @@ export async function createSession(userId: bigint): Promise<void> {
         student_id: user.student_id,
         teacher_id: user.teacher_id,
         expires_at: expiresAt,
+      },
+    });
+    await tx.audit_logs.create({
+      data: {
+        actor_user_id: user.user_id,
+        action: "auth.login",
+        target_type: "session",
+        target_id: session.session_id,
+        details: { username: user.user_id.toString() },
       },
     });
   });
