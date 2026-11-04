@@ -25,6 +25,7 @@ export async function login(
   const recentFailures = await prisma.audit_logs.count({
     where: {
       action: "auth.login_failed",
+      target_type: "user",
       target_id: normalizedUsername,
       created_at: { gte: new Date(Date.now() - 15 * 60 * 1000) },
     },
