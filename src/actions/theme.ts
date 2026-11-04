@@ -3,7 +3,8 @@
 import { cookies } from "next/headers";
 import { requirePermission } from "@/server/auth/session";
 
-export async function setThemeCookie(theme: string) {\n  await requirePermission("settings.use");
+export async function setThemeCookie(theme: string) {
+  await requirePermission("settings.use");
   const cookieStore = await cookies();
   cookieStore.set("app-theme", theme, {
     path: "/",
@@ -12,7 +13,8 @@ export async function setThemeCookie(theme: string) {\n  await requirePermission
   });
 }
 
-export async function setAccentCookie(accent: string) {\n  await requirePermission("settings.use");
+export async function setAccentCookie(accent: string) {
+  await requirePermission("settings.use");
   const cookieStore = await cookies();
   cookieStore.set("app-accent", accent, {
     path: "/",
