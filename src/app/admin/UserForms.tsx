@@ -195,8 +195,8 @@ export function UserRoleForm({
   }, [registerAction, roles]);
 
   return (
-    <form ref={formRef} id={formId} className="adminForm">
-      <p className="adminFormHint">
+    <form ref={formRef} id={formId} className={styles.form}>
+      <p className={styles.formHint}>
         Смена роли отзовёт все активные сессии пользователя. При необходимости выбери новую привязку.
       </p>
       <ComboBox
@@ -266,14 +266,16 @@ export function UserPasswordForm({
 
   useEffect(() => {
     registerAction(async () => {
-      const password = new FormData(formRef.current!).get("password");
+      const form = formRef.current;
+      if (!form) return;
+      const password = new FormData(form).get("password");
       await submitRef.current(String(password ?? ""));
     });
   }, [registerAction]);
 
   return (
-    <form ref={formRef} id={formId} className="adminForm">
-      <p className="adminFormHint">
+    <form ref={formRef} id={formId} className={styles.form}>
+      <p className={styles.formHint}>
         Новый пароль для <strong>{username}</strong>. После сохранения все текущие сессии будут отозваны.
       </p>
       <TextField
@@ -307,7 +309,9 @@ export function RoleCreateForm({
 
   useEffect(() => {
     registerAction(async () => {
-      const data = new FormData(formRef.current!);
+      const form = formRef.current;
+      if (!form) return;
+      const data = new FormData(form);
       await submitRef.current({
         role_code: String(data.get("role_code") ?? "").trim(),
         role_name: String(data.get("role_name") ?? "").trim(),
@@ -317,7 +321,7 @@ export function RoleCreateForm({
   }, [registerAction]);
 
   return (
-    <form ref={formRef} id={formId} className="adminForm">
+    <form ref={formRef} id={formId} className={styles.form}>
       <TextField
         label="Код роли"
         name="role_code"
