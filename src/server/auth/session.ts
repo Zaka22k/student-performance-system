@@ -1,9 +1,19 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { prisma } from "@/server/lib/prisma";
 
-const scryptAsync = promisify(scrypt);
+const scryptAsync = (
+  password: string,
+  salt: string,
+  keyLength: number,
+  options: { N: number; r: number; p: number; maxmem: number },
+): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    scrypt(password, salt, keyLength, options, (error, derivedKey) => {
+      if (error) reject(error);
+      else resolve(derivedKey);
+    });
+  });
 export const SESSION_COOKIE = "app-session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_COST = 16_384;
