@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   changeUserRole,
   createUser,
   setUserActive,
+  resetUserPassword,
 } from "@/actions/access-control";
 
 type Role = { role_id: string; role_code: string; role_name: string };
@@ -80,10 +81,31 @@ export default function UsersAdminView({
     startTransition(async () => {
       try {
         await changeUserRole(user.user_id, nextRoleId);
+        const role = roles.find((item) => item.role_id === nextRoleId);
+        setUsers((current) => current.map((item) => item.user_id === user.user_id
+          ? { ...item, role_id: nextRoleId, role_code: role?.role_code ?? item.role_code, role_name: role?.role_name ?? item.role_name, active_sessions: 0 }
+          : item));
         setNotice(`Роль пользователя ${user.username} обновлена. Его сессии удалены.`);
         router.refresh();
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Не удалось изменить роль");
+      }
+    });
+  }
+
+  function changePassword(user: User) {
+    const nextPassword = window.prompt("Введите новый пароль (не менее 12 символов)");
+    if (!nextPassword) return;
+    setError("");
+    startTransition(async () => {
+      try {
+        await resetUserPassword(user.user_id, nextPassword);
+        setNotice(`Пароль пользователя ${user.username} изменён. Его сессии удалены.`);
+        setUsers((current) => current.map((item) => item.user_id === user.user_id
+          ? { ...item, active_sessions: 0 }
+          : item));
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Не удалось изменить пароль");
       }
     });
   }
@@ -157,7 +179,7 @@ export default function UsersAdminView({
       {notice && <p role="status">{notice}</p>}
 
       <section style={{ display: "grid", gap: 12 }}>
-        <h2>Учётные записи ({initialUsers.length})</h2>
+        <h2>Учётные записи ({users.length})</h2>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780 }}>
             <thead><tr>
@@ -169,7 +191,7 @@ export default function UsersAdminView({
               <th style={{ textAlign: "left", padding: 10 }}>Действие</th>
             </tr></thead>
             <tbody>
-              {initialUsers.map((user) => (
+              {users.map((user) => (
                 <tr key={user.user_id} style={{ borderTop: "1px solid var(--border, #ddd)" }}>
                   <td style={{ padding: 10 }}>
                     <strong>{user.username}</strong>
@@ -184,13 +206,16 @@ export default function UsersAdminView({
                   <td style={{ padding: 10 }}>{user.active_sessions}</td>
                   <td style={{ padding: 10 }}>{user.is_active ? "Активен" : "Заблокирован"}</td>
                   <td style={{ padding: 10 }}>
-                    <button type="button" disabled={pending} onClick={() => toggleActive(user)}>
-                      {user.is_active ? "Заблокировать" : "Активировать"}
-                    </button>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button type="button" disabled={pending} onClick={() => toggleActive(user)}>
+                        {user.is_active ? "Заблокировать" : "Активировать"}
+                      </button>
+                      <button type="button" disabled={pending} onClick={() => changePassword(user)}>Сбросить пароль</button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {initialUsers.length === 0 && <tr><td colSpan={6} style={{ padding: 12 }}>Пользователей пока нет</td></tr>}
+              {users.length === 0 && <tr><td colSpan={6} style={{ padding: 12 }}>Пользователей пока нет</td></tr>}
             </tbody>
           </table>
         </div>
