@@ -88,6 +88,12 @@ export async function createUser(input: {
   teacher_id?: string | null;
 }) {
   const actor = await requirePermission("users.manage");
+  if (
+    !input ||
+    typeof input.username !== "string" ||
+    typeof input.password !== "string" ||
+    typeof input.role_id !== "string"
+  ) throw new Error("Некорректные данные учётной записи");
   const username = input.username.trim();
   if (!/^[a-zA-Z0-9._-]{3,80}$/.test(username)) {
     throw new Error("Логин должен содержать 3–80 символов: латинские буквы, цифры, точку, дефис или подчёркивание");
@@ -137,7 +143,14 @@ export async function changeUserRole(userId: string, roleId: string) {
   const [user, role] = await Promise.all([
     prisma.users.findUnique({
       where: { user_id: id },
-      select: { user_id: true, role_id: true, student_id: true, teacher_id: true },
+      select: {
+        user_id: true,
+        role_id: true,
+        student_id: true,
+        teacher_id: true,
+        is_active: true,
+        roles: { select: { role_code: true } },
+      },
     }),
     prisma.roles.findUnique({
       where: { role_id: nextRoleId },
@@ -145,6 +158,16 @@ export async function changeUserRole(userId: string, roleId: string) {
     }),
   ]);
   if (!user || !role) throw new Error("Пользователь или роль не найдены");
+  if (user.is_active && user.roles.role_code === "admin" && role.role_code !== "admin") {
+    const adminRole = await prisma.roles.findUnique({
+      where: { role_code: "admin" },
+      select: { role_id: true },
+    });
+    const activeAdmins = adminRole
+      ? await prisma.users.count({ where: { role_id: adminRole.role_id, is_active: true } })
+      : 0;
+    if (activeAdmins <= 1) throw new Error("Нельзя снять роль admin с последнего активного администратора");
+  }
   if (role.role_code === "student" && (!user.student_id || user.teacher_id)) {
     throw new Error("Для роли student у пользователя должна быть привязка к студенту");
   }
@@ -164,10 +187,31 @@ export async function changeUserRole(userId: string, roleId: string) {
 
 export async function setUserActive(userId: string, isActive: boolean) {
   const actor = await requirePermission("users.manage");
+  if (typeof isActive !== "boolean") throw new Error("Некорректное состояние пользователя");
   const id = parseId(userId, "пользователь");
+  if (!isActive && id === actor.userId) {
+    throw new Error("Нельзя заблокировать собственную учётную запись");
+  }
+  const target = await prisma.users.findUnique({
+    where: { user_id: id },
+    select: { role_id: true, is_active: true },
+  });
+  if (!target) throw new Error("Пользователь не найден");
+  if (!isActive && target.is_active) {
+    const adminRole = await prisma.roles.findUnique({
+      where: { role_code: "admin" },
+      select: { role_id: true },
+    });
+    if (adminRole && target.role_id === adminRole.role_id) {
+      const activeAdmins = await prisma.users.count({
+        where: { role_id: adminRole.role_id, is_active: true },
+      });
+      if (activeAdmins <= 1) throw new Error("Нельзя заблокировать последнего активного администратора");
+    }
+  }
   await prisma.users.update({
     where: { user_id: id },
-    data: { is_active: Boolean(isActive) },
+    data: { is_active: isActive },
   });
   await writeAudit(actor.userId, isActive ? "users.activate" : "users.deactivate", "user", String(id));
   return { ok: true };
@@ -175,7 +219,7 @@ export async function setUserActive(userId: string, isActive: boolean) {
 
 export async function resetUserPassword(userId: string, password: string) {
   const actor = await requirePermission("users.manage");
-  if (password.length < 12 || password.length > 128) {
+  if (typeof password !== "string" || password.length < 12 || password.length > 128) {
     throw new Error("Пароль должен содержать от 12 до 128 символов");
   }
   const id = parseId(userId, "пользователь");
@@ -194,6 +238,9 @@ export async function createRole(input: {
   description?: string;
 }) {
   const actor = await requirePermission("roles.manage");
+  if (!input || typeof input.role_code !== "string" || typeof input.role_name !== "string") {
+    throw new Error("Некорректные данные роли");
+  }
   const roleCode = input.role_code.trim().toLowerCase();
   const roleName = input.role_name.trim();
   if (!/^[a-z][a-z0-9_-]{1,49}$/.test(roleCode)) {
@@ -264,6 +311,9 @@ export async function replaceRolePermissions(
 ) {
   const actor = await requirePermission("roles.manage");
   const id = parseId(roleId, "роль");
+  if (!Array.isArray(permissionIds) || permissionIds.length > 500) {
+    throw new Error("Некорректный список разрешений");
+  }
   const uniqueIds = [...new Set(permissionIds)].map((item) =>
     parseId(item, "разрешение"),
   );
@@ -312,9 +362,10 @@ export async function replaceRolePermissions(
 
 export async function getAuditLogs(limit = 100) {
   await requirePermission("audit.read");
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.trunc(limit), 1), 200) : 100;
   const rows = await prisma.audit_logs.findMany({
     orderBy: { created_at: "desc" },
-    take: Math.min(Math.max(limit, 1), 200),
+    take: safeLimit,
     include: { users: { select: { username: true } } },
   });
   return rows.map((row) => ({
