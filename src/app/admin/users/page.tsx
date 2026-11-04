@@ -4,7 +4,7 @@ import {
 } from "@/actions/access-control";
 import { getStudents } from "@/actions/students";
 import { getTeachers } from "@/actions/teachers";
-import UsersAdminView from "./UsersAdminView";
+import UsersPageView from "./UsersPageView";
 
 export default async function AdminUsersPage() {
   const [users, roles, students, teachers] = await Promise.all([
@@ -14,7 +14,7 @@ export default async function AdminUsersPage() {
     getTeachers(),
   ]);
   return (
-    <UsersAdminView
+    <UsersPageView
       initialUsers={users}
       roles={roles}
       students={students.map((student) => ({
