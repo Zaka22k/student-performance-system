@@ -95,14 +95,57 @@ export default function UsersAdminView({
   }
 
   function updateRole(user: User, nextRoleId: string) {
+    const role = roles.find((item) => item.role_id === nextRoleId);
+    if (!role) return;
+
+    let linkedEntityId: string | null | undefined;
+    if (role.role_code === "student") {
+      linkedEntityId = user.student_id;
+      if (!linkedEntityId) {
+        const available = students.map((item) => item.student_id).join(", ");
+        const entered = window.prompt(`Введите student_id для пользователя ${user.username}. Доступные ID: ${available}`);
+        if (entered === null) return;
+        if (!students.some((item) => item.student_id === entered.trim())) {
+          setError("Укажите student_id из списка студентов");
+          return;
+        }
+        linkedEntityId = entered.trim();
+      }
+    } else if (role.role_code === "teacher") {
+      linkedEntityId = user.teacher_id;
+      if (!linkedEntityId) {
+        const available = teachers.map((item) => item.teacher_id).join(", ");
+        const entered = window.prompt(`Введите teacher_id для пользователя ${user.username}. Доступные ID: ${available}`);
+        if (entered === null) return;
+        if (!teachers.some((item) => item.teacher_id === entered.trim())) {
+          setError("Укажите teacher_id из списка преподавателей");
+          return;
+        }
+        linkedEntityId = entered.trim();
+      }
+    }
+
     setError("");
     setNotice("");
     startTransition(async () => {
       try {
-        await changeUserRole(user.user_id, nextRoleId);
-        const role = roles.find((item) => item.role_id === nextRoleId);
+        await changeUserRole(user.user_id, nextRoleId, linkedEntityId);
+        const linkedName = role.role_code === "student"
+          ? students.find((item) => item.student_id === linkedEntityId)?.label ?? null
+          : role.role_code === "teacher"
+            ? teachers.find((item) => item.teacher_id === linkedEntityId)?.label ?? null
+            : null;
         setUsers((current) => current.map((item) => item.user_id === user.user_id
-          ? { ...item, role_id: nextRoleId, role_code: role?.role_code ?? item.role_code, role_name: role?.role_name ?? item.role_name, active_sessions: 0 }
+          ? {
+              ...item,
+              role_id: nextRoleId,
+              role_code: role.role_code,
+              role_name: role.role_name,
+              student_id: role.role_code === "student" ? linkedEntityId ?? null : null,
+              teacher_id: role.role_code === "teacher" ? linkedEntityId ?? null : null,
+              linked_name: linkedName,
+              active_sessions: 0,
+            }
           : item));
         setNotice(`Роль пользователя ${user.username} обновлена. Его сессии удалены.`);
         router.refresh();
