@@ -11,7 +11,7 @@ import {
   useToast,
   type DataGridColumn,
 } from "@ui-kit/components";
-import { EditIcon, PlusIcon, TrashIcon } from "@/icons";
+import { EditIcon, PlusIcon } from "@/icons";
 import {
   changeUserRole,
   createUser,
