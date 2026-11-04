@@ -55,7 +55,18 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  if (!currentUser) return <>{children}</>;
+  if (!currentUser) {
+    if (pathname === "/login") return <>{children}</>;
+    return (
+      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
+        <div style={{ display: "grid", gap: 12, textAlign: "center" }}>
+          <h1>Сессия завершена</h1>
+          <p>Войдите снова: сессия могла истечь или быть отозвана администратором.</p>
+          <Link href="/login">Перейти ко входу</Link>
+        </div>
+      </main>
+    );
+  }
 
   const permissions = new Set(currentUser.permissions);
   const can = (...codes: string[]) => codes.some((code) => permissions.has(code));
