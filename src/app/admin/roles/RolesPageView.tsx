@@ -41,8 +41,11 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
       toolbar={{
         trailing: (
           <>
-            <Button icon={<PlusIcon />} onClick={page.openCreate}>
-              Новая роль
+            <Button onClick={page.openCreate}>
+              <span className={styles.buttonContent}>
+                <PlusIcon size={16} />
+                Новая роль
+              </span>
             </Button>
             <Button
               appearance="primary"
@@ -82,7 +85,11 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                     `${role.role_name} · ${role.role_code}`
                   }
                   value={page.activeRoleId}
-                  onChange={page.changeActiveRole}
+                  onChange={(value, option) => {
+                    // ComboBox сообщает null, пока пользователь редактирует текст.
+                    // Меняем роль только при выборе существующей записи.
+                    if (option) page.changeActiveRole(option.role_id);
+                  }}
                 />
                 {!page.builtInRole && (
                   <Button
