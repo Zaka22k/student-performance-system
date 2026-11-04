@@ -19,6 +19,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "auth.login_failed": "Неудачная попытка входа",
   "users.bootstrap_admin": "Создание администратора",
   "users.create": "Создание пользователя",
+  "users.delete": "Удаление пользователя",
   "users.role.change": "Изменение роли",
   "users.activate": "Активация учётной записи",
   "users.deactivate": "Блокировка учётной записи",
