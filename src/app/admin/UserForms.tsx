@@ -6,6 +6,7 @@ import {
   type ModalFormRenderProps,
   TextField,
 } from "@ui-kit/components";
+import styles from "./Admin.module.css";
 
 export interface AdminRoleOption {
   role_id: string;
@@ -74,7 +75,7 @@ export function UserCreateForm({
   }, [registerAction, roles]);
 
   return (
-    <form ref={formRef} id={formId} className="adminForm">
+    <form ref={formRef} id={formId} className={styles.form}>
       <TextField
         label="Логин"
         name="username"
@@ -140,7 +141,7 @@ export function UserCreateForm({
           disabled={isSubmitting}
         />
       )}
-      <p className="adminFormHint">
+      <p className={styles.formHint}>
         Студенту и преподавателю нужна привязка к соответствующей записи. Для администратора привязка не задаётся.
       </p>
     </form>
