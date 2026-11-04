@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "reinstall": "npm install --force file:packages/ui-kit-components-0.1.0.tgz",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
