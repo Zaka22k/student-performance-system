@@ -1,5 +1,6 @@
 import { ZodError, type ZodType } from "zod";
 import { prisma } from "./prisma";
+import { requirePermission } from "@/server/auth/session";
 
 const nest = (path: string, condition: unknown) =>
   path
@@ -86,6 +87,8 @@ export interface CrudConfig<TInput, TDto> {
   toDto?: (row: any) => TDto;
   validate?: (data: TInput) => string | undefined | null;
   messages: CrudMessages;
+  readPermission?: string | null;
+  managePermission?: string | null;
 }
 
 export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
@@ -100,6 +103,8 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
     toDto = (row) => row,
     validate,
     messages,
+    readPermission = "dictionaries.read",
+    managePermission = "dictionaries.manage",
   } = cfg;
 
   const delegate = () => (prisma as any)[model];
@@ -133,6 +138,7 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
 
   return {
     async list(q?: string): Promise<TDto[]> {
+      if (readPermission) await requirePermission(readPermission);
       const rows = await delegate().findMany({
         where: buildSearchWhere(q, search),
         orderBy,
@@ -142,6 +148,7 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
     },
 
     async getById(id: string): Promise<TDto> {
+      if (readPermission) await requirePermission(readPermission);
       return withActionError(
         async () => {
           const row = await delegate().findUnique({
@@ -157,6 +164,7 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
     },
 
     async create(rawInput: unknown): Promise<TDto> {
+      if (managePermission) await requirePermission(managePermission);
       return withActionError(
         async () => {
           const data = schema.parse(rawInput);
@@ -171,6 +179,7 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
     },
 
     async update(id: string, rawInput: unknown): Promise<TDto> {
+      if (managePermission) await requirePermission(managePermission);
       return withActionError(
         async () => {
           const data = schema.parse(rawInput);
@@ -189,6 +198,7 @@ export function createCrudService<TInput, TDto>(cfg: CrudConfig<TInput, TDto>) {
     },
 
     async remove(id: string): Promise<void> {
+      if (managePermission) await requirePermission(managePermission);
       return withActionError(
         async () => {
           await delegate().delete({ where: where(id) });
