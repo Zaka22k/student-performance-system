@@ -1,5 +1,6 @@
 import { prisma } from "./lib";
 import { finalResults, summarize } from "./analytics";
+import { requirePermission } from "@/server/auth/session";
 
 export interface UpcomingEvent {
   id: string;
@@ -31,7 +32,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
       orderBy: [{ academic_year_start: "desc" }, { term_number: "desc" }],
     }),
     prisma.student_performance.findMany({
-      where: { assessment_date: { gte: today } },
+      where: {\n        assessment_date: { gte: today },\n        ...(ownStudentOnly && ownStudent ? { students: { group_id: ownStudent.group_id } } : {}),\n        ...(ownStudentOnly && !ownStudent ? { performance_id: -1n } : {}),\n      },
       orderBy: { assessment_date: "asc" },
       take: 500,
       select: {
@@ -51,7 +52,7 @@ export async function getHomeSummary(): Promise<HomeSummary> {
   let successRate: number | null = null;
   if (semester) {
     const rows = await prisma.student_performance.findMany({
-      where: { semester_id: semester.semester_id },
+      where: { semester_id: semester.semester_id, ...(ownStudentOnly ? { student_id: ownStudent?.student_id ?? -1n } : {}) },
       select: {
         student_id: true,
         subject_id: true,
