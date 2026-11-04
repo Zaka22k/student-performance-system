@@ -56,13 +56,32 @@ export default function UsersAdminView({
     setNotice("");
     startTransition(async () => {
       try {
-        await createUser({
+        const created = await createUser({
           username,
           password,
           role_id: roleId,
           student_id: needsStudent ? studentId : null,
           teacher_id: needsTeacher ? teacherId : null,
         });
+        const newRole = roles.find((role) => role.role_id === roleId);
+        const linkedName = needsStudent
+          ? students.find((item) => item.student_id === studentId)?.label ?? null
+          : needsTeacher
+            ? teachers.find((item) => item.teacher_id === teacherId)?.label ?? null
+            : null;
+        setUsers((current) => [...current, {
+          user_id: created.user_id,
+          username,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          role_id: roleId,
+          role_code: newRole?.role_code ?? "",
+          role_name: newRole?.role_name ?? "",
+          student_id: needsStudent ? studentId : null,
+          teacher_id: needsTeacher ? teacherId : null,
+          linked_name: linkedName,
+          active_sessions: 0,
+        }]);
         setUsername("");
         setPassword("");
         setStudentId("");
