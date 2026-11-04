@@ -283,3 +283,11 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+.buttonContent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
