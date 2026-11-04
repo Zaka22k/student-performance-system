@@ -18,7 +18,7 @@ export async function login(
   password: string,
 ): Promise<LoginResult> {
   const normalizedUsername = String(username ?? "").trim();
-  if (!normalizedUsername || normalizedUsername.length > 80 || !password) {
+  if (!normalizedUsername || normalizedUsername.length > 80 || typeof password !== "string" || password.length < 1 || password.length > 128) {
     return { ok: false, message: "Введите логин и пароль" };
   }
 
