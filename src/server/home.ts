@@ -24,7 +24,7 @@ const UPCOMING_LIMIT = 5;
 export async function getHomeSummary(): Promise<HomeSummary> {
   const auth = await requirePermission("home.view");
   const ownStudentOnly =
-    auth.permissions.has("grades.read.own") &&
+    auth.studentId !== null &&
     !auth.permissions.has("grades.read.all");
   const ownStudent =
     ownStudentOnly && auth.studentId
