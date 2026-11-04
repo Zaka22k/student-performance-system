@@ -43,6 +43,7 @@ const service = createCrudService<unknown, Student>({
   },
   dateFields: ["birth_date"],
   schema: studentSchema,
+  readPermission: null,
   toDto: ({ student_groups, ...row }) => ({
     ...row,
     group_code: student_groups?.group_code,
@@ -57,10 +58,24 @@ const service = createCrudService<unknown, Student>({
 });
 
 export async function getStudents(q?: string): Promise<Student[]> {
-  return service.list(q);
+  const session = await requireAnyPermission(["dictionaries.read", "grades.read.own"]);
+  if (session.permissions.has("dictionaries.read")) return service.list(q);
+  if (!session.studentId) return [];
+  const own = await service.getById(String(session.studentId));
+  if (!q?.trim()) return [own];
+  const query = q.trim().toLowerCase();
+  const haystack = `${own.student_number} ${own.last_name} ${own.first_name} ${own.middle_name ?? ""} ${own.group_code}`.toLowerCase();
+  return haystack.includes(query) ? [own] : [];
 }
 
 export async function getStudent(id: string): Promise<Student> {
+  const session = await requireAnyPermission(["dictionaries.read", "grades.read.own"]);
+  if (
+    !session.permissions.has("dictionaries.read") &&
+    (!session.studentId || String(session.studentId) !== String(id))
+  ) {
+    throw new Error("Доступ разрешён только к собственной карточке студента");
+  }
   return service.getById(id);
 }
 
@@ -76,6 +91,8 @@ export async function updateStudent(
 }
 
 export async function deleteStudent(id: string): Promise<void> {
+  const { requirePermission } = await import("@/server/auth/session");
+  await requirePermission("dictionaries.manage");
   return withActionError(
     async () => {
       const studentId = parseStudentId(id);
@@ -97,7 +114,15 @@ export async function deleteStudent(id: string): Promise<void> {
 export async function getStudentPerformance(
   id: string,
 ): Promise<StudentPerformanceItem[]> {
+  const session = await requireAnyPermission(["grades.read.all", "grades.read.own"]);
   const studentId = parseStudentId(id);
+  if (
+    session.permissions.has("grades.read.own") &&
+    !session.permissions.has("grades.read.all") &&
+    String(session.studentId) !== String(studentId)
+  ) {
+    throw new Error("Доступ разрешён только к собственным оценкам");
+  }
   const rows = await prisma.student_performance.findMany({
     where: { student_id: studentId },
     include: { subjects: true, teachers: true, semesters: true },
