@@ -53,7 +53,8 @@ const groupBy = <T>(records: T[], keyOf: (r: T) => unknown) => {
   return map;
 };
 
-export async function getRating(q?: string): Promise<RatingItem[]> {\n  await requirePermission("analytics.read");
+export async function getRating(q?: string): Promise<RatingItem[]> {
+  await requirePermission("analytics.read");
   const [students, rating, performance] = await Promise.all([
     prisma.students.findMany({ include: { student_groups: true } }),
     prisma.reyting.findMany(),
@@ -102,6 +103,7 @@ export async function getRating(q?: string): Promise<RatingItem[]> {\n  await re
 export async function getGroupsAnalytics(
   semester_id?: string,
 ): Promise<GroupStat[]> {
+  await requirePermission("analytics.read");
   const [groups, performance] = await Promise.all([
     prisma.student_groups.findMany({ orderBy: { group_code: "asc" } }),
     prisma.student_performance.findMany({
@@ -133,6 +135,7 @@ export async function getSubjectsAnalytics(params?: {
   semester_id?: string;
   group_id?: string;
 }): Promise<SubjectsResponse> {
+  await requirePermission("analytics.read");
   const [subjects, performance] = await Promise.all([
     prisma.subjects.findMany({ orderBy: { subject_name: "asc" } }),
     prisma.student_performance.findMany({
