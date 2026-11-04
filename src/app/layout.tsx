@@ -10,6 +10,7 @@ import {
   type AccentColor,
 } from "@ui-kit/components";
 import AppLayout from "./AppLayout";
+import { getCurrentSession } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "АСУ «Успеваемость»",
@@ -49,6 +50,10 @@ export default async function RootLayout({
   const theme = (cookieStore.get("app-theme")?.value as Theme) || "light";
   const accent =
     (cookieStore.get("app-accent")?.value as AccentColor) || "green";
+  const session = await getCurrentSession();
+  const currentUser = session
+    ? { username: session.username, roleCode: session.roleCode, permissions: [...session.permissions] }
+    : null;
 
   return (
     <html lang="ru" data-theme={theme} data-accent={accent}>
@@ -57,7 +62,7 @@ export default async function RootLayout({
         <ThemeProvider initialTheme={theme} initialAccent={accent}>
           <ToastProvider position="top-center" duration={5000}>
             <ModalProvider>
-              <AppLayout>{children}</AppLayout>
+              <AppLayout currentUser={currentUser}>{children}</AppLayout>
             </ModalProvider>
           </ToastProvider>
         </ThemeProvider>
