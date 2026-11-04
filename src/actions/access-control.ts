@@ -271,6 +271,10 @@ export async function deleteRole(roleId: string) {
   if (["admin", "teacher", "student"].includes(role.role_code)) {
     throw new Error("Базовые роли системы нельзя удалить");
   }
+  const assignedUsers = await prisma.users.count({ where: { role_id: id } });
+  if (assignedUsers > 0) {
+    throw new Error("Нельзя удалить роль, пока она назначена пользователям");
+  }
   await prisma.roles.delete({ where: { role_id: id } });
   await writeAudit(actor.userId, "roles.delete", "role", String(id), { role_code: role.role_code });
   return { ok: true };
@@ -325,9 +329,21 @@ export async function replaceRolePermissions(
   if (!role) throw new Error("Роль не найдена");
   const existing = await prisma.permissions.findMany({
     where: { permission_id: { in: uniqueIds } },
-    select: { permission_id: true },
+    select: { permission_id: true, permission_code: true },
   });
   if (existing.length !== uniqueIds.length) throw new Error("Передан неизвестный идентификатор разрешения");
+  if (role.role_code === "admin") {
+    const activeAdminUsers = await prisma.users.count({
+      where: { role_id: id, is_active: true },
+    });
+    const nextCodes = new Set(existing.map((item) => item.permission_code));
+    if (
+      activeAdminUsers > 0 &&
+      (!nextCodes.has("users.manage") || !nextCodes.has("roles.manage"))
+    ) {
+      throw new Error("Нельзя лишить последнюю активную административную роль управления пользователями или ролями");
+    }
+  }
 
   const currentLinks = await prisma.role_permissions.findMany({
     where: { role_id: id },
