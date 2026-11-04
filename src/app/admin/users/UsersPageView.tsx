@@ -82,7 +82,24 @@ export default function UsersPageView({
         </span>
       ),
     },
-  ], []);
+    {
+      id: "account-action",
+      header: "Управление",
+      width: 160,
+      minWidth: 145,
+      cell: (user) => (
+        <Button
+          appearance={user.is_active ? "destructive" : "primary"}
+          onClick={(event) => {
+            event.stopPropagation();
+            page.openToggleActive(user);
+          }}
+        >
+          {user.is_active ? "Заблокировать" : "Активировать"}
+        </Button>
+      ),
+    },
+  ], [page.openToggleActive]);
 
   return (
     <Page
@@ -97,12 +114,11 @@ export default function UsersPageView({
               value={page.query}
               onChange={(event) => page.setQuery(event.target.value)}
             />
-            <Button
-              appearance="primary"
-              icon={<PlusIcon />}
-              onClick={page.openCreate}
-            >
-              Создать
+            <Button appearance="primary" onClick={page.openCreate}>
+              <span className={styles.buttonContent}>
+                <PlusIcon size={16} />
+                Создать
+              </span>
             </Button>
           </>
         ),
