@@ -8,20 +8,85 @@
   margin-inline: auto;
 }
 
-/* Page.hero растягивается на всю ширину страницы и располагается под шапкой. */
 .hero {
   position: relative;
   width: 100%;
-  height: 236px;
+  height: 260px;
   overflow: hidden;
-  background: var(--window-bg);
   isolation: isolate;
+  background:
+    radial-gradient(
+      ellipse 420px 220px at calc(100% - 220px) 120px,
+      color-mix(in srgb, var(--control-accent) 12%, transparent),
+      transparent 70%
+    ),
+    var(--window-bg);
 }
 
-.heroArtwork {
+.heroSvg {
+  position: absolute;
+  top: 0;
+  right: 16px;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 720px;
+  max-width: none;
+  height: 260px;
+}
+
+.panelShadow {
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.1));
+}
+
+.panel {
+  fill: var(--elevated-bg);
+  stroke: var(--window-border);
+  stroke-width: 1;
+}
+
+.ringSolid {
+  fill: none;
+  stroke: var(--control-accent);
+  stroke-opacity: 0.28;
+  stroke-width: 1.5;
+}
+
+.ringDashed {
+  fill: none;
+  stroke: var(--separator-opaque);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.track {
+  fill: var(--fill-tertiary);
+}
+
+.segment {
+  fill: var(--window-bg);
+  stroke: var(--window-border);
+  stroke-width: 1;
+}
+
+.segLabel {
+  fill: var(--label-tertiary);
+}
+
+.segLabelActive {
+  fill: var(--label-primary);
+  fill-opacity: 0.7;
+}
+
+.sep {
+  stroke: var(--separator);
+  stroke-width: 1;
+}
+
+.switchOn {
+  fill: var(--control-accent);
+}
+
+.knob {
+  fill: #fff;
 }
 
 .section {
@@ -67,7 +132,6 @@
   color: var(--label-secondary);
 }
 
-/* Текстовый переключатель темы без отдельных миниатюр-превью. */
 .themeGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -131,8 +195,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    transform var(--ControlAnimationDuration)
+  transition: transform var(--ControlAnimationDuration)
     var(--ControlAnimationEasing);
 }
 

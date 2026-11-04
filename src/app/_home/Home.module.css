@@ -1,100 +1,75 @@
-/* ───────────── Баннер ───────────── */
-
 .hero {
   position: relative;
-  height: 280px;
+  height: 260px;
   overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--control-accent) 24%, var(--window-bg)),
-    color-mix(in srgb, var(--system-indigo) 16%, var(--window-bg))
-  );
-  box-shadow: inset 0 -1px 0 var(--separator);
+  background:
+    radial-gradient(
+      ellipse 420px 220px at calc(100% - 200px) 120px,
+      color-mix(in srgb, var(--control-accent) 12%, transparent),
+      transparent 70%
+    ),
+    var(--window-bg);
 }
 
 .heroSvg {
+  position: absolute;
+  top: 0;
+  right: 16px;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 720px;
+  max-width: none;
+  height: 260px;
 }
 
-.blobAccent {
-  fill: var(--control-accent);
-  fill-opacity: 0.18;
+.panelShadow {
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.1));
 }
 
-.blobIndigo {
-  fill: var(--system-indigo);
-  fill-opacity: 0.16;
-}
-
-.blobTeal {
-  fill: var(--system-teal);
-  fill-opacity: 0.16;
-}
-
-.gridLine {
-  stroke: var(--grid-color);
+.panel {
+  fill: var(--elevated-bg);
+  stroke: var(--window-border);
   stroke-width: 1;
 }
 
-.barAccent {
-  fill: var(--control-accent);
-  fill-opacity: 0.9;
-}
-
-.barTeal {
-  fill: var(--system-teal);
-  fill-opacity: 0.75;
-}
-
-.barIndigo {
-  fill: var(--system-indigo);
-  fill-opacity: 0.7;
-}
-
-.trend {
-  fill: none;
-  stroke: var(--text-primary);
-  stroke-opacity: 0.55;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.dot {
-  fill: var(--elevated-bg);
-  stroke: var(--text-primary);
-  stroke-opacity: 0.55;
-  stroke-width: 2.5;
-}
-
-.badge {
-  fill: var(--control-accent);
-}
-
-.check {
-  fill: none;
-  stroke: var(--text-selected);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.chip {
-  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.14));
-}
-
-.chipBox {
-  fill: var(--elevated-bg);
+.gridLine {
   stroke: var(--separator);
   stroke-width: 1;
 }
 
-.chipText {
+.baseLine {
+  stroke: var(--separator-opaque);
+  stroke-width: 1;
+}
+
+.bar {
+  fill: var(--fill-secondary);
+}
+
+.barRecent {
+  fill: color-mix(in srgb, var(--control-accent) 32%, transparent);
+}
+
+.barCurrent {
   fill: var(--control-accent);
-  font-size: 26px;
-  font-weight: 700;
+}
+
+.trend {
+  fill: none;
+  stroke: var(--label-secondary);
+  stroke-opacity: 0.5;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pointHalo {
+  fill: color-mix(in srgb, var(--control-accent) 18%, transparent);
+}
+
+.point {
+  fill: var(--window-bg);
+  stroke: var(--control-accent);
+  stroke-width: 2;
 }
 
 /* ───────────── Тело страницы ───────────── */
@@ -116,7 +91,7 @@
 
 .title {
   margin: 0;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -136,8 +111,8 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
 }
 
 .stat {
@@ -151,8 +126,8 @@
 }
 
 .statValue {
-  font-weight: 500;
-  color: var(--label-primary);
+  font-weight: 700;
+  color: var(--control-accent);
   font-variant-numeric: tabular-nums;
 }
 
@@ -170,16 +145,15 @@
 
 .sectionTitle {
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--label-primary);
 }
 
-/* Карточка быстрого перехода: рамку рисуем сами, потому что itemAppearance="none" */
-
 .card {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 4px;
   box-sizing: border-box;
   height: 100%;
   padding: 16px;
@@ -212,7 +186,6 @@
   color: var(--tone);
   background-color: color-mix(in srgb, var(--tone) 16%, transparent);
   border-radius: 12px;
-  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -221,11 +194,6 @@
 
 .cardText {
   color: var(--label-secondary);
-}
-
-.cardInfo {
-  display: flex;
-  flex-direction: column;
 }
 
 /* Ближайшие события */
@@ -243,7 +211,7 @@
 .eventDate {
   flex: none;
   min-width: 88px;
-  color: var(--label-secondary);
+  color: var(--control-accent);
   font-variant-numeric: tabular-nums;
 }
 
@@ -265,10 +233,6 @@
 }
 
 @media (max-width: 768px) {
-  .hero {
-    height: 240px;
-  }
-
   .content {
     gap: 24px;
     padding-top: 16px;
