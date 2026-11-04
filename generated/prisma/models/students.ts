@@ -255,6 +255,7 @@ export type studentsWhereInput = {
   reyting?: Prisma.XOR<Prisma.ReytingNullableScalarRelationFilter, Prisma.reytingWhereInput> | null
   student_performance?: Prisma.Student_performanceListRelationFilter
   student_groups?: Prisma.XOR<Prisma.Student_groupsScalarRelationFilter, Prisma.student_groupsWhereInput>
+  users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
 }
 
 export type studentsOrderByWithRelationInput = {
@@ -270,6 +271,7 @@ export type studentsOrderByWithRelationInput = {
   reyting?: Prisma.reytingOrderByWithRelationInput
   student_performance?: Prisma.student_performanceOrderByRelationAggregateInput
   student_groups?: Prisma.student_groupsOrderByWithRelationInput
+  users?: Prisma.usersOrderByWithRelationInput
 }
 
 export type studentsWhereUniqueInput = Prisma.AtLeast<{
@@ -288,6 +290,7 @@ export type studentsWhereUniqueInput = Prisma.AtLeast<{
   reyting?: Prisma.XOR<Prisma.ReytingNullableScalarRelationFilter, Prisma.reytingWhereInput> | null
   student_performance?: Prisma.Student_performanceListRelationFilter
   student_groups?: Prisma.XOR<Prisma.Student_groupsScalarRelationFilter, Prisma.student_groupsWhereInput>
+  users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
 }, "student_id" | "student_number">
 
 export type studentsOrderByWithAggregationInput = {
@@ -334,6 +337,7 @@ export type studentsCreateInput = {
   reyting?: Prisma.reytingCreateNestedOneWithoutStudentsInput
   student_performance?: Prisma.student_performanceCreateNestedManyWithoutStudentsInput
   student_groups: Prisma.student_groupsCreateNestedOneWithoutStudentsInput
+  users?: Prisma.usersCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsUncheckedCreateInput = {
@@ -348,6 +352,7 @@ export type studentsUncheckedCreateInput = {
   group_id: bigint | number
   reyting?: Prisma.reytingUncheckedCreateNestedOneWithoutStudentsInput
   student_performance?: Prisma.student_performanceUncheckedCreateNestedManyWithoutStudentsInput
+  users?: Prisma.usersUncheckedCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsUpdateInput = {
@@ -362,6 +367,7 @@ export type studentsUpdateInput = {
   reyting?: Prisma.reytingUpdateOneWithoutStudentsNestedInput
   student_performance?: Prisma.student_performanceUpdateManyWithoutStudentsNestedInput
   student_groups?: Prisma.student_groupsUpdateOneRequiredWithoutStudentsNestedInput
+  users?: Prisma.usersUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsUncheckedUpdateInput = {
@@ -376,6 +382,7 @@ export type studentsUncheckedUpdateInput = {
   group_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   reyting?: Prisma.reytingUncheckedUpdateOneWithoutStudentsNestedInput
   student_performance?: Prisma.student_performanceUncheckedUpdateManyWithoutStudentsNestedInput
+  users?: Prisma.usersUncheckedUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsCreateManyInput = {
@@ -474,6 +481,11 @@ export type studentsSumOrderByAggregateInput = {
   group_id?: Prisma.SortOrder
 }
 
+export type StudentsNullableScalarRelationFilter = {
+  is?: Prisma.studentsWhereInput | null
+  isNot?: Prisma.studentsWhereInput | null
+}
+
 export type studentsCreateNestedOneWithoutReytingInput = {
   create?: Prisma.XOR<Prisma.studentsCreateWithoutReytingInput, Prisma.studentsUncheckedCreateWithoutReytingInput>
   connectOrCreate?: Prisma.studentsCreateOrConnectWithoutReytingInput
@@ -548,6 +560,22 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type studentsCreateNestedOneWithoutUsersInput = {
+  create?: Prisma.XOR<Prisma.studentsCreateWithoutUsersInput, Prisma.studentsUncheckedCreateWithoutUsersInput>
+  connectOrCreate?: Prisma.studentsCreateOrConnectWithoutUsersInput
+  connect?: Prisma.studentsWhereUniqueInput
+}
+
+export type studentsUpdateOneWithoutUsersNestedInput = {
+  create?: Prisma.XOR<Prisma.studentsCreateWithoutUsersInput, Prisma.studentsUncheckedCreateWithoutUsersInput>
+  connectOrCreate?: Prisma.studentsCreateOrConnectWithoutUsersInput
+  upsert?: Prisma.studentsUpsertWithoutUsersInput
+  disconnect?: Prisma.studentsWhereInput | boolean
+  delete?: Prisma.studentsWhereInput | boolean
+  connect?: Prisma.studentsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.studentsUpdateToOneWithWhereWithoutUsersInput, Prisma.studentsUpdateWithoutUsersInput>, Prisma.studentsUncheckedUpdateWithoutUsersInput>
+}
+
 export type studentsCreateWithoutReytingInput = {
   student_id?: bigint | number
   student_number: string
@@ -559,6 +587,7 @@ export type studentsCreateWithoutReytingInput = {
   status?: string
   student_performance?: Prisma.student_performanceCreateNestedManyWithoutStudentsInput
   student_groups: Prisma.student_groupsCreateNestedOneWithoutStudentsInput
+  users?: Prisma.usersCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsUncheckedCreateWithoutReytingInput = {
@@ -572,6 +601,7 @@ export type studentsUncheckedCreateWithoutReytingInput = {
   status?: string
   group_id: bigint | number
   student_performance?: Prisma.student_performanceUncheckedCreateNestedManyWithoutStudentsInput
+  users?: Prisma.usersUncheckedCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsCreateOrConnectWithoutReytingInput = {
@@ -601,6 +631,7 @@ export type studentsUpdateWithoutReytingInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   student_performance?: Prisma.student_performanceUpdateManyWithoutStudentsNestedInput
   student_groups?: Prisma.student_groupsUpdateOneRequiredWithoutStudentsNestedInput
+  users?: Prisma.usersUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsUncheckedUpdateWithoutReytingInput = {
@@ -614,6 +645,7 @@ export type studentsUncheckedUpdateWithoutReytingInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   group_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_performance?: Prisma.student_performanceUncheckedUpdateManyWithoutStudentsNestedInput
+  users?: Prisma.usersUncheckedUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsCreateWithoutStudent_groupsInput = {
@@ -627,6 +659,7 @@ export type studentsCreateWithoutStudent_groupsInput = {
   status?: string
   reyting?: Prisma.reytingCreateNestedOneWithoutStudentsInput
   student_performance?: Prisma.student_performanceCreateNestedManyWithoutStudentsInput
+  users?: Prisma.usersCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsUncheckedCreateWithoutStudent_groupsInput = {
@@ -640,6 +673,7 @@ export type studentsUncheckedCreateWithoutStudent_groupsInput = {
   status?: string
   reyting?: Prisma.reytingUncheckedCreateNestedOneWithoutStudentsInput
   student_performance?: Prisma.student_performanceUncheckedCreateNestedManyWithoutStudentsInput
+  users?: Prisma.usersUncheckedCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsCreateOrConnectWithoutStudent_groupsInput = {
@@ -694,6 +728,7 @@ export type studentsCreateWithoutStudent_performanceInput = {
   status?: string
   reyting?: Prisma.reytingCreateNestedOneWithoutStudentsInput
   student_groups: Prisma.student_groupsCreateNestedOneWithoutStudentsInput
+  users?: Prisma.usersCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsUncheckedCreateWithoutStudent_performanceInput = {
@@ -707,6 +742,7 @@ export type studentsUncheckedCreateWithoutStudent_performanceInput = {
   status?: string
   group_id: bigint | number
   reyting?: Prisma.reytingUncheckedCreateNestedOneWithoutStudentsInput
+  users?: Prisma.usersUncheckedCreateNestedOneWithoutStudentsInput
 }
 
 export type studentsCreateOrConnectWithoutStudent_performanceInput = {
@@ -736,6 +772,7 @@ export type studentsUpdateWithoutStudent_performanceInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   reyting?: Prisma.reytingUpdateOneWithoutStudentsNestedInput
   student_groups?: Prisma.student_groupsUpdateOneRequiredWithoutStudentsNestedInput
+  users?: Prisma.usersUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsUncheckedUpdateWithoutStudent_performanceInput = {
@@ -749,6 +786,79 @@ export type studentsUncheckedUpdateWithoutStudent_performanceInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   group_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   reyting?: Prisma.reytingUncheckedUpdateOneWithoutStudentsNestedInput
+  users?: Prisma.usersUncheckedUpdateOneWithoutStudentsNestedInput
+}
+
+export type studentsCreateWithoutUsersInput = {
+  student_id?: bigint | number
+  student_number: string
+  last_name: string
+  first_name: string
+  middle_name?: string | null
+  birth_date: Date | string
+  email?: string | null
+  status?: string
+  reyting?: Prisma.reytingCreateNestedOneWithoutStudentsInput
+  student_performance?: Prisma.student_performanceCreateNestedManyWithoutStudentsInput
+  student_groups: Prisma.student_groupsCreateNestedOneWithoutStudentsInput
+}
+
+export type studentsUncheckedCreateWithoutUsersInput = {
+  student_id?: bigint | number
+  student_number: string
+  last_name: string
+  first_name: string
+  middle_name?: string | null
+  birth_date: Date | string
+  email?: string | null
+  status?: string
+  group_id: bigint | number
+  reyting?: Prisma.reytingUncheckedCreateNestedOneWithoutStudentsInput
+  student_performance?: Prisma.student_performanceUncheckedCreateNestedManyWithoutStudentsInput
+}
+
+export type studentsCreateOrConnectWithoutUsersInput = {
+  where: Prisma.studentsWhereUniqueInput
+  create: Prisma.XOR<Prisma.studentsCreateWithoutUsersInput, Prisma.studentsUncheckedCreateWithoutUsersInput>
+}
+
+export type studentsUpsertWithoutUsersInput = {
+  update: Prisma.XOR<Prisma.studentsUpdateWithoutUsersInput, Prisma.studentsUncheckedUpdateWithoutUsersInput>
+  create: Prisma.XOR<Prisma.studentsCreateWithoutUsersInput, Prisma.studentsUncheckedCreateWithoutUsersInput>
+  where?: Prisma.studentsWhereInput
+}
+
+export type studentsUpdateToOneWithWhereWithoutUsersInput = {
+  where?: Prisma.studentsWhereInput
+  data: Prisma.XOR<Prisma.studentsUpdateWithoutUsersInput, Prisma.studentsUncheckedUpdateWithoutUsersInput>
+}
+
+export type studentsUpdateWithoutUsersInput = {
+  student_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_number?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birth_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  reyting?: Prisma.reytingUpdateOneWithoutStudentsNestedInput
+  student_performance?: Prisma.student_performanceUpdateManyWithoutStudentsNestedInput
+  student_groups?: Prisma.student_groupsUpdateOneRequiredWithoutStudentsNestedInput
+}
+
+export type studentsUncheckedUpdateWithoutUsersInput = {
+  student_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_number?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  middle_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birth_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  group_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  reyting?: Prisma.reytingUncheckedUpdateOneWithoutStudentsNestedInput
+  student_performance?: Prisma.student_performanceUncheckedUpdateManyWithoutStudentsNestedInput
 }
 
 export type studentsCreateManyStudent_groupsInput = {
@@ -773,6 +883,7 @@ export type studentsUpdateWithoutStudent_groupsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   reyting?: Prisma.reytingUpdateOneWithoutStudentsNestedInput
   student_performance?: Prisma.student_performanceUpdateManyWithoutStudentsNestedInput
+  users?: Prisma.usersUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsUncheckedUpdateWithoutStudent_groupsInput = {
@@ -786,6 +897,7 @@ export type studentsUncheckedUpdateWithoutStudent_groupsInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   reyting?: Prisma.reytingUncheckedUpdateOneWithoutStudentsNestedInput
   student_performance?: Prisma.student_performanceUncheckedUpdateManyWithoutStudentsNestedInput
+  users?: Prisma.usersUncheckedUpdateOneWithoutStudentsNestedInput
 }
 
 export type studentsUncheckedUpdateManyWithoutStudent_groupsInput = {
@@ -843,6 +955,7 @@ export type studentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   reyting?: boolean | Prisma.students$reytingArgs<ExtArgs>
   student_performance?: boolean | Prisma.students$student_performanceArgs<ExtArgs>
   student_groups?: boolean | Prisma.student_groupsDefaultArgs<ExtArgs>
+  users?: boolean | Prisma.students$usersArgs<ExtArgs>
   _count?: boolean | Prisma.StudentsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["students"]>
 
@@ -889,6 +1002,7 @@ export type studentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   reyting?: boolean | Prisma.students$reytingArgs<ExtArgs>
   student_performance?: boolean | Prisma.students$student_performanceArgs<ExtArgs>
   student_groups?: boolean | Prisma.student_groupsDefaultArgs<ExtArgs>
+  users?: boolean | Prisma.students$usersArgs<ExtArgs>
   _count?: boolean | Prisma.StudentsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type studentsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -904,6 +1018,7 @@ export type $studentsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     reyting: Prisma.$reytingPayload<ExtArgs> | null
     student_performance: Prisma.$student_performancePayload<ExtArgs>[]
     student_groups: Prisma.$student_groupsPayload<ExtArgs>
+    users: Prisma.$usersPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     student_id: bigint
@@ -1312,6 +1427,7 @@ export interface Prisma__studentsClient<T, Null = never, ExtArgs extends runtime
   reyting<T extends Prisma.students$reytingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.students$reytingArgs<ExtArgs>>): Prisma.Prisma__reytingClient<runtime.Types.Result.GetResult<Prisma.$reytingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   student_performance<T extends Prisma.students$student_performanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.students$student_performanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$student_performancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   student_groups<T extends Prisma.student_groupsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.student_groupsDefaultArgs<ExtArgs>>): Prisma.Prisma__student_groupsClient<runtime.Types.Result.GetResult<Prisma.$student_groupsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  users<T extends Prisma.students$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.students$usersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1791,6 +1907,25 @@ export type students$student_performanceArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.Student_performanceScalarFieldEnum | Prisma.Student_performanceScalarFieldEnum[]
+}
+
+/**
+ * students.users
+ */
+export type students$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the users
+   */
+  select?: Prisma.usersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the users
+   */
+  omit?: Prisma.usersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.usersInclude<ExtArgs> | null
+  where?: Prisma.usersWhereInput
 }
 
 /**

@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict 9QP4ax0sEqx9uwrWsLqV6SCQe9Oggn4yhy3B3hCyUaMs5p2tNKstoukd4Xg0wH0
+\restrict tBRTqXLPUbChKUDEdElyk8HnWbIeT7sScSILJ9b9srfrPfwaDn7aNgLWlYch2Ad
 
 -- Dumped from database version 18.6
 -- Dumped by pg_dump version 18.6
 
--- Started on 2026-10-20 22:42:24
+-- Started on 2026-11-05 00:14:20
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -30,7 +30,7 @@ CREATE SCHEMA analytics;
 
 
 --
--- TOC entry 241 (class 1255 OID 24726)
+-- TOC entry 251 (class 1255 OID 24726)
 -- Name: getmark1(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -50,7 +50,7 @@ $_$;
 
 
 --
--- TOC entry 242 (class 1255 OID 24733)
+-- TOC entry 252 (class 1255 OID 24733)
 -- Name: getmark2(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -71,7 +71,7 @@ $_$;
 
 
 --
--- TOC entry 243 (class 1255 OID 24734)
+-- TOC entry 253 (class 1255 OID 24734)
 -- Name: getmark3(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -90,7 +90,7 @@ $_$;
 
 
 --
--- TOC entry 245 (class 1255 OID 24751)
+-- TOC entry 256 (class 1255 OID 24751)
 -- Name: getmark4(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -124,7 +124,7 @@ $_$;
 
 
 --
--- TOC entry 244 (class 1255 OID 24735)
+-- TOC entry 254 (class 1255 OID 24735)
 -- Name: iscorrect(integer, integer, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -141,7 +141,7 @@ $$;
 
 
 --
--- TOC entry 246 (class 1255 OID 24736)
+-- TOC entry 257 (class 1255 OID 24736)
 -- Name: trigger_results_insert(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -162,7 +162,7 @@ $$;
 
 
 --
--- TOC entry 258 (class 1255 OID 24749)
+-- TOC entry 270 (class 1255 OID 24749)
 -- Name: trigger_results_insert_after(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -197,7 +197,57 @@ END;
 $$;
 
 
-SET default_tablespace = '';
+--
+-- TOC entry 258 (class 1255 OID 26092)
+-- Name: trigger_role_permissions_drop_sessions(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.trigger_role_permissions_drop_sessions() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    rid bigint;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        rid := OLD.role_id;
+    ELSE
+        rid := NEW.role_id;
+    END IF;
+
+    DELETE FROM public.sessions
+    WHERE user_id IN (SELECT user_id FROM public.users WHERE role_id = rid);
+
+    -- Если у строки поменяли role_id, сбрасываем и прежнюю роль
+    IF TG_OP = 'UPDATE' AND OLD.role_id IS DISTINCT FROM NEW.role_id THEN
+        DELETE FROM public.sessions
+        WHERE user_id IN (SELECT user_id FROM public.users WHERE role_id = OLD.role_id);
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+--
+-- TOC entry 255 (class 1255 OID 26090)
+-- Name: trigger_users_drop_sessions(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.trigger_users_drop_sessions() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF NEW.role_id       IS DISTINCT FROM OLD.role_id
+    OR NEW.is_active     IS DISTINCT FROM OLD.is_active
+    OR NEW.student_id    IS DISTINCT FROM OLD.student_id
+    OR NEW.teacher_id    IS DISTINCT FROM OLD.teacher_id
+    OR NEW.password_hash IS DISTINCT FROM OLD.password_hash THEN
+        DELETE FROM public.sessions WHERE user_id = NEW.user_id;
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
 
 SET default_table_access_method = heap;
 
@@ -311,6 +361,37 @@ CREATE TABLE analytics.fact_performance (
 
 
 --
+-- TOC entry 250 (class 1259 OID 26072)
+-- Name: audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audit_logs (
+    audit_id bigint NOT NULL,
+    actor_user_id bigint,
+    action character varying(100) NOT NULL,
+    target_type character varying(100),
+    target_id text,
+    details jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- TOC entry 249 (class 1259 OID 26071)
+-- Name: audit_logs_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.audit_logs ALTER COLUMN audit_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.audit_logs_audit_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- TOC entry 233 (class 1259 OID 24727)
 -- Name: marks; Type: TABLE; Schema: public; Owner: -
 --
@@ -323,6 +404,33 @@ CREATE TABLE public.marks (
 
 
 --
+-- TOC entry 244 (class 1259 OID 25977)
+-- Name: permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.permissions (
+    permission_id bigint NOT NULL,
+    permission_code character varying(100) NOT NULL,
+    permission_name character varying(150) NOT NULL
+);
+
+
+--
+-- TOC entry 243 (class 1259 OID 25976)
+-- Name: permissions_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.permissions ALTER COLUMN permission_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.permissions_permission_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- TOC entry 234 (class 1259 OID 24738)
 -- Name: reyting; Type: TABLE; Schema: public; Owner: -
 --
@@ -330,6 +438,45 @@ CREATE TABLE public.marks (
 CREATE TABLE public.reyting (
     idstudent bigint NOT NULL,
     summ_balls integer
+);
+
+
+--
+-- TOC entry 245 (class 1259 OID 25987)
+-- Name: role_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.role_permissions (
+    role_id bigint NOT NULL,
+    permission_id bigint NOT NULL
+);
+
+
+--
+-- TOC entry 242 (class 1259 OID 25964)
+-- Name: roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.roles (
+    role_id bigint NOT NULL,
+    role_code character varying(50) NOT NULL,
+    role_name character varying(100) NOT NULL,
+    description text
+);
+
+
+--
+-- TOC entry 241 (class 1259 OID 25963)
+-- Name: roles_role_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.roles ALTER COLUMN role_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.roles_role_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -362,6 +509,25 @@ ALTER TABLE public.semesters ALTER COLUMN semester_id ADD GENERATED ALWAYS AS ID
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
+);
+
+
+--
+-- TOC entry 248 (class 1259 OID 26044)
+-- Name: sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sessions (
+    session_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    token_hash character varying(64) NOT NULL,
+    user_id bigint NOT NULL,
+    role_code character varying(50) NOT NULL,
+    permissions text[] NOT NULL,
+    student_id bigint,
+    teacher_id bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -545,7 +711,40 @@ ALTER TABLE public.teachers ALTER COLUMN teacher_id ADD GENERATED ALWAYS AS IDEN
 
 
 --
--- TOC entry 5192 (class 0 OID 25839)
+-- TOC entry 247 (class 1259 OID 26006)
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    user_id bigint NOT NULL,
+    username character varying(80) NOT NULL,
+    password_hash text NOT NULL,
+    role_id bigint NOT NULL,
+    student_id bigint,
+    teacher_id bigint,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chk_users_one_link CHECK (((student_id IS NULL) OR (teacher_id IS NULL)))
+);
+
+
+--
+-- TOC entry 246 (class 1259 OID 26005)
+-- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.users ALTER COLUMN user_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.users_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 5268 (class 0 OID 25839)
 -- Dependencies: 239
 -- Data for Name: dim_date; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -563,7 +762,7 @@ INSERT INTO analytics.dim_date VALUES (20270111, '2027-01-11', 2027, 1, 1, 11, 2
 
 
 --
--- TOC entry 5191 (class 0 OID 25824)
+-- TOC entry 5267 (class 0 OID 25824)
 -- Dependencies: 238
 -- Data for Name: dim_semester; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -575,7 +774,7 @@ INSERT INTO analytics.dim_semester VALUES (4, 4, 2027, 2, '2028-02-09', '2028-07
 
 
 --
--- TOC entry 5188 (class 0 OID 25773)
+-- TOC entry 5264 (class 0 OID 25773)
 -- Dependencies: 235
 -- Data for Name: dim_student; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -643,7 +842,7 @@ INSERT INTO analytics.dim_student VALUES (60, 60, '2642-30', 'Шкуро Иль�
 
 
 --
--- TOC entry 5189 (class 0 OID 25795)
+-- TOC entry 5265 (class 0 OID 25795)
 -- Dependencies: 236
 -- Data for Name: dim_subject; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -657,7 +856,7 @@ INSERT INTO analytics.dim_subject VALUES (6, 6, 'СГМ', 'Специальны�
 
 
 --
--- TOC entry 5190 (class 0 OID 25810)
+-- TOC entry 5266 (class 0 OID 25810)
 -- Dependencies: 237
 -- Data for Name: dim_teacher; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -671,7 +870,7 @@ INSERT INTO analytics.dim_teacher VALUES (6, 6, 'Карманова Анна В�
 
 
 --
--- TOC entry 5193 (class 0 OID 25855)
+-- TOC entry 5269 (class 0 OID 25855)
 -- Dependencies: 240
 -- Data for Name: fact_performance; Type: TABLE DATA; Schema: analytics; Owner: -
 --
@@ -1160,7 +1359,18 @@ INSERT INTO analytics.fact_performance VALUES (448, 22, 6, 6, 1, 20270123, 'exam
 
 
 --
--- TOC entry 5186 (class 0 OID 24727)
+-- TOC entry 5279 (class 0 OID 26072)
+-- Dependencies: 250
+-- Data for Name: audit_logs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (1, 1, 'users.bootstrap_admin', 'user', '1', '{"username": "admin"}', '2026-11-05 00:07:50.016036+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (2, 1, 'auth.login', 'session', '1c42b51e-bca7-49ca-83ee-829d7793e72c', '{"username": "admin"}', '2026-11-04 21:08:50.823+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (3, 1, 'users.create', 'user', '2', '{"username": "pristegins", "role_code": "student"}', '2026-11-04 21:09:48.012+03');
+
+
+--
+-- TOC entry 5262 (class 0 OID 24727)
 -- Dependencies: 233
 -- Data for Name: marks; Type: TABLE DATA; Schema: public; Owner: -
 --
@@ -1171,12 +1381,40 @@ INSERT INTO public.marks VALUES (5, 86, 100);
 
 
 --
--- TOC entry 5187 (class 0 OID 24738)
+-- TOC entry 5273 (class 0 OID 25977)
+-- Dependencies: 244
+-- Data for Name: permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (1, 'home.view', 'Просмотр главной страницы');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (2, 'settings.use', 'Изменение настроек внешнего вида');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (3, 'grades.read.all', 'Просмотр всех записей журнала');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (4, 'grades.read.own', 'Просмотр собственных записей журнала');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (5, 'grades.create', 'Добавление записей журнала');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (6, 'grades.update', 'Изменение записей журнала');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (7, 'grades.delete', 'Удаление записей журнала');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (8, 'dictionaries.read', 'Просмотр справочников');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (9, 'dictionaries.manage', 'Добавление, изменение и удаление записей справочников');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (10, 'session.schedule.read.all', 'Просмотр расписания сессии всех групп');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (11, 'session.schedule.read.own', 'Просмотр расписания сессии своей группы');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (12, 'session.schedule.manage', 'Изменение расписания сессии');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (13, 'session.sheet.form', 'Формирование ведомости группы');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (14, 'analytics.read', 'Просмотр аналитики (рейтинг, группы, дисциплины)');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (15, 'reports.group_sheet', 'Отчёт «Ведомость группы»');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (16, 'reports.student_book.all', 'Отчёт «Зачётная книжка» любого студента');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (17, 'reports.student_book.own', 'Отчёт «Зачётная книжка» собственная');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (18, 'reports.group_summary', 'Отчёт «Сводка по группе»');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (19, 'users.manage', 'Управление пользователями');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (20, 'roles.manage', 'Управление ролями и их разрешениями');
+INSERT INTO public.permissions OVERRIDING SYSTEM VALUE VALUES (21, 'audit.read', 'Просмотр журнала действий');
+
+
+--
+-- TOC entry 5263 (class 0 OID 24738)
 -- Dependencies: 234
 -- Data for Name: reyting; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.reyting VALUES (54, 26);
 INSERT INTO public.reyting VALUES (29, 22);
 INSERT INTO public.reyting VALUES (4, 25);
 INSERT INTO public.reyting VALUES (34, 24);
@@ -1190,7 +1428,6 @@ INSERT INTO public.reyting VALUES (39, 25);
 INSERT INTO public.reyting VALUES (36, 25);
 INSERT INTO public.reyting VALUES (31, 25);
 INSERT INTO public.reyting VALUES (50, 22);
-INSERT INTO public.reyting VALUES (60, 28);
 INSERT INTO public.reyting VALUES (14, 21);
 INSERT INTO public.reyting VALUES (13, 17);
 INSERT INTO public.reyting VALUES (2, 21);
@@ -1228,40 +1465,102 @@ INSERT INTO public.reyting VALUES (33, 23);
 INSERT INTO public.reyting VALUES (1, 31);
 INSERT INTO public.reyting VALUES (5, 21);
 INSERT INTO public.reyting VALUES (18, 21);
-INSERT INTO public.reyting VALUES (55, 25);
 INSERT INTO public.reyting VALUES (27, 27);
 INSERT INTO public.reyting VALUES (23, 25);
-INSERT INTO public.reyting VALUES (56, 26);
 INSERT INTO public.reyting VALUES (8, 22);
 INSERT INTO public.reyting VALUES (59, 25);
-INSERT INTO public.reyting VALUES (58, 25);
 INSERT INTO public.reyting VALUES (22, 20);
+INSERT INTO public.reyting VALUES (54, 26);
+INSERT INTO public.reyting VALUES (58, 25);
+INSERT INTO public.reyting VALUES (56, 26);
+INSERT INTO public.reyting VALUES (55, 25);
+INSERT INTO public.reyting VALUES (60, 28);
 
 
 --
--- TOC entry 5174 (class 0 OID 16536)
+-- TOC entry 5274 (class 0 OID 25987)
+-- Dependencies: 245
+-- Data for Name: role_permissions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.role_permissions VALUES (1, 1);
+INSERT INTO public.role_permissions VALUES (1, 2);
+INSERT INTO public.role_permissions VALUES (1, 3);
+INSERT INTO public.role_permissions VALUES (1, 5);
+INSERT INTO public.role_permissions VALUES (1, 6);
+INSERT INTO public.role_permissions VALUES (1, 7);
+INSERT INTO public.role_permissions VALUES (1, 8);
+INSERT INTO public.role_permissions VALUES (1, 9);
+INSERT INTO public.role_permissions VALUES (1, 10);
+INSERT INTO public.role_permissions VALUES (1, 12);
+INSERT INTO public.role_permissions VALUES (1, 13);
+INSERT INTO public.role_permissions VALUES (1, 14);
+INSERT INTO public.role_permissions VALUES (1, 15);
+INSERT INTO public.role_permissions VALUES (1, 16);
+INSERT INTO public.role_permissions VALUES (1, 18);
+INSERT INTO public.role_permissions VALUES (1, 19);
+INSERT INTO public.role_permissions VALUES (1, 20);
+INSERT INTO public.role_permissions VALUES (1, 21);
+INSERT INTO public.role_permissions VALUES (2, 18);
+INSERT INTO public.role_permissions VALUES (2, 15);
+INSERT INTO public.role_permissions VALUES (2, 14);
+INSERT INTO public.role_permissions VALUES (2, 13);
+INSERT INTO public.role_permissions VALUES (2, 10);
+INSERT INTO public.role_permissions VALUES (2, 8);
+INSERT INTO public.role_permissions VALUES (2, 6);
+INSERT INTO public.role_permissions VALUES (2, 5);
+INSERT INTO public.role_permissions VALUES (2, 3);
+INSERT INTO public.role_permissions VALUES (2, 2);
+INSERT INTO public.role_permissions VALUES (2, 1);
+INSERT INTO public.role_permissions VALUES (3, 17);
+INSERT INTO public.role_permissions VALUES (3, 11);
+INSERT INTO public.role_permissions VALUES (3, 4);
+INSERT INTO public.role_permissions VALUES (3, 2);
+INSERT INTO public.role_permissions VALUES (3, 1);
+
+
+--
+-- TOC entry 5271 (class 0 OID 25964)
+-- Dependencies: 242
+-- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.roles OVERRIDING SYSTEM VALUE VALUES (1, 'admin', 'Администратор', 'Администратор системы и сотрудник деканата: полный доступ');
+INSERT INTO public.roles OVERRIDING SYSTEM VALUE VALUES (2, 'teacher', 'Преподаватель', 'Просмотр и изменение оценок по всем дисциплинам, отчёты, аналитика');
+INSERT INTO public.roles OVERRIDING SYSTEM VALUE VALUES (3, 'student', 'Студент', 'Просмотр собственных оценок, расписания своей группы и зачётной книжки');
+
+
+--
+-- TOC entry 5250 (class 0 OID 16536)
 -- Dependencies: 220
 -- Data for Name: semesters; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 INSERT INTO public.semesters OVERRIDING SYSTEM VALUE VALUES (1, 2026, 1, '2026-09-01', '2027-01-31');
-INSERT INTO public.semesters OVERRIDING SYSTEM VALUE VALUES (2, 2026, 2, '2027-02-09', '2027-07-15');
-INSERT INTO public.semesters OVERRIDING SYSTEM VALUE VALUES (3, 2027, 1, '2027-09-01', '2028-01-31');
-INSERT INTO public.semesters OVERRIDING SYSTEM VALUE VALUES (4, 2027, 2, '2028-02-09', '2028-07-15');
 
 
 --
--- TOC entry 5176 (class 0 OID 16548)
+-- TOC entry 5277 (class 0 OID 26044)
+-- Dependencies: 248
+-- Data for Name: sessions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.sessions VALUES ('1c42b51e-bca7-49ca-83ee-829d7793e72c', '9d912459004154f4bc64e3a114deaccdb2537724c731e571e5b3bbeba94acc0c', 1, 'admin', '{analytics.read,audit.read,dictionaries.manage,dictionaries.read,grades.create,grades.delete,grades.read.all,grades.update,home.view,reports.group_sheet,reports.group_summary,reports.student_book.all,roles.manage,session.schedule.manage,session.schedule.read.all,session.sheet.form,settings.use,users.manage}', NULL, NULL, '2026-11-04 21:08:50.815+03', '2026-11-04 21:08:50.815+03', '2026-12-04 21:08:50.796+03');
+
+
+--
+-- TOC entry 5252 (class 0 OID 16548)
 -- Dependencies: 222
 -- Data for Name: student_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.student_groups OVERRIDING SYSTEM VALUE VALUES (1, 'ИТ2641', 'Группа ИТ2641', 'Информационные системы и технологии', 2026);
 INSERT INTO public.student_groups OVERRIDING SYSTEM VALUE VALUES (2, 'ИТ2642', 'Группа ИТ2642', 'Информационные системы и технологии', 2026);
+INSERT INTO public.student_groups OVERRIDING SYSTEM VALUE VALUES (1, 'ИТ2641', 'Группа ИТ2641', 'Информационные системы и технологии', 2026);
+INSERT INTO public.student_groups OVERRIDING SYSTEM VALUE VALUES (5, 'ПИ2642', 'Группа ПИ2642', 'Прикладная информатика', 2026);
 
 
 --
--- TOC entry 5178 (class 0 OID 16558)
+-- TOC entry 5254 (class 0 OID 16558)
 -- Dependencies: 224
 -- Data for Name: student_performance; Type: TABLE DATA; Schema: public; Owner: -
 --
@@ -1737,30 +2036,27 @@ INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (476, 50, 
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (477, 51, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (478, 52, 1, 1, 1, 'exam', 3, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (479, 53, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (480, 54, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (481, 55, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (482, 56, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (483, 57, 1, 1, 1, 'exam', 3, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (486, 60, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (490, 1, 3, 3, 1, 'exam', 5, NULL, 2, '2026-10-10');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (491, 1, 1, 1, 1, 'exam', 4, NULL, 2, '2026-10-10');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (485, 59, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (484, 58, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (448, 22, 6, 6, 1, 'exam', 2, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (480, 54, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (484, 58, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (482, 56, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (481, 55, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (486, 60, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 
 
 --
--- TOC entry 5180 (class 0 OID 16575)
+-- TOC entry 5256 (class 0 OID 16575)
 -- Dependencies: 226
 -- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (1, '2641-01', 'Власов', 'Никита', 'Евгеньевич', '2005-01-10', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (2, '2641-02', 'Денисенко', 'Александр', 'Владимирович', '2005-02-12', NULL, 'active', 1);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (3, '2641-03', 'Баданин', 'Денис', 'Сергеевич', '2005-03-15', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (4, '2641-04', 'Блиховой', 'Дмитрий', 'Геннадьевич', '2005-04-18', NULL, 'active', 1);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (5, '2641-05', 'Войтенко', 'Виктор', 'Юлианович', '2005-05-20', NULL, 'active', 1);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (6, '2641-06', 'Гераськин', 'Игорь', 'Александрович', '2005-06-22', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (7, '2641-07', 'Голосун', 'Иван', 'Владимирович', '2005-07-25', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (8, '2641-08', 'Грибков', 'Дмитрий', 'Евгеньевич', '2005-08-28', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (9, '2641-09', 'Дьяченко', 'Данил', 'Романович', '2005-09-01', NULL, 'active', 1);
@@ -1785,14 +2081,10 @@ INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (27, '2641-27', 'Ха
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (28, '2641-28', 'Храбовченко', 'Михаил', 'Владимирович', '2005-04-24', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (29, '2641-29', 'Царенок', 'Владислав', 'Михайлович', '2005-05-27', NULL, 'active', 1);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (30, '2641-30', 'Шипулин', 'Семен', 'Владимирович', '2005-06-30', NULL, 'active', 1);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (31, '2642-01', 'Аффуф', 'Усамма', 'Али', '2005-01-11', NULL, 'active', 2);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (32, '2642-02', 'Ахмедханов', 'Кемаль', 'Мураделиевич', '2005-02-13', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (33, '2642-03', 'Бадов', 'Кирилл', 'Леонидович', '2005-03-16', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (34, '2642-04', 'Будагов', 'Никос', 'Янисович', '2005-04-19', NULL, 'active', 2);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (35, '2642-05', 'Гетьман', 'Валерий', 'Романович', '2005-05-21', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (36, '2642-06', 'Глоба', 'Александр', 'Валентинович', '2005-06-23', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (37, '2642-07', 'Голодный', 'Александр', 'Александрович', '2005-07-26', NULL, 'active', 2);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (38, '2642-08', 'Голопёров', 'Эдуард', 'Вадимович', '2005-08-29', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (39, '2642-09', 'Гугасян', 'Альберт', 'Артемович', '2005-09-02', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (40, '2642-10', 'Жигайло', 'Руслан', 'Андреевич', '2005-10-06', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (42, '2642-12', 'Золотов', 'Александр', 'Юрьевич', '2005-12-11', NULL, 'active', 2);
@@ -1800,11 +2092,9 @@ INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (43, '2642-13', 'Ке
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (44, '2642-14', 'Климов', 'Дмитрий', 'Алексеевич', '2006-02-15', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (45, '2642-15', 'Ковалев', 'Никита', 'Андреевич', '2006-03-17', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (46, '2642-16', 'Куренов', 'Евгений', 'Игоревич', '2006-04-19', NULL, 'active', 2);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (47, '2642-17', 'Литвинов', 'Владислав', 'Андреевич', '2006-05-21', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (48, '2642-18', 'Логачев', 'Богдан', 'Андреевич', '2006-06-23', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (49, '2642-19', 'Назлуханов', 'Владимир', 'Олегович', '2006-07-26', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (50, '2642-20', 'Обруч', 'Софья', 'Евгеньевна', '2006-08-29', NULL, 'active', 2);
-INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (51, '2642-21', 'Пристёгин', 'Семен', 'Эдуардович', '2006-09-03', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (52, '2642-22', 'Рыбинцев', 'Денис', 'Витальевич', '2006-10-06', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (53, '2642-23', 'Рябчук', 'Владислав', 'Дмитриевич', '2006-11-09', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (54, '2642-24', 'Сейтмамбетов', 'Эмиль', 'Рамзесович', '2006-12-11', NULL, 'active', 2);
@@ -1815,92 +2105,147 @@ INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (58, '2642-28', 'Ша
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (59, '2642-29', 'Шепилов', 'Сергей', 'Андреевич', '2005-05-28', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (60, '2642-30', 'Шкуро', 'Илья', 'Витальевич', '2005-07-01', NULL, 'active', 2);
 INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (41, '2642-11', 'Знобищев', 'Алексей', 'Викторович', '2004-12-09', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (51, '2642-21', 'Пристёгин', 'Семен', 'Эдуардович', '2006-09-03', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (6, '2641-06', 'Гераськин', 'Игорь', 'Александрович', '2005-06-22', NULL, 'active', 1);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (32, '2642-02', 'Ахмедханов', 'Кемаль', 'Мураделиевич', '2005-02-13', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (47, '2642-17', 'Литвинов', 'Владислав', 'Андреевич', '2006-05-21', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (35, '2642-05', 'Гетьман', 'Валерий', 'Романович', '2005-05-21', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (5, '2641-05', 'Войтенко', 'Виктор', 'Юлианович', '2005-05-20', NULL, 'active', 1);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (3, '2641-03', 'Баданин', 'Денис', 'Сергеевич', '2005-03-15', NULL, 'active', 1);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (38, '2642-08', 'Голопёров', 'Эдуард', 'Вадимович', '2005-08-29', NULL, 'active', 2);
+INSERT INTO public.students OVERRIDING SYSTEM VALUE VALUES (31, '2642-01', 'Аффуф', 'Усамма', 'Али', '2005-01-11', NULL, 'active', 2);
 
 
 --
--- TOC entry 5181 (class 0 OID 16589)
+-- TOC entry 5257 (class 0 OID 16589)
 -- Dependencies: 227
 -- Data for Name: subjects; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (1, 'ЭММУ', 'Экономико-математические модели управления', 108, 3.0);
-INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (2, 'ББД', 'Базы и банки данных', 144, 4.0);
-INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (3, 'ИИС', 'Инжиниринг информационных систем', 108, 3.0);
 INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (4, 'ИЯ', 'Иностранный язык', 72, 2.0);
 INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (5, 'ЛМН', 'Логика и методология науки', 72, 2.0);
 INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (6, 'СГМ', 'Специальные главы математики', 144, 4.0);
+INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (3, 'ИИС', 'Инженерия информационных систем', 108, 3.0);
+INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (1, 'ЭММУ', 'Экономико-математические модели управления', 108, 3.0);
+INSERT INTO public.subjects OVERRIDING SYSTEM VALUE VALUES (2, 'ББД', 'Базы и банки данных', 144, 4.0);
 
 
 --
--- TOC entry 5184 (class 0 OID 16606)
+-- TOC entry 5260 (class 0 OID 16606)
 -- Dependencies: 231
 -- Data for Name: teachers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (1, 'Бурда', 'Алексей', 'Григорьевич', NULL);
-INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (2, 'Лукьяненко', 'Татьяна', 'Викторовна', NULL);
-INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (3, 'Русак', 'Светлана', 'Николаевна', NULL);
-INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (4, 'Карипиди', 'Анна', 'Генадиевна', NULL);
 INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (5, 'Плотников', 'Валерий', 'Валерьевич', NULL);
+INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (2, 'Лукьяненко', 'Татьяна', 'Викторовна', NULL);
+INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (4, 'Карипиди', 'Анна', 'Генадиевна', NULL);
 INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (6, 'Карманова', 'Анна', 'Валентиновна', NULL);
+INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (3, 'Русак', 'Светлана', 'Николаевна', NULL);
+INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (1, 'Бурда', 'Алексей', 'Григорьевич', NULL);
 
 
 --
--- TOC entry 5199 (class 0 OID 0)
+-- TOC entry 5276 (class 0 OID 26006)
+-- Dependencies: 247
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (1, 'admin', 'scrypt$16384$8$1$d5477d47690af88901a35a9ec35edb31$c68b176b2c2bd67f8082c66184ead209444f547bbeee040dd3b168bf0a34db9ce88283f6d58c7603a582d0a52445ffe79583f73e24d5df31f2964b07916aac4a', 1, NULL, NULL, true, '2026-11-05 00:07:50.016036+03');
+INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (2, 'pristegins', 'scrypt$16384$8$1$b144323112d18d991cbd0327971a2798$5517b198af679720ce5223c47ece98f2c704068c3c727f39ee14c800f719067521a687338055502b77a97f567154b11ed69fb511756310c1a8173ccf5f7a17f1', 3, 51, NULL, true, '2026-11-04 21:09:48.006+03');
+
+
+--
+-- TOC entry 5285 (class 0 OID 0)
+-- Dependencies: 249
+-- Name: audit_logs_audit_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.audit_logs_audit_id_seq', 3, true);
+
+
+--
+-- TOC entry 5286 (class 0 OID 0)
+-- Dependencies: 243
+-- Name: permissions_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.permissions_permission_id_seq', 21, true);
+
+
+--
+-- TOC entry 5287 (class 0 OID 0)
+-- Dependencies: 241
+-- Name: roles_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.roles_role_id_seq', 3, true);
+
+
+--
+-- TOC entry 5288 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: semesters_semester_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.semesters_semester_id_seq', 4, true);
+SELECT pg_catalog.setval('public.semesters_semester_id_seq', 5, true);
 
 
 --
--- TOC entry 5200 (class 0 OID 0)
+-- TOC entry 5289 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: student_groups_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.student_groups_group_id_seq', 3, true);
+SELECT pg_catalog.setval('public.student_groups_group_id_seq', 5, true);
 
 
 --
--- TOC entry 5201 (class 0 OID 0)
+-- TOC entry 5290 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: student_performance_performance_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.student_performance_performance_id_seq', 491, true);
+SELECT pg_catalog.setval('public.student_performance_performance_id_seq', 492, true);
 
 
 --
--- TOC entry 5202 (class 0 OID 0)
+-- TOC entry 5291 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: students_student_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.students_student_id_seq', 62, true);
+SELECT pg_catalog.setval('public.students_student_id_seq', 64, true);
 
 
 --
--- TOC entry 5203 (class 0 OID 0)
+-- TOC entry 5292 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: subjects_subject_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.subjects_subject_id_seq', 6, true);
+SELECT pg_catalog.setval('public.subjects_subject_id_seq', 7, true);
 
 
 --
--- TOC entry 5204 (class 0 OID 0)
+-- TOC entry 5293 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: teachers_teacher_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.teachers_teacher_id_seq', 6, true);
+SELECT pg_catalog.setval('public.teachers_teacher_id_seq', 7, true);
 
 
 --
--- TOC entry 5003 (class 2606 OID 25854)
+-- TOC entry 5294 (class 0 OID 0)
+-- Dependencies: 246
+-- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.users_user_id_seq', 2, true);
+
+
+--
+-- TOC entry 5040 (class 2606 OID 25854)
 -- Name: dim_date dim_date_full_date_key; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1909,7 +2254,7 @@ ALTER TABLE ONLY analytics.dim_date
 
 
 --
--- TOC entry 5005 (class 2606 OID 25852)
+-- TOC entry 5042 (class 2606 OID 25852)
 -- Name: dim_date dim_date_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1918,7 +2263,7 @@ ALTER TABLE ONLY analytics.dim_date
 
 
 --
--- TOC entry 4999 (class 2606 OID 25836)
+-- TOC entry 5036 (class 2606 OID 25836)
 -- Name: dim_semester dim_semester_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1927,7 +2272,7 @@ ALTER TABLE ONLY analytics.dim_semester
 
 
 --
--- TOC entry 5001 (class 2606 OID 25838)
+-- TOC entry 5038 (class 2606 OID 25838)
 -- Name: dim_semester dim_semester_source_semester_id_key; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1936,7 +2281,7 @@ ALTER TABLE ONLY analytics.dim_semester
 
 
 --
--- TOC entry 4987 (class 2606 OID 25792)
+-- TOC entry 5024 (class 2606 OID 25792)
 -- Name: dim_student dim_student_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1945,7 +2290,7 @@ ALTER TABLE ONLY analytics.dim_student
 
 
 --
--- TOC entry 4989 (class 2606 OID 25794)
+-- TOC entry 5026 (class 2606 OID 25794)
 -- Name: dim_student dim_student_source_student_id_key; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1954,7 +2299,7 @@ ALTER TABLE ONLY analytics.dim_student
 
 
 --
--- TOC entry 4991 (class 2606 OID 25807)
+-- TOC entry 5028 (class 2606 OID 25807)
 -- Name: dim_subject dim_subject_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1963,7 +2308,7 @@ ALTER TABLE ONLY analytics.dim_subject
 
 
 --
--- TOC entry 4993 (class 2606 OID 25809)
+-- TOC entry 5030 (class 2606 OID 25809)
 -- Name: dim_subject dim_subject_source_subject_id_key; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1972,7 +2317,7 @@ ALTER TABLE ONLY analytics.dim_subject
 
 
 --
--- TOC entry 4995 (class 2606 OID 25821)
+-- TOC entry 5032 (class 2606 OID 25821)
 -- Name: dim_teacher dim_teacher_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1981,7 +2326,7 @@ ALTER TABLE ONLY analytics.dim_teacher
 
 
 --
--- TOC entry 4997 (class 2606 OID 25823)
+-- TOC entry 5034 (class 2606 OID 25823)
 -- Name: dim_teacher dim_teacher_source_teacher_id_key; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1990,7 +2335,7 @@ ALTER TABLE ONLY analytics.dim_teacher
 
 
 --
--- TOC entry 5007 (class 2606 OID 25874)
+-- TOC entry 5044 (class 2606 OID 25874)
 -- Name: fact_performance fact_performance_pkey; Type: CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -1999,7 +2344,16 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 4983 (class 2606 OID 24732)
+-- TOC entry 5077 (class 2606 OID 26082)
+-- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- TOC entry 5020 (class 2606 OID 24732)
 -- Name: marks marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2008,7 +2362,16 @@ ALTER TABLE ONLY public.marks
 
 
 --
--- TOC entry 4985 (class 2606 OID 24743)
+-- TOC entry 5055 (class 2606 OID 25984)
+-- Name: permissions permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT permissions_pkey PRIMARY KEY (permission_id);
+
+
+--
+-- TOC entry 5022 (class 2606 OID 24743)
 -- Name: reyting reyting_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2017,7 +2380,25 @@ ALTER TABLE ONLY public.reyting
 
 
 --
--- TOC entry 4951 (class 2606 OID 16615)
+-- TOC entry 5060 (class 2606 OID 25993)
+-- Name: role_permissions role_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (role_id, permission_id);
+
+
+--
+-- TOC entry 5051 (class 2606 OID 25973)
+-- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles
+    ADD CONSTRAINT roles_pkey PRIMARY KEY (role_id);
+
+
+--
+-- TOC entry 4988 (class 2606 OID 16615)
 -- Name: semesters semesters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2026,7 +2407,16 @@ ALTER TABLE ONLY public.semesters
 
 
 --
--- TOC entry 4955 (class 2606 OID 16617)
+-- TOC entry 5073 (class 2606 OID 26061)
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_pkey PRIMARY KEY (session_id);
+
+
+--
+-- TOC entry 4992 (class 2606 OID 16617)
 -- Name: student_groups student_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2035,7 +2425,7 @@ ALTER TABLE ONLY public.student_groups
 
 
 --
--- TOC entry 4963 (class 2606 OID 16619)
+-- TOC entry 5000 (class 2606 OID 16619)
 -- Name: student_performance student_performance_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2044,7 +2434,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 4969 (class 2606 OID 16621)
+-- TOC entry 5006 (class 2606 OID 16621)
 -- Name: students students_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2053,7 +2443,7 @@ ALTER TABLE ONLY public.students
 
 
 --
--- TOC entry 4973 (class 2606 OID 16623)
+-- TOC entry 5010 (class 2606 OID 16623)
 -- Name: subjects subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2062,7 +2452,7 @@ ALTER TABLE ONLY public.subjects
 
 
 --
--- TOC entry 4979 (class 2606 OID 16625)
+-- TOC entry 5016 (class 2606 OID 16625)
 -- Name: teachers teachers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2071,7 +2461,25 @@ ALTER TABLE ONLY public.teachers
 
 
 --
--- TOC entry 4953 (class 2606 OID 16627)
+-- TOC entry 5057 (class 2606 OID 25986)
+-- Name: permissions uq_permissions_code; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT uq_permissions_code UNIQUE (permission_code);
+
+
+--
+-- TOC entry 5053 (class 2606 OID 25975)
+-- Name: roles uq_roles_code; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles
+    ADD CONSTRAINT uq_roles_code UNIQUE (role_code);
+
+
+--
+-- TOC entry 4990 (class 2606 OID 16627)
 -- Name: semesters uq_semesters_year_term; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2080,7 +2488,16 @@ ALTER TABLE ONLY public.semesters
 
 
 --
--- TOC entry 4957 (class 2606 OID 16629)
+-- TOC entry 5075 (class 2606 OID 26063)
+-- Name: sessions uq_sessions_token; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT uq_sessions_token UNIQUE (token_hash);
+
+
+--
+-- TOC entry 4994 (class 2606 OID 16629)
 -- Name: student_groups uq_student_groups_code; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2089,7 +2506,7 @@ ALTER TABLE ONLY public.student_groups
 
 
 --
--- TOC entry 4965 (class 2606 OID 16631)
+-- TOC entry 5002 (class 2606 OID 16631)
 -- Name: student_performance uq_student_performance; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2098,7 +2515,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 4971 (class 2606 OID 16633)
+-- TOC entry 5008 (class 2606 OID 16633)
 -- Name: students uq_students_number; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2107,7 +2524,7 @@ ALTER TABLE ONLY public.students
 
 
 --
--- TOC entry 4975 (class 2606 OID 16635)
+-- TOC entry 5012 (class 2606 OID 16635)
 -- Name: subjects uq_subjects_code; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2116,7 +2533,7 @@ ALTER TABLE ONLY public.subjects
 
 
 --
--- TOC entry 4977 (class 2606 OID 16637)
+-- TOC entry 5014 (class 2606 OID 16637)
 -- Name: subjects uq_subjects_name; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2125,7 +2542,7 @@ ALTER TABLE ONLY public.subjects
 
 
 --
--- TOC entry 4981 (class 2606 OID 16639)
+-- TOC entry 5018 (class 2606 OID 16639)
 -- Name: teachers uq_teachers_email; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2134,7 +2551,43 @@ ALTER TABLE ONLY public.teachers
 
 
 --
--- TOC entry 5008 (class 1259 OID 25904)
+-- TOC entry 5063 (class 2606 OID 26025)
+-- Name: users uq_users_student; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT uq_users_student UNIQUE (student_id);
+
+
+--
+-- TOC entry 5065 (class 2606 OID 26027)
+-- Name: users uq_users_teacher; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT uq_users_teacher UNIQUE (teacher_id);
+
+
+--
+-- TOC entry 5067 (class 2606 OID 26023)
+-- Name: users uq_users_username; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT uq_users_username UNIQUE (username);
+
+
+--
+-- TOC entry 5069 (class 2606 OID 26021)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (user_id);
+
+
+--
+-- TOC entry 5045 (class 1259 OID 25904)
 -- Name: ix_fact_performance_date; Type: INDEX; Schema: analytics; Owner: -
 --
 
@@ -2142,7 +2595,7 @@ CREATE INDEX ix_fact_performance_date ON analytics.fact_performance USING btree 
 
 
 --
--- TOC entry 5009 (class 1259 OID 25903)
+-- TOC entry 5046 (class 1259 OID 25903)
 -- Name: ix_fact_performance_semester; Type: INDEX; Schema: analytics; Owner: -
 --
 
@@ -2150,7 +2603,7 @@ CREATE INDEX ix_fact_performance_semester ON analytics.fact_performance USING bt
 
 
 --
--- TOC entry 5010 (class 1259 OID 25901)
+-- TOC entry 5047 (class 1259 OID 25901)
 -- Name: ix_fact_performance_student; Type: INDEX; Schema: analytics; Owner: -
 --
 
@@ -2158,7 +2611,7 @@ CREATE INDEX ix_fact_performance_student ON analytics.fact_performance USING btr
 
 
 --
--- TOC entry 5011 (class 1259 OID 25900)
+-- TOC entry 5048 (class 1259 OID 25900)
 -- Name: ix_fact_performance_subject; Type: INDEX; Schema: analytics; Owner: -
 --
 
@@ -2166,7 +2619,7 @@ CREATE INDEX ix_fact_performance_subject ON analytics.fact_performance USING btr
 
 
 --
--- TOC entry 5012 (class 1259 OID 25902)
+-- TOC entry 5049 (class 1259 OID 25902)
 -- Name: ix_fact_performance_teacher; Type: INDEX; Schema: analytics; Owner: -
 --
 
@@ -2174,7 +2627,23 @@ CREATE INDEX ix_fact_performance_teacher ON analytics.fact_performance USING btr
 
 
 --
--- TOC entry 4958 (class 1259 OID 16640)
+-- TOC entry 5078 (class 1259 OID 26088)
+-- Name: idx_audit_actor_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_actor_created ON public.audit_logs USING btree (actor_user_id, created_at);
+
+
+--
+-- TOC entry 5079 (class 1259 OID 26089)
+-- Name: idx_audit_target; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_audit_target ON public.audit_logs USING btree (target_type, target_id);
+
+
+--
+-- TOC entry 4995 (class 1259 OID 16640)
 -- Name: idx_performance_semester_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2182,7 +2651,7 @@ CREATE INDEX idx_performance_semester_id ON public.student_performance USING btr
 
 
 --
--- TOC entry 4959 (class 1259 OID 16641)
+-- TOC entry 4996 (class 1259 OID 16641)
 -- Name: idx_performance_student_semester; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2190,7 +2659,7 @@ CREATE INDEX idx_performance_student_semester ON public.student_performance USIN
 
 
 --
--- TOC entry 4960 (class 1259 OID 16642)
+-- TOC entry 4997 (class 1259 OID 16642)
 -- Name: idx_performance_subject_semester; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2198,7 +2667,7 @@ CREATE INDEX idx_performance_subject_semester ON public.student_performance USIN
 
 
 --
--- TOC entry 4961 (class 1259 OID 16643)
+-- TOC entry 4998 (class 1259 OID 16643)
 -- Name: idx_performance_teacher_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2206,7 +2675,31 @@ CREATE INDEX idx_performance_teacher_id ON public.student_performance USING btre
 
 
 --
--- TOC entry 4966 (class 1259 OID 16644)
+-- TOC entry 5058 (class 1259 OID 26004)
+-- Name: idx_role_permissions_permission; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_role_permissions_permission ON public.role_permissions USING btree (permission_id);
+
+
+--
+-- TOC entry 5070 (class 1259 OID 26070)
+-- Name: idx_sessions_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sessions_expires_at ON public.sessions USING btree (expires_at);
+
+
+--
+-- TOC entry 5071 (class 1259 OID 26069)
+-- Name: idx_sessions_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sessions_user_id ON public.sessions USING btree (user_id);
+
+
+--
+-- TOC entry 5003 (class 1259 OID 16644)
 -- Name: idx_students_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2214,7 +2707,7 @@ CREATE INDEX idx_students_group_id ON public.students USING btree (group_id);
 
 
 --
--- TOC entry 4967 (class 1259 OID 16645)
+-- TOC entry 5004 (class 1259 OID 16645)
 -- Name: idx_students_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2222,7 +2715,15 @@ CREATE INDEX idx_students_name ON public.students USING btree (last_name, first_
 
 
 --
--- TOC entry 5024 (class 2620 OID 24737)
+-- TOC entry 5061 (class 1259 OID 26043)
+-- Name: idx_users_role_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_users_role_id ON public.users USING btree (role_id);
+
+
+--
+-- TOC entry 5098 (class 2620 OID 24737)
 -- Name: student_performance tr_results_insert; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2230,7 +2731,7 @@ CREATE TRIGGER tr_results_insert BEFORE INSERT ON public.student_performance FOR
 
 
 --
--- TOC entry 5025 (class 2620 OID 25771)
+-- TOC entry 5099 (class 2620 OID 25771)
 -- Name: student_performance tr_results_insert_after; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2238,7 +2739,23 @@ CREATE TRIGGER tr_results_insert_after AFTER INSERT OR DELETE OR UPDATE ON publi
 
 
 --
--- TOC entry 5019 (class 2606 OID 25895)
+-- TOC entry 5100 (class 2620 OID 26093)
+-- Name: role_permissions tr_role_permissions_drop_sessions; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER tr_role_permissions_drop_sessions AFTER INSERT OR DELETE OR UPDATE ON public.role_permissions FOR EACH ROW EXECUTE FUNCTION public.trigger_role_permissions_drop_sessions();
+
+
+--
+-- TOC entry 5101 (class 2620 OID 26091)
+-- Name: users tr_users_drop_sessions; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER tr_users_drop_sessions AFTER UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.trigger_users_drop_sessions();
+
+
+--
+-- TOC entry 5086 (class 2606 OID 25895)
 -- Name: fact_performance fact_performance_date_key_fkey; Type: FK CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -2247,7 +2764,7 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 5020 (class 2606 OID 25890)
+-- TOC entry 5087 (class 2606 OID 25890)
 -- Name: fact_performance fact_performance_semester_key_fkey; Type: FK CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -2256,7 +2773,7 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 5021 (class 2606 OID 25875)
+-- TOC entry 5088 (class 2606 OID 25875)
 -- Name: fact_performance fact_performance_student_key_fkey; Type: FK CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -2265,7 +2782,7 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 5022 (class 2606 OID 25880)
+-- TOC entry 5089 (class 2606 OID 25880)
 -- Name: fact_performance fact_performance_subject_key_fkey; Type: FK CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -2274,7 +2791,7 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 5023 (class 2606 OID 25885)
+-- TOC entry 5090 (class 2606 OID 25885)
 -- Name: fact_performance fact_performance_teacher_key_fkey; Type: FK CONSTRAINT; Schema: analytics; Owner: -
 --
 
@@ -2283,7 +2800,16 @@ ALTER TABLE ONLY analytics.fact_performance
 
 
 --
--- TOC entry 5018 (class 2606 OID 24744)
+-- TOC entry 5097 (class 2606 OID 26083)
+-- Name: audit_logs audit_logs_actor_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_actor_user_id_fkey FOREIGN KEY (actor_user_id) REFERENCES public.users(user_id) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 5085 (class 2606 OID 24744)
 -- Name: reyting fk_reyting; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2292,7 +2818,34 @@ ALTER TABLE ONLY public.reyting
 
 
 --
--- TOC entry 5013 (class 2606 OID 16646)
+-- TOC entry 5091 (class 2606 OID 25999)
+-- Name: role_permissions role_permissions_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(permission_id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5092 (class 2606 OID 25994)
+-- Name: role_permissions role_permissions_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(role_id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5096 (class 2606 OID 26064)
+-- Name: sessions sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 5080 (class 2606 OID 16646)
 -- Name: student_performance student_performance_semester_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2301,7 +2854,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 5014 (class 2606 OID 16651)
+-- TOC entry 5081 (class 2606 OID 16651)
 -- Name: student_performance student_performance_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2310,7 +2863,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 5015 (class 2606 OID 16656)
+-- TOC entry 5082 (class 2606 OID 16656)
 -- Name: student_performance student_performance_subject_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2319,7 +2872,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 5016 (class 2606 OID 16661)
+-- TOC entry 5083 (class 2606 OID 16661)
 -- Name: student_performance student_performance_teacher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2328,7 +2881,7 @@ ALTER TABLE ONLY public.student_performance
 
 
 --
--- TOC entry 5017 (class 2606 OID 16666)
+-- TOC entry 5084 (class 2606 OID 16666)
 -- Name: students students_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2336,11 +2889,38 @@ ALTER TABLE ONLY public.students
     ADD CONSTRAINT students_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.student_groups(group_id) ON DELETE RESTRICT;
 
 
--- Completed on 2026-10-20 22:42:25
+--
+-- TOC entry 5093 (class 2606 OID 26028)
+-- Name: users users_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(role_id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5094 (class 2606 OID 26033)
+-- Name: users users_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 5095 (class 2606 OID 26038)
+-- Name: users users_teacher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(teacher_id) ON DELETE SET NULL;
+
+
+-- Completed on 2026-11-05 00:14:20
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 9QP4ax0sEqx9uwrWsLqV6SCQe9Oggn4yhy3B3hCyUaMs5p2tNKstoukd4Xg0wH0
+\unrestrict tBRTqXLPUbChKUDEdElyk8HnWbIeT7sScSILJ9b9srfrPfwaDn7aNgLWlYch2Ad
 

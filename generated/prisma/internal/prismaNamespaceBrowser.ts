@@ -58,7 +58,13 @@ export const ModelName = {
   student_performance: 'student_performance',
   students: 'students',
   subjects: 'subjects',
-  teachers: 'teachers'
+  teachers: 'teachers',
+  roles: 'roles',
+  permissions: 'permissions',
+  role_permissions: 'role_permissions',
+  users: 'users',
+  sessions: 'sessions',
+  audit_logs: 'audit_logs'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -169,12 +175,90 @@ export const TeachersScalarFieldEnum = {
 export type TeachersScalarFieldEnum = (typeof TeachersScalarFieldEnum)[keyof typeof TeachersScalarFieldEnum]
 
 
+export const RolesScalarFieldEnum = {
+  role_id: 'role_id',
+  role_code: 'role_code',
+  role_name: 'role_name',
+  description: 'description'
+} as const
+
+export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof RolesScalarFieldEnum]
+
+
+export const PermissionsScalarFieldEnum = {
+  permission_id: 'permission_id',
+  permission_code: 'permission_code',
+  permission_name: 'permission_name'
+} as const
+
+export type PermissionsScalarFieldEnum = (typeof PermissionsScalarFieldEnum)[keyof typeof PermissionsScalarFieldEnum]
+
+
+export const Role_permissionsScalarFieldEnum = {
+  role_id: 'role_id',
+  permission_id: 'permission_id'
+} as const
+
+export type Role_permissionsScalarFieldEnum = (typeof Role_permissionsScalarFieldEnum)[keyof typeof Role_permissionsScalarFieldEnum]
+
+
+export const UsersScalarFieldEnum = {
+  user_id: 'user_id',
+  username: 'username',
+  password_hash: 'password_hash',
+  role_id: 'role_id',
+  student_id: 'student_id',
+  teacher_id: 'teacher_id',
+  is_active: 'is_active',
+  created_at: 'created_at'
+} as const
+
+export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
+
+
+export const SessionsScalarFieldEnum = {
+  session_id: 'session_id',
+  token_hash: 'token_hash',
+  user_id: 'user_id',
+  role_code: 'role_code',
+  permissions: 'permissions',
+  student_id: 'student_id',
+  teacher_id: 'teacher_id',
+  created_at: 'created_at',
+  last_seen_at: 'last_seen_at',
+  expires_at: 'expires_at'
+} as const
+
+export type SessionsScalarFieldEnum = (typeof SessionsScalarFieldEnum)[keyof typeof SessionsScalarFieldEnum]
+
+
+export const Audit_logsScalarFieldEnum = {
+  audit_id: 'audit_id',
+  actor_user_id: 'actor_user_id',
+  action: 'action',
+  target_type: 'target_type',
+  target_id: 'target_id',
+  details: 'details',
+  created_at: 'created_at'
+} as const
+
+export type Audit_logsScalarFieldEnum = (typeof Audit_logsScalarFieldEnum)[keyof typeof Audit_logsScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const NullsOrder = {
@@ -191,4 +275,13 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

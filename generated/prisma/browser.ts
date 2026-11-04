@@ -57,3 +57,33 @@ export type subjects = Prisma.subjectsModel
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */
 export type teachers = Prisma.teachersModel
+/**
+ * Model roles
+ * 
+ */
+export type roles = Prisma.rolesModel
+/**
+ * Model permissions
+ * 
+ */
+export type permissions = Prisma.permissionsModel
+/**
+ * Model role_permissions
+ * 
+ */
+export type role_permissions = Prisma.role_permissionsModel
+/**
+ * Model users
+ * 
+ */
+export type users = Prisma.usersModel
+/**
+ * Model sessions
+ * 
+ */
+export type sessions = Prisma.sessionsModel
+/**
+ * Model audit_logs
+ * 
+ */
+export type audit_logs = Prisma.audit_logsModel
