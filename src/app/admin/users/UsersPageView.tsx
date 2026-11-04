@@ -82,7 +82,7 @@ export default function UsersPageView({
         </span>
       ),
     },
-  ], [page.openToggleActive]);
+  ], []);
 
   return (
     <Page
