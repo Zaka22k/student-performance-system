@@ -78,7 +78,7 @@ export default function AppLayout({
   const canSeeStudentBook = can("reports.student_book.all", "reports.student_book.own");
   const canSeeGroupSummary = can("reports.group_summary");
   const canSeeDictionaries = can("dictionaries.read");
-  const canSeeAdmin = can("users.manage", "roles.manage");
+  const canSeeAdmin = can("users.manage", "roles.manage", "audit.read");
 
   async function signOut() {
     await logout();
