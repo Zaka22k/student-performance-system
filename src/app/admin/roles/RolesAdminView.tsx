@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createRole,
@@ -87,11 +87,21 @@ export default function RolesAdminView({
     setNotice("");
     startTransition(async () => {
       try {
-        await createRole({
+        const created = await createRole({
           role_code: newCode,
           role_name: newName,
           description: newDescription,
         });
+        const newRole: Role = {
+          role_id: created.role_id,
+          role_code: newCode.trim().toLowerCase(),
+          role_name: newName.trim(),
+          description: newDescription.trim() || null,
+          permission_ids: [],
+        };
+        setRoles((current) => [...current, newRole]);
+        setActiveRoleId(created.role_id);
+        setSelected([]);
         setNewCode("");
         setNewName("");
         setNewDescription("");
@@ -109,6 +119,10 @@ export default function RolesAdminView({
     startTransition(async () => {
       try {
         await deleteRole(activeRole.role_id);
+        const remaining = roles.filter((role) => role.role_id !== activeRole.role_id);
+        setRoles(remaining);
+        setActiveRoleId(remaining[0]?.role_id ?? "");
+        setSelected(remaining[0]?.permission_ids ?? []);
         setNotice("Роль удалена");
         router.refresh();
       } catch (cause) {
