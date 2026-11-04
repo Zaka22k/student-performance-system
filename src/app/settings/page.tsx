@@ -1,5 +1,7 @@
+import { requirePermission } from "@/server/auth/session";
 import SettingsPageView from "./SettingsPageView";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requirePermission("settings.use");
   return <SettingsPageView />;
 }
