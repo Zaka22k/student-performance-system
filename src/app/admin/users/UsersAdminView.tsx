@@ -153,7 +153,12 @@ export default function UsersAdminView({
                       role_name: role?.role_name ?? item.role_name,
                       student_id: role?.role_code === "student" ? studentId : role?.role_code === "admin" || role?.role_code === "teacher" ? null : item.student_id,
                       teacher_id: role?.role_code === "teacher" ? teacherId : role?.role_code === "admin" || role?.role_code === "student" ? null : item.teacher_id,
-                      linked_name: role?.role_code === "admin" || role?.role_code === "custom" ? null : linkedName ?? item.linked_name,
+                      linked_name:
+                        role?.role_code === "admin"
+                          ? null
+                          : role?.role_code === "student" || role?.role_code === "teacher"
+                            ? linkedName
+                            : item.linked_name,
                       active_sessions: 0,
                     }
                   : item,
