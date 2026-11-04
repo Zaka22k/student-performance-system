@@ -3,6 +3,7 @@
 import { createCrudService, withActionError, prisma } from "@/server/lib";
 import { studentSchema } from "@/schemas";
 import type { Student, StudentInput } from "@/models";
+import { requireAnyPermission } from "@/server/auth/session";
 
 export interface StudentPerformanceItem {
   performance_id: string;
