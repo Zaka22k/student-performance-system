@@ -8,7 +8,7 @@ import {
   SearchField,
   type DataGridColumn,
 } from "@ui-kit/components";
-import { EditIcon, PlusIcon } from "@/icons";
+import { EditIcon, LockIcon, PlusIcon, RefreshIcon, TrashIcon } from "@/icons";
 import type { AdminRoleOption, LinkedOption } from "../UserForms";
 import { useUsersPage, type AdminUser } from "./useUsersPage";
 import styles from "../Admin.module.css";
@@ -82,23 +82,6 @@ export default function UsersPageView({
         </span>
       ),
     },
-    {
-      id: "account-action",
-      header: "Управление",
-      width: 160,
-      minWidth: 145,
-      cell: (user) => (
-        <Button
-          appearance={user.is_active ? "destructive" : "primary"}
-          onClick={(event) => {
-            event.stopPropagation();
-            page.openToggleActive(user);
-          }}
-        >
-          {user.is_active ? "Заблокировать" : "Активировать"}
-        </Button>
-      ),
-    },
   ], [page.openToggleActive]);
 
   return (
@@ -143,14 +126,24 @@ export default function UsersPageView({
           {
             id: "reset-password",
             label: "Сбросить пароль",
+            icon: <RefreshIcon size={16} />,
             onSelect: () => page.openResetPassword(row),
           },
           { type: "separator" },
           {
             id: "toggle-active",
             label: row.is_active ? "Заблокировать" : "Активировать",
+            icon: <LockIcon size={16} />,
             danger: row.is_active,
             onSelect: () => page.openToggleActive(row),
+          },
+          { type: "separator" },
+          {
+            id: "delete-user",
+            label: "Удалить пользователя",
+            icon: <TrashIcon size={16} />,
+            danger: true,
+            onSelect: () => page.openDeleteUser(row),
           },
         ]}
       />
