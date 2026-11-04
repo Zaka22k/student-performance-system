@@ -245,3 +245,135 @@
     justify-content: flex-start;
   }
 }
+
+
+.accountLayout {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.accountCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--window-border);
+  border-radius: var(--ControlCornerRadius);
+  background: var(--elevated-bg);
+  box-shadow: var(--window-inner-glow);
+}
+
+.accountAvatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--control-accent) 15%, var(--fill-tertiary));
+  color: var(--control-accent);
+  font-size: var(--font-body-large);
+  font-weight: 700;
+}
+
+.accountIdentity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.accountIdentity h2,
+.accountIdentity p {
+  margin: 0;
+}
+
+.accountIdentity p {
+  color: var(--label-secondary);
+}
+
+.accountRoleCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-caption);
+}
+
+.accountSessions {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.accountSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: 4px;
+}
+
+.accountSectionHeader h2,
+.accountSectionHeader p {
+  margin: 0;
+}
+
+.accountSectionHeader p {
+  max-width: 720px;
+  margin-top: 4px;
+  color: var(--label-secondary);
+  line-height: 1.45;
+}
+
+.sessionCount {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: var(--CircularCornerRadius);
+  background: var(--fill-tertiary);
+  color: var(--label-primary);
+  font-size: var(--font-body);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessionIdentity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sessionIdentity strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sessionIdentity span {
+  color: var(--label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .accountCard {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+
+  .accountIdentity {
+    flex-basis: calc(100% - 64px);
+  }
+
+  .accountCard > button {
+    width: 100%;
+  }
+
+  .accountSectionHeader {
+    align-items: flex-start;
+  }
+}
