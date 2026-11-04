@@ -262,6 +262,60 @@ export async function resetUserPassword(userId: string, password: string) {
 }
 
 
+export async function deleteUser(userId: string) {
+  const actor = await requirePermission("users.manage");
+  const id = parseId(userId, "пользователь");
+
+  if (id === actor.userId) {
+    throw new Error("Нельзя удалить собственную учётную запись");
+  }
+
+  const target = await prisma.users.findUnique({
+    where: { user_id: id },
+    select: {
+      username: true,
+      is_active: true,
+      roles: { select: { role_code: true, role_id: true } },
+    },
+  });
+  if (!target) throw new Error("Пользователь не найден");
+
+  await prisma.$transaction(async (tx) => {
+    if (target.is_active && target.roles.role_code === "admin") {
+      // Блокируем роль, чтобы параллельное удаление администраторов
+      // не позволило удалить сразу всех активных администраторов.
+      await tx.$queryRawUnsafe(
+        "SELECT role_id FROM public.roles WHERE role_id = $1 FOR UPDATE",
+        target.roles.role_id,
+      );
+      const activeAdmins = await tx.users.count({
+        where: { role_id: target.roles.role_id, is_active: true },
+      });
+      if (activeAdmins <= 1) {
+        throw new Error("Нельзя удалить последнего активного администратора");
+      }
+    }
+
+    // Связанные карточки студентов/преподавателей сохраняются;
+    // сессии удаляются каскадно согласно внешнему ключу.
+    await tx.users.delete({ where: { user_id: id } });
+    await tx.audit_logs.create({
+      data: {
+        actor_user_id: actor.userId,
+        action: "users.delete",
+        target_type: "user",
+        target_id: String(id),
+        details: {
+          username: target.username,
+          role_code: target.roles.role_code,
+        },
+      },
+    });
+  });
+
+  return { ok: true };
+}
+
 export async function createRole(input: {
   role_code: string;
   role_name: string;
