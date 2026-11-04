@@ -54,15 +54,6 @@ export async function login(
   }
 
   await createSession(user.user_id);
-  await prisma.audit_logs.create({
-    data: {
-      actor_user_id: user.user_id,
-      action: "auth.login",
-      target_type: "session",
-      details: { username: normalizedUsername },
-    },
-  });
-
   return { ok: true };
 }
 
