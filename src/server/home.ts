@@ -22,17 +22,39 @@ export interface HomeSummary {
 const UPCOMING_LIMIT = 5;
 
 export async function getHomeSummary(): Promise<HomeSummary> {
+  const auth = await requirePermission("home.view");
+  const ownStudentOnly =
+    auth.permissions.has("grades.read.own") &&
+    !auth.permissions.has("grades.read.all");
+  const ownStudent =
+    ownStudentOnly && auth.studentId
+      ? await prisma.students.findUnique({
+          where: { student_id: auth.studentId },
+          select: { student_id: true, group_id: true },
+        })
+      : null;
+
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
   const [students, groups, semester, upcomingRows] = await Promise.all([
-    prisma.students.count({ where: { status: "active" } }),
-    prisma.student_groups.count(),
+    ownStudentOnly
+      ? Promise.resolve(ownStudent ? 1 : 0)
+      : prisma.students.count({ where: { status: "active" } }),
+    ownStudentOnly
+      ? Promise.resolve(ownStudent ? 1 : 0)
+      : prisma.student_groups.count(),
     prisma.semesters.findFirst({
       orderBy: [{ academic_year_start: "desc" }, { term_number: "desc" }],
     }),
     prisma.student_performance.findMany({
-      where: {\n        assessment_date: { gte: today },\n        ...(ownStudentOnly && ownStudent ? { students: { group_id: ownStudent.group_id } } : {}),\n        ...(ownStudentOnly && !ownStudent ? { performance_id: -1n } : {}),\n      },
+      where: {
+        assessment_date: { gte: today },
+        ...(ownStudentOnly && ownStudent
+          ? { students: { group_id: ownStudent.group_id } }
+          : {}),
+        ...(ownStudentOnly && !ownStudent ? { performance_id: -1n } : {}),
+      },
       orderBy: { assessment_date: "asc" },
       take: 500,
       select: {
@@ -52,7 +74,12 @@ export async function getHomeSummary(): Promise<HomeSummary> {
   let successRate: number | null = null;
   if (semester) {
     const rows = await prisma.student_performance.findMany({
-      where: { semester_id: semester.semester_id, ...(ownStudentOnly ? { student_id: ownStudent?.student_id ?? -1n } : {}) },
+      where: {
+        semester_id: semester.semester_id,
+        ...(ownStudentOnly
+          ? { student_id: ownStudent?.student_id ?? -1n }
+          : {}),
+      },
       select: {
         student_id: true,
         subject_id: true,
