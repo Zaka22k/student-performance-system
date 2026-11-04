@@ -159,6 +159,15 @@ export const XmlIcon = ({ size, className }: IconProps) => (
   </Svg>
 );
 
+/** Администрирование: защитный щит с профилем пользователя */
+export const AdminIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M12 2.5 20 5.7v5.1c0 5.2-3.2 8.5-8 10.7-4.8-2.2-8-5.5-8-10.7V5.7z" />
+    <circle cx="12" cy="9" r="2" />
+    <path d="M8.5 16.8c.5-2.1 1.7-3.2 3.5-3.2s3 1.1 3.5 3.2" />
+  </Svg>
+);
+
 export const SettingsIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <circle cx="12" cy="12" r="3" />
