@@ -293,7 +293,7 @@ export function useUsersPage({
           current.filter((item) => item.user_id !== user.user_id),
         );
         toast.success("Пользователь удалён", {
-          description: \`Учётная запись «\${user.username}» удалена.\`,
+          description: "Учётная запись «" + user.username + "» удалена.",
         });
         router.refresh();
       },
