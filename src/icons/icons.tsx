@@ -109,6 +109,29 @@ export const TrashIcon = ({ size, className }: IconProps) => (
   </Svg>
 );
 
+export const RefreshIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M20 7v5h-5" />
+    <path d="M20 12a8 8 0 1 1-2.34-5.66L20 9" />
+  </Svg>
+);
+
+export const LockIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <rect x="4" y="10" width="16" height="11" rx="2" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    <path d="M12 14v3" />
+  </Svg>
+);
+
+export const LogOutIcon = ({ size, className }: IconProps) => (
+  <Svg size={size} className={className}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path d="M16 17l5-5-5-5" />
+    <path d="M21 12H9" />
+  </Svg>
+);
+
 export const EditIcon = ({ size, className }: IconProps) => (
   <Svg size={size} className={className}>
     <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
