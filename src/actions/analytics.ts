@@ -3,6 +3,7 @@
 import { prisma } from "@/server/lib";
 import { GRADES, assignPlaces, finalResults, summarize } from "@/server";
 import type { GroupStat, RatingItem, SubjectsResponse } from "@/models";
+import { requirePermission } from "@/server/auth/session";
 
 const fullName = (p: {
   last_name: string;
@@ -52,7 +53,7 @@ const groupBy = <T>(records: T[], keyOf: (r: T) => unknown) => {
   return map;
 };
 
-export async function getRating(q?: string): Promise<RatingItem[]> {
+export async function getRating(q?: string): Promise<RatingItem[]> {\n  await requirePermission("analytics.read");
   const [students, rating, performance] = await Promise.all([
     prisma.students.findMany({ include: { student_groups: true } }),
     prisma.reyting.findMany(),
