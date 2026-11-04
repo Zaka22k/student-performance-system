@@ -56,9 +56,9 @@ export async function verifyPassword(
   const [algorithm, cost, blockSize, parallel, salt, expectedHex] = stored.split("$");
   if (
     algorithm !== "scrypt" ||
-    !/^\d+$/.test(cost ?? "") ||
-    !/^\d+$/.test(blockSize ?? "") ||
-    !/^\d+$/.test(parallel ?? "") ||
+    cost !== String(PASSWORD_COST) ||
+    blockSize !== "8" ||
+    parallel !== "1" ||
     !/^[a-f0-9]{32}$/.test(salt ?? "") ||
     !/^[a-f0-9]{128}$/.test(expectedHex ?? "")
   ) return false;
@@ -78,34 +78,52 @@ export async function verifyPassword(
 }
 
 export async function createSession(userId: bigint): Promise<void> {
-  const user = await prisma.users.findUnique({
-    where: { user_id: userId },
-    include: {
-      roles: {
-        include: {
-          role_permissions: { include: { permissions: true } },
-        },
-      },
-    },
-  });
-  if (!user || !user.is_active) throw new AuthenticationError("Учётная запись недоступна");
-
   const token = randomBytes(32).toString("base64url");
-  const permissions = user.roles.role_permissions.map(
-    (item) => item.permissions.permission_code,
-  );
   const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000);
 
-  await prisma.sessions.create({
-    data: {
-      token_hash: hashSessionToken(token),
-      user_id: user.user_id,
-      role_code: user.roles.role_code,
-      permissions,
-      student_id: user.student_id,
-      teacher_id: user.teacher_id,
-      expires_at: expiresAt,
-    },
+  await prisma.$transaction(async (tx) => {
+    // Блокируем строку учётной записи, чтобы смена роли/активности/пароля
+    // не могла вклиниться между чтением пользователя и созданием сессии.
+    const users = await tx.$queryRaw<Array<{
+      user_id: bigint;
+      role_id: bigint;
+      student_id: bigint | null;
+      teacher_id: bigint | null;
+      is_active: boolean;
+    }>>`SELECT user_id, role_id, student_id, teacher_id, is_active
+         FROM public.users
+        WHERE user_id = ${userId}
+        FOR UPDATE`;
+    const user = users[0];
+    if (!user || !user.is_active) {
+      throw new AuthenticationError("Учётная запись недоступна");
+    }
+
+    const roles = await tx.$queryRaw<Array<{ role_code: string }>>`SELECT role_code
+         FROM public.roles
+        WHERE role_id = ${user.role_id}
+        FOR UPDATE`;
+    const role = roles[0];
+    if (!role) throw new AuthenticationError("Роль учётной записи не найдена");
+
+    const permissionRows = await tx.$queryRaw<Array<{ permission_code: string }>>`SELECT p.permission_code
+         FROM public.role_permissions rp
+         JOIN public.permissions p ON p.permission_id = rp.permission_id
+        WHERE rp.role_id = ${user.role_id}
+        ORDER BY p.permission_code
+        FOR SHARE OF rp`;
+
+    await tx.sessions.create({
+      data: {
+        token_hash: hashSessionToken(token),
+        user_id: user.user_id,
+        role_code: role.role_code,
+        permissions: permissionRows.map((item) => item.permission_code),
+        student_id: user.student_id,
+        teacher_id: user.teacher_id,
+        expires_at: expiresAt,
+      },
+    });
   });
 
   const cookieStore = await cookies();
