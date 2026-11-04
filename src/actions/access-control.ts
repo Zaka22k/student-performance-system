@@ -241,6 +241,7 @@ export async function createRole(input: {
   if (!input || typeof input.role_code !== "string" || typeof input.role_name !== "string") {
     throw new Error("Некорректные данные роли");
   }
+  if (input.description !== undefined && typeof input.description !== "string") throw new Error("Некорректное описание роли");
   const roleCode = input.role_code.trim().toLowerCase();
   const roleName = input.role_name.trim();
   if (!/^[a-z][a-z0-9_-]{1,49}$/.test(roleCode)) {
