@@ -1,17 +1,26 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  Checkbox,
+  ComboBox,
+  Page,
+  useModal,
+  useToast,
+} from "@ui-kit/components";
+import { TrashIcon } from "@/icons";
 import {
   createRole,
   deleteRole,
   replaceRolePermissions,
 } from "@/actions/access-control";
+import { getErrorMessage } from "@/utils";
+import { RoleCreateForm, type AdminRoleOption } from "../UserForms";
+import styles from "../Admin.module.css";
 
-type Role = {
-  role_id: string;
-  role_code: string;
-  role_name: string;
+type Role = AdminRoleOption & {
   description: string | null;
   permission_ids: string[];
 };
@@ -21,26 +30,31 @@ type Permission = {
   permission_name: string;
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  home: "Главная",
+  settings: "Настройки",
+  grades: "Журнал успеваемости",
+  dictionaries: "Справочники",
+  session: "Сессия",
+  analytics: "Аналитика",
+  reports: "Отчёты",
+  users: "Пользователи",
+  roles: "Роли",
+  audit: "Аудит",
+};
+
 export default function RolesAdminView({
   initialData,
 }: {
   initialData: { roles: Role[]; permissions: Permission[] };
 }) {
   const router = useRouter();
+  const { openModal } = useModal();
+  const toast = useToast();
   const [roles, setRoles] = useState(initialData.roles);
   const [activeRoleId, setActiveRoleId] = useState(initialData.roles[0]?.role_id ?? "");
   const activeRole = roles.find((role) => role.role_id === activeRoleId);
   const [selected, setSelected] = useState<string[]>(activeRole?.permission_ids ?? []);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [newCode, setNewCode] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-
-  useEffect(() => {
-    setSelected(activeRole?.permission_ids ?? []);
-  }, [activeRoleId, activeRole?.permission_ids]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Permission[]>();
@@ -53,18 +67,63 @@ export default function RolesAdminView({
     return [...map.entries()];
   }, [initialData.permissions]);
 
-  function togglePermission(id: string, checked: boolean) {
-    setSelected((current) =>
-      checked ? [...new Set([...current, id])] : current.filter((item) => item !== id),
-    );
-  }
+  const originalIds = [...(activeRole?.permission_ids ?? [])].sort();
+  const selectedIds = [...selected].sort();
+  const isDirty =
+    originalIds.length !== selectedIds.length ||
+    originalIds.some((id, index) => id !== selectedIds[index]);
 
-  function savePermissions() {
-    if (!activeRole) return;
-    setError("");
-    setNotice("");
-    startTransition(async () => {
-      try {
+  const selectedRoleOption = roles.find((role) => role.role_id === activeRoleId);
+
+  const openCreate = () => {
+    openModal({
+      title: "Создать роль",
+      actionText: "Создать роль",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (form) => (
+        <RoleCreateForm
+          {...form}
+          onSubmit={async (data) => {
+            const created = await createRole(data);
+            const role: Role = {
+              role_id: created.role_id,
+              role_code: data.role_code.toLowerCase(),
+              role_name: data.role_name,
+              description: data.description || null,
+              permission_ids: [],
+            };
+            setRoles((current) => [...current, role]);
+            setActiveRoleId(role.role_id);
+            setSelected([]);
+            toast.success("Роль создана", {
+              description: "Теперь настрой разрешения для новой роли.",
+            });
+            router.refresh();
+          }}
+        />
+      ),
+    });
+  };
+
+  const savePermissions = () => {
+    if (!activeRole || !isDirty) return;
+    openModal({
+      title: "Сохранить разрешения",
+      actionText: "Сохранить",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (
+        <div className={styles.form}>
+          <p className="BodyTextBlockStyle">
+            Будет обновлён набор разрешений роли <strong className="BodyStrongTextBlockStyle">{activeRole.role_name}</strong>.
+          </p>
+          <p className={styles.formHint}>
+            Все действующие сессии пользователей этой роли будут удалены. После этого им потребуется войти снова.
+          </p>
+        </div>
+      ),
+      onAction: async () => {
         await replaceRolePermissions(activeRole.role_id, selected);
         setRoles((current) =>
           current.map((role) =>
@@ -73,124 +132,226 @@ export default function RolesAdminView({
               : role,
           ),
         );
-        setNotice(`Разрешения роли «${activeRole.role_name}» сохранены. Её активные сессии удалены.`);
-        router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось сохранить разрешения");
-      }
-    });
-  }
-
-  function submitRole(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setNotice("");
-    startTransition(async () => {
-      try {
-        const created = await createRole({
-          role_code: newCode,
-          role_name: newName,
-          description: newDescription,
+        toast.success("Разрешения сохранены", {
+          description: `Сессии пользователей роли «${activeRole.role_name}» отозваны.`,
         });
-        const newRole: Role = {
-          role_id: created.role_id,
-          role_code: newCode.trim().toLowerCase(),
-          role_name: newName.trim(),
-          description: newDescription.trim() || null,
-          permission_ids: [],
-        };
-        setRoles((current) => [...current, newRole]);
-        setActiveRoleId(created.role_id);
-        setSelected([]);
-        setNewCode("");
-        setNewName("");
-        setNewDescription("");
-        setNotice("Роль создана. Назначьте ей разрешения.");
         router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось создать роль");
-      }
+      },
     });
-  }
+  };
 
-  function removeRole() {
+  const confirmDelete = () => {
     if (!activeRole) return;
-    setError("");
-    startTransition(async () => {
-      try {
+    openModal({
+      title: "Удалить роль",
+      actionText: "Удалить",
+      actionAppearance: "destructive",
+      errorMessage: getErrorMessage,
+      content: (
+        <div className={styles.form}>
+          <p className="BodyTextBlockStyle">
+            Удалить роль <strong className="BodyStrongTextBlockStyle">{activeRole.role_name}</strong>?
+          </p>
+          <p className={styles.formHint}>
+            Базовые роли нельзя удалять. Роль не должна быть назначена ни одному пользователю.
+          </p>
+        </div>
+      ),
+      onAction: async () => {
         await deleteRole(activeRole.role_id);
         const remaining = roles.filter((role) => role.role_id !== activeRole.role_id);
         setRoles(remaining);
         setActiveRoleId(remaining[0]?.role_id ?? "");
         setSelected(remaining[0]?.permission_ids ?? []);
-        setNotice("Роль удалена");
+        toast.success("Роль удалена");
         router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Не удалось удалить роль");
-      }
+      },
     });
-  }
+  };
+
+  const togglePermission = (permissionId: string, checked: boolean) => {
+    setSelected((current) =>
+      checked
+        ? [...new Set([...current, permissionId])]
+        : current.filter((id) => id !== permissionId),
+    );
+  };
+
+  const selectedCount = selected.length;
+  const builtInRole = activeRole
+    ? ["admin", "teacher", "student"].includes(activeRole.role_code)
+    : true;
 
   return (
-    <main style={{ display: "grid", gap: 24, padding: 24 }}>
-      <header>
-        <h1>Роли и разрешения</h1>
-        <p>Разрешения сохраняются в роли. При изменении набора разрешений сессии пользователей этой роли отзываются триггером PostgreSQL.</p>
-      </header>
-
-      <section style={{ display: "grid", gap: 12, maxWidth: 560, border: "1px solid var(--border, #ddd)", borderRadius: 12, padding: 20 }}>
-        <h2>Создать роль</h2>
-        <form onSubmit={submitRole} style={{ display: "grid", gap: 10 }}>
-          <label style={{ display: "grid", gap: 5 }}>Код роли<input value={newCode} onChange={(event) => setNewCode(event.target.value)} required maxLength={50} placeholder="например, curator" /></label>
-          <label style={{ display: "grid", gap: 5 }}>Название<input value={newName} onChange={(event) => setNewName(event.target.value)} required maxLength={100} /></label>
-          <label style={{ display: "grid", gap: 5 }}>Описание<textarea value={newDescription} onChange={(event) => setNewDescription(event.target.value)} rows={2} /></label>
-          <button type="submit" disabled={pending}>Создать роль</button>
-        </form>
-      </section>
-
-      <section style={{ display: "grid", gap: 16 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <h2 style={{ margin: 0 }}>Настройка разрешений</h2>
-          <select value={activeRoleId} onChange={(event) => setActiveRoleId(event.target.value)}>
-            {roles.map((role) => <option key={role.role_id} value={role.role_id}>{role.role_name} ({role.role_code})</option>)}
-          </select>
-          {activeRole && !["admin", "teacher", "student"].includes(activeRole.role_code) && (
-            <button type="button" disabled={pending} onClick={removeRole}>Удалить роль</button>
-          )}
+    <Page
+      title="Роли и разрешения"
+      toolbar={{
+        trailing: (
+          <>
+            <Button onClick={openCreate}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                <span aria-hidden="true">＋</span> Новая роль
+              </span>
+            </Button>
+            <Button
+              appearance="primary"
+              disabled={!activeRole || !isDirty}
+              onClick={savePermissions}
+            >
+              Сохранить изменения
+            </Button>
+          </>
+        ),
+      }}
+    >
+      <div className={styles.content}>
+        <div className={styles.intro}>
+          <div className={styles.introCopy}>
+            <span className={styles.eyebrow}>Ролевая модель доступа</span>
+            <p className={styles.description}>
+              Разрешения определяют действия пользователя в системе. При изменении состава прав PostgreSQL отзывает все сессии соответствующей роли.
+            </p>
+          </div>
         </div>
 
-        {activeRole && (
-          <>
-            <p>{activeRole.description ?? "Описание не задано"}</p>
-            <div style={{ display: "grid", gap: 18 }}>
-              {grouped.map(([category, permissions]) => (
-                <section key={category} style={{ border: "1px solid var(--border, #ddd)", borderRadius: 12, padding: 16 }}>
-                  <h3 style={{ marginTop: 0 }}>{category}</h3>
-                  <div style={{ display: "grid", gap: 10 }}>
-                    {permissions.map((permission) => (
-                      <label key={permission.permission_id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(permission.permission_id)}
-                          onChange={(event) => togglePermission(permission.permission_id, event.target.checked)}
-                        />
-                        <span>
-                          <strong>{permission.permission_name}</strong>
-                          <span style={{ display: "block", opacity: 0.65, fontSize: 12 }}>{permission.permission_code}</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-            <button type="button" disabled={pending} onClick={savePermissions}>Сохранить разрешения</button>
-          </>
-        )}
-      </section>
+        <div className={styles.stats}>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Ролей в системе</span>
+            <strong className={styles.statValue}>{roles.length}</strong>
+            <span className={styles.statHint}>Базовые и пользовательские</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Всего разрешений</span>
+            <strong className={styles.statValue}>{initialData.permissions.length}</strong>
+            <span className={styles.statHint}>Доступные системные действия</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>У роли выбрано</span>
+            <strong className={styles.statValue}>{selectedCount}</strong>
+            <span className={styles.statHint}>Разрешения текущего профиля</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Состояние редактора</span>
+            <strong className={styles.statValue} style={{ fontSize: "var(--font-subtitle)" }}>
+              {isDirty ? "Есть изменения" : "Сохранено"}
+            </strong>
+            <span className={styles.statHint}>Сверка с текущими правами в БД</span>
+          </div>
+        </div>
 
-      {error && <p role="alert" style={{ color: "#b42318" }}>{error}</p>}
-      {notice && <p role="status">{notice}</p>}
-    </main>
+        {activeRole ? (
+          <div className={styles.roleLayout}>
+            <section className={styles.panel}>
+              <div className={styles.roleHeader}>
+                <div className={styles.roleMeta}>
+                  <span className={styles.eyebrow}>Выбранная роль</span>
+                  <h2 className={styles.panelTitle}>{activeRole.role_name}</h2>
+                  <span className={styles.roleCode}>{activeRole.role_code}</span>
+                  <p className={styles.panelDescription}>
+                    {activeRole.description || "Описание для этой роли пока не задано."}
+                  </p>
+                </div>
+                <div className={styles.form}>
+                  <ComboBox
+                    className={styles.roleSelector}
+                    label="Переключиться на роль"
+                    options={roles}
+                    getOptionValue={(role) => role.role_id}
+                    getOptionLabel={(role) => `${role.role_name} · ${role.role_code}`}
+                    value={activeRoleId}
+                    onChange={(value) => {
+                      const next = roles.find((role) => role.role_id === value);
+                      setActiveRoleId(value);
+                      setSelected(next?.permission_ids ?? []);
+                    }}
+                  />
+                  {selectedRoleOption && !builtInRole && (
+                    <Button
+                      appearance="destructive"
+                      onClick={confirmDelete}
+                      icon={<TrashIcon />}
+                      aria-label="Удалить роль"
+                      width={36}
+                    />
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <div className={styles.permissionGroups}>
+              {grouped.map(([category, permissions]) => {
+                const groupSelected = permissions.filter((permission) =>
+                  selected.includes(permission.permission_id),
+                ).length;
+                const allChecked = groupSelected === permissions.length;
+                const someChecked = groupSelected > 0 && !allChecked;
+                return (
+                  <section key={category} className={styles.permissionGroup}>
+                    <header className={styles.permissionGroupHeader}>
+                      <h3 className={styles.permissionGroupTitle}>
+                        {CATEGORY_LABELS[category] ?? category}
+                      </h3>
+                      <span className={styles.permissionCount}>
+                        {groupSelected} / {permissions.length}
+                      </span>
+                    </header>
+                    <div className={styles.permissionList}>
+                      <div className={styles.permissionItem}>
+                        <div className={styles.permissionText}>
+                          <span className={styles.permissionName}>Все разрешения раздела</span>
+                          <span className={styles.permissionCode}>Выбрать группу целиком</span>
+                        </div>
+                        <Checkbox
+                          aria-label={`Выбрать все разрешения раздела ${category}`}
+                          checked={allChecked}
+                          indeterminate={someChecked}
+                          onChange={(event) => {
+                            const ids = permissions.map((permission) => permission.permission_id);
+                            setSelected((current) => {
+                              const next = new Set(current);
+                              if (event.target.checked) ids.forEach((id) => next.add(id));
+                              else ids.forEach((id) => next.delete(id));
+                              return [...next];
+                            });
+                          }}
+                        />
+                      </div>
+                      {permissions.map((permission) => (
+                        <div key={permission.permission_id} className={styles.permissionItem}>
+                          <div className={styles.permissionText}>
+                            <span className={styles.permissionName}>{permission.permission_name}</span>
+                            <span className={styles.permissionCode}>{permission.permission_code}</span>
+                          </div>
+                          <Checkbox
+                            aria-label={permission.permission_name}
+                            checked={selected.includes(permission.permission_id)}
+                            onChange={(event) =>
+                              togglePermission(permission.permission_id, event.target.checked)
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+
+            {isDirty && (
+              <div className={styles.formHint}>
+                Изменения ещё не сохранены. После сохранения пользователям роли потребуется войти повторно.
+              </div>
+            )}
+          </div>
+        ) : (
+          <section className={styles.panel}>
+            <div className={styles.emptyState}>
+              <strong>Ролей пока нет</strong>
+              <span>Создай первую роль, чтобы настроить для неё разрешения.</span>
+            </div>
+          </section>
+        )}
+      </div>
+    </Page>
   );
 }
