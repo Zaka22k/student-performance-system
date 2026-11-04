@@ -15,6 +15,7 @@ export type AuditEntry = {
 export const ACTION_LABELS: Record<string, string> = {
   "auth.login": "Вход в систему",
   "auth.logout": "Выход из системы",
+  "auth.session.revoke": "Отзыв сессии",
   "auth.login_failed": "Неудачная попытка входа",
   "users.bootstrap_admin": "Создание администратора",
   "users.create": "Создание пользователя",
