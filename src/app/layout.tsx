@@ -53,7 +53,7 @@ export default async function RootLayout({
     (cookieStore.get("app-accent")?.value as AccentColor) || "green";
   const session = await getCurrentSession();
   const currentUser = session
-    ? { username: session.username, roleCode: session.roleCode, permissions: [...session.permissions] }
+    ? { permissions: [...session.permissions] }
     : null;
   const pathname = (await headers()).get("x-app-pathname");
   if (!session && pathname !== "/login") redirect("/login");
