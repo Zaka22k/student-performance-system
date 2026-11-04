@@ -61,7 +61,7 @@ export default function AccountPageView({
       width: 190,
       cell: (session) => formatDate(session.expires_at),
     },
-  ], [page.revokeSession]);
+  ], []);
 
   return (
     <Page title="Учётная запись">
