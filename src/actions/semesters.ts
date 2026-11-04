@@ -3,6 +3,7 @@
 import { createCrudService } from "@/server/lib";
 import { semesterSchema } from "@/schemas";
 import type { Semester, SemesterInput } from "@/models";
+import { requireAnyPermission } from "@/server/auth/session";
 
 const service = createCrudService<unknown, Semester>({
   model: "semesters",
@@ -13,6 +14,7 @@ const service = createCrudService<unknown, Semester>({
   },
   dateFields: ["start_date", "end_date"],
   schema: semesterSchema,
+  readPermission: null,
   messages: {
     notFound: "Семестр не найден",
     unique: "Такой семестр уже существует",
@@ -22,10 +24,12 @@ const service = createCrudService<unknown, Semester>({
 });
 
 export async function getSemesters(q?: string): Promise<Semester[]> {
+  await requireAnyPermission(["dictionaries.read", "session.schedule.read.own", "reports.student_book.own"]);
   return service.list(q);
 }
 
 export async function getSemester(id: string): Promise<Semester> {
+  await requireAnyPermission(["dictionaries.read", "session.schedule.read.own", "reports.student_book.own"]);
   return service.getById(id);
 }
 
