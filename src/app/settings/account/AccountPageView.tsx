@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Button, DataGrid, Page, type DataGridColumn } from "@ui-kit/components";
+import { LockIcon, LogOutIcon } from "@/icons";
 import { useAccountPage } from "./useAccountPage";
 import type { AccountSessionRecord } from "@/server/account";
 import styles from "../SettingsPage.module.css";
@@ -60,23 +61,6 @@ export default function AccountPageView({
       width: 190,
       cell: (session) => formatDate(session.expires_at),
     },
-    {
-      id: "action",
-      header: "Действие",
-      width: 125,
-      minWidth: 115,
-      cell: (session) => (
-        <Button
-          appearance="destructive"
-          onClick={(event) => {
-            event.stopPropagation();
-            page.revokeSession(session);
-          }}
-        >
-          {session.is_current ? "Выйти" : "Отозвать"}
-        </Button>
-      ),
-    },
   ], [page.revokeSession]);
 
   return (
@@ -120,6 +104,15 @@ export default function AccountPageView({
             columns={columns}
             getRowId={(session) => session.session_id}
             emptyContent="Активных сессий нет"
+            rowMenu={({ row }) => [
+              {
+                id: "revoke-session",
+                label: row.is_current ? "Выйти" : "Отозвать сессию",
+                icon: row.is_current ? <LogOutIcon size={16} /> : <LockIcon size={16} />,
+                danger: true,
+                onSelect: () => page.revokeSession(row),
+              },
+            ]}
           />
         </section>
       </div>
