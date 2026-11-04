@@ -1,7 +1,5 @@
-import { requirePermission } from "@/server/auth/session";
-import SettingsPageView from "./SettingsPageView";
+import { redirect } from "next/navigation";
 
-export default async function SettingsPage() {
-  await requirePermission("settings.use");
-  return <SettingsPageView />;
+export default function SettingsPage() {
+  redirect("/settings/appearance");
 }
