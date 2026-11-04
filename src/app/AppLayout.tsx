@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   NavigationView,
@@ -9,7 +9,6 @@ import {
   NavCategory,
   NavSubItem,
 } from "@ui-kit/components";
-import { logout } from "@/actions/auth";
 import { useOnlineStatus } from "@/hooks";
 import {
   JournalIcon,
@@ -21,15 +20,12 @@ import {
   AdminIcon,
   HomeIcon,
 } from "@/icons";
-import styles from "./AppLayout.module.css";
 
 type AuthView = {
-  username: string;
-  roleCode: string;
   permissions: string[];
 };
 
-const CATEGORY_PREFIXES = ["session", "analytics", "reports", "admin"];
+const CATEGORY_PREFIXES = ["session", "analytics", "reports", "admin", "settings"];
 const DICTIONARY_PAGES = ["groups", "students", "teachers", "subjects", "semesters"];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -60,7 +56,6 @@ export default function AppLayout({
   currentUser: AuthView | null;
 }) {
   useOnlineStatus();
-  const router = useRouter();
   const pathname = usePathname();
 
   if (!currentUser) {
@@ -88,29 +83,10 @@ export default function AppLayout({
   const canSeeDictionaries = can("dictionaries.read");
   const canSeeAdmin = can("users.manage", "roles.manage", "audit.read");
 
-  async function signOut() {
-    await logout();
-    router.replace("/login");
-    router.refresh();
-  }
-
   return (
     <div style={{ height: "100vh" }}>
       <NavigationView
         paneTitle="АСУ «Успеваемость»"
-        paneHeader={
-          <div className={styles.userPane}>
-            <div className={styles.userAvatar} aria-hidden="true">
-              {currentUser.username.slice(0, 2).toLocaleUpperCase("ru")}
-            </div>
-            <div className={styles.userIdentity}>
-              <span className={styles.userName}>{currentUser.username}</span>
-              <span className={styles.userRole}>
-                {ROLE_LABELS[currentUser.roleCode] ?? currentUser.roleCode}
-              </span>
-            </div>
-          </div>
-        }
         extendContentUnderPane
         selectedValue={selected}
         pageKey={pathname}
@@ -190,18 +166,22 @@ export default function AppLayout({
                 )}
               </NavCategory>
             )}
-          </>
-        }
-        footerMenuItems={
-          <>
-            {can("settings.use") && (
-              <NavItem icon={<SettingsIcon />} as={Link} href="/settings" value="/settings">
-                Настройки
-              </NavItem>
-            )}
-            <NavItem onClick={signOut}>
-              Выйти из системы
-            </NavItem>
+            <NavCategory value="settings" icon={<SettingsIcon />} title="Настройки">
+              <NavSubItem
+                as={Link}
+                href="/settings/appearance"
+                value="/settings/appearance"
+              >
+                Оформление
+              </NavSubItem>
+              <NavSubItem
+                as={Link}
+                href="/settings/account"
+                value="/settings/account"
+              >
+                Учётная запись
+              </NavSubItem>
+            </NavCategory>
           </>
         }
       >
