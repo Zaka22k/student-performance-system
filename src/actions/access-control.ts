@@ -187,6 +187,47 @@ export async function resetUserPassword(userId: string, password: string) {
   return { ok: true };
 }
 
+
+export async function createRole(input: {
+  role_code: string;
+  role_name: string;
+  description?: string;
+}) {
+  const actor = await requirePermission("roles.manage");
+  const roleCode = input.role_code.trim().toLowerCase();
+  const roleName = input.role_name.trim();
+  if (!/^[a-z][a-z0-9_-]{1,49}$/.test(roleCode)) {
+    throw new Error("Код роли должен содержать 2–50 символов: латинские буквы, цифры, дефис и подчёркивание");
+  }
+  if (!roleName || roleName.length > 100) throw new Error("Укажите название роли (до 100 символов)");
+  const role = await prisma.roles.create({
+    data: {
+      role_code: roleCode,
+      role_name: roleName,
+      description: input.description?.trim() || null,
+    },
+    select: { role_id: true },
+  });
+  await writeAudit(actor.userId, "roles.create", "role", String(role.role_id), { role_code: roleCode });
+  return { role_id: String(role.role_id) };
+}
+
+export async function deleteRole(roleId: string) {
+  const actor = await requirePermission("roles.manage");
+  const id = parseId(roleId, "роль");
+  const role = await prisma.roles.findUnique({
+    where: { role_id: id },
+    select: { role_code: true },
+  });
+  if (!role) throw new Error("Роль не найдена");
+  if (["admin", "teacher", "student"].includes(role.role_code)) {
+    throw new Error("Базовые роли системы нельзя удалить");
+  }
+  await prisma.roles.delete({ where: { role_id: id } });
+  await writeAudit(actor.userId, "roles.delete", "role", String(id), { role_code: role.role_code });
+  return { ok: true };
+}
+
 export async function getRolePermissionMatrix() {
   await requirePermission("roles.manage");
   const [roles, permissions, links] = await Promise.all([
