@@ -289,6 +289,8 @@ export async function replaceRolePermissions(
   }
 
   await prisma.$transaction(async (tx) => {
+    // Сериализуем изменения набора прав с созданием сессии этого role_id.
+    await tx.$queryRaw`SELECT role_id FROM public.roles WHERE role_id = ${id} FOR UPDATE`;
     await tx.role_permissions.deleteMany({ where: { role_id: id } });
     if (uniqueIds.length) {
       await tx.role_permissions.createMany({
