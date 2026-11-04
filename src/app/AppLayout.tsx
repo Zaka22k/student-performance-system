@@ -28,12 +28,6 @@ type AuthView = {
 const CATEGORY_PREFIXES = ["session", "analytics", "reports", "admin", "settings"];
 const DICTIONARY_PAGES = ["groups", "students", "teachers", "subjects", "semesters"];
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: "Администратор",
-  teacher: "Преподаватель",
-  student: "Студент",
-};
-
 const selectedFromPath = (pathname: string): string => {
   const [first, second] = pathname.split("/").filter(Boolean);
   if (!first) return "/";
