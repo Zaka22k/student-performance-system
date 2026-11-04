@@ -18,6 +18,7 @@ import {
   AnalyticsIcon,
   ReportsIcon,
   SettingsIcon,
+  AdminIcon,
   HomeIcon,
 } from "@/icons";
 import styles from "./AppLayout.module.css";
@@ -177,7 +178,7 @@ export default function AppLayout({
             )}
 
             {canSeeAdmin && (
-              <NavCategory value="admin" icon={<SettingsIcon />} title="Администрирование">
+              <NavCategory value="admin" icon={<AdminIcon />} title="Администрирование">
                 {can("users.manage") && (
                   <NavSubItem as={Link} href="/admin/users" value="/admin/users">Пользователи</NavSubItem>
                 )}
