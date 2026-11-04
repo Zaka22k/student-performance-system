@@ -1,8 +1,9 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { requirePermission } from "@/server/auth/session";
 
-export async function setThemeCookie(theme: string) {
+export async function setThemeCookie(theme: string) {\n  await requirePermission("settings.use");
   const cookieStore = await cookies();
   cookieStore.set("app-theme", theme, {
     path: "/",
@@ -11,7 +12,7 @@ export async function setThemeCookie(theme: string) {
   });
 }
 
-export async function setAccentCookie(accent: string) {
+export async function setAccentCookie(accent: string) {\n  await requirePermission("settings.use");
   const cookieStore = await cookies();
   cookieStore.set("app-accent", accent, {
     path: "/",
