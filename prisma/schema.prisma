@@ -80,7 +80,7 @@ model students {
   reyting             reyting?
   student_performance student_performance[]
   student_groups      student_groups        @relation(fields: [group_id], references: [group_id], onUpdate: NoAction)
-  users               users[]
+  users               users?
 
   @@index([group_id], map: "idx_students_group_id")
   @@index([last_name, first_name], map: "idx_students_name")
@@ -94,7 +94,6 @@ model subjects {
   total_hours         Int                   @db.SmallInt
   credits             Decimal               @db.Decimal(4, 1)
   student_performance student_performance[]
-  users               users[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -105,6 +104,7 @@ model teachers {
   middle_name         String?               @db.VarChar(50)
   email               String?               @unique(map: "uq_teachers_email") @db.VarChar(254)
   student_performance student_performance[]
+  users               users?
 }
 
 
