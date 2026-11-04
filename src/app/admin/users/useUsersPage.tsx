@@ -6,6 +6,7 @@ import { useModal, useToast } from "@ui-kit/components";
 import {
   changeUserRole,
   createUser,
+  deleteUser,
   resetUserPassword,
   setUserActive,
 } from "@/actions/access-control";
@@ -271,6 +272,34 @@ export function useUsersPage({
     });
   };
 
+  const openDeleteUser = (user: AdminUser) => {
+    openModal({
+      title: "Удалить пользователя",
+      actionText: "Удалить пользователя",
+      actionAppearance: "destructive",
+      closeOnBackdropClick: false,
+      errorMessage: getErrorMessage,
+      content: (
+        <p className="BodyTextBlockStyle">
+          Учётная запись{" "}
+          <strong className="BodyStrongTextBlockStyle">{user.username}</strong>{" "}
+          будет удалена вместе со всеми активными сессиями. Связанная карточка
+          студента или преподавателя и записи журнала аудита сохранятся.
+        </p>
+      ),
+      onAction: async () => {
+        await deleteUser(user.user_id);
+        setUsers((current) =>
+          current.filter((item) => item.user_id !== user.user_id),
+        );
+        toast.success("Пользователь удалён", {
+          description: \`Учётная запись «\${user.username}» удалена.\`,
+        });
+        router.refresh();
+      },
+    });
+  };
+
   return {
     users,
     filteredUsers,
@@ -283,5 +312,6 @@ export function useUsersPage({
     openChangeRole,
     openResetPassword,
     openToggleActive,
+    openDeleteUser,
   };
 }
