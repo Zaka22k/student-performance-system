@@ -152,14 +152,18 @@ export async function getCurrentSession(): Promise<SessionContext | null> {
 
   if (!session) return null;
   if (!session.users.is_active || session.expires_at.getTime() <= Date.now()) {
+    await prisma.sessions.deleteMany({
+      where: { session_id: session.session_id },
+    });
     return null;
   }
 
   if (Date.now() - session.last_seen_at.getTime() > 5 * 60 * 1000) {
-    await prisma.sessions.update({
+    const heartbeat = await prisma.sessions.updateMany({
       where: { session_id: session.session_id },
       data: { last_seen_at: new Date() },
     });
+    if (heartbeat.count === 0) return null;
   }
 
   return {
