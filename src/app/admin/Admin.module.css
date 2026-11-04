@@ -1,0 +1,368 @@
+.content {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 8px 24px 40px;
+  display: grid;
+  gap: 22px;
+}
+
+.intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.introCopy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.eyebrow {
+  color: var(--control-accent);
+  font-size: var(--font-caption);
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.description {
+  max-width: 760px;
+  color: var(--label-secondary);
+  font-size: var(--font-body);
+  line-height: 1.55;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 17px 18px;
+  border: 1px solid var(--separator);
+  border-radius: 14px;
+  background: var(--grouped-bg);
+}
+
+.statLabel {
+  color: var(--label-secondary);
+  font-size: var(--font-caption);
+  line-height: 1.35;
+}
+
+.statValue {
+  color: var(--text-primary);
+  font-size: var(--font-title);
+  line-height: 1.05;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.statHint {
+  color: var(--label-tertiary);
+  font-size: var(--font-caption);
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--separator);
+  border-radius: 16px;
+  background: var(--grouped-secondary-bg);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panelTitle {
+  color: var(--text-primary);
+  font-size: var(--font-body-large);
+  font-weight: 650;
+}
+
+.panelDescription {
+  margin-top: 4px;
+  color: var(--label-secondary);
+  font-size: var(--font-caption);
+  line-height: 1.5;
+}
+
+.tableWrap {
+  min-width: 0;
+}
+
+.cellMain {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cellTitle {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellMeta {
+  overflow: hidden;
+  color: var(--label-secondary);
+  font-size: var(--font-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: var(--font-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.statusActive {
+  color: var(--system-green);
+  border-color: color-mix(in srgb, var(--system-green) 20%, transparent);
+  background: color-mix(in srgb, var(--system-green) 10%, transparent);
+}
+
+.statusInactive {
+  color: var(--label-secondary);
+  border-color: var(--separator);
+  background: var(--fill-tertiary);
+}
+
+.statusWarning {
+  color: var(--system-orange);
+  border-color: color-mix(in srgb, var(--system-orange) 22%, transparent);
+  background: color-mix(in srgb, var(--system-orange) 10%, transparent);
+}
+
+.toolbarSearch {
+  width: min(30vw, 320px);
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.formHint {
+  padding: 11px 13px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--fill-quaternary);
+  color: var(--label-secondary);
+  font-size: var(--font-caption);
+  line-height: 1.5;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.roleHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  align-items: end;
+  gap: 16px;
+}
+
+.roleMeta {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.roleCode {
+  color: var(--label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-caption);
+}
+
+.permissionGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.permissionGroup {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--separator);
+  border-radius: 13px;
+  background: var(--grouped-bg);
+}
+
+.permissionGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.permissionGroupTitle {
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  font-weight: 650;
+}
+
+.permissionCount {
+  color: var(--label-tertiary);
+  font-size: var(--font-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.permissionList {
+  display: grid;
+  gap: 0;
+  padding: 4px 14px;
+}
+
+.permissionItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--separator);
+}
+
+.permissionItem:last-child {
+  border-bottom: 0;
+}
+
+.permissionText {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.permissionName {
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  line-height: 1.35;
+}
+
+.permissionCode {
+  color: var(--label-tertiary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.roleLayout {
+  display: grid;
+  gap: 18px;
+}
+
+.roleActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auditDetails {
+  max-width: 360px;
+  overflow: hidden;
+  color: var(--label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 18px;
+  color: var(--label-secondary);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .permissionGroups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding: 4px 16px 28px;
+    gap: 16px;
+  }
+
+  .intro {
+    display: grid;
+  }
+
+  .stats {
+    gap: 8px;
+  }
+
+  .stat {
+    padding: 13px;
+  }
+
+  .statValue {
+    font-size: var(--font-subtitle);
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 13px;
+  }
+
+  .formGrid,
+  .roleHeader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbarSearch {
+    width: min(44vw, 220px);
+  }
+}
