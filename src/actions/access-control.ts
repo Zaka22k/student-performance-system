@@ -417,7 +417,7 @@ export async function getAuditLogs(limit = 100) {
   });
   return rows.map((row) => ({
     audit_id: String(row.audit_id),
-    actor: row.users?.username ?? "Удалённый пользователь",
+    actor: row.users?.username ?? (row.action === "auth.login_failed" ? `Неудачный вход: ${row.target_id ?? "неизвестный логин"}` : "Удалённый пользователь"),
     action: row.action,
     target_type: row.target_type,
     target_id: row.target_id,
