@@ -18,11 +18,11 @@ export default async function AdminUsersPage() {
       initialUsers={users}
       roles={roles}
       students={students.map((student) => ({
-        student_id: student.student_id,
+        id: student.student_id,
         label: `${student.last_name} ${student.first_name} · ${student.student_number}`,
       }))}
       teachers={teachers.map((teacher) => ({
-        teacher_id: teacher.teacher_id,
+        id: teacher.teacher_id,
         label: [teacher.last_name, teacher.first_name, teacher.middle_name].filter(Boolean).join(" "),
       }))}
     />
