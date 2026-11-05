@@ -3,6 +3,11 @@
   height: 260px;
   overflow: hidden;
   isolation: isolate;
+  --accent-text: color-mix(
+    in srgb,
+    var(--control-accent) 72%,
+    var(--text-primary)
+  );
   background:
     radial-gradient(
       ellipse 340px 230px at 11% 48%,
@@ -47,22 +52,6 @@
   pointer-events: none;
 }
 
-.coverStart {
-  stop-color: var(--control-accent);
-}
-
-.coverEnd {
-  stop-color: color-mix(in srgb, var(--control-accent) 55%, var(--label-secondary));
-}
-
-.paperStart {
-  stop-color: var(--elevated-bg);
-}
-
-.paperEnd {
-  stop-color: color-mix(in srgb, var(--control-accent) 3%, var(--elevated-bg));
-}
-
 .bookAura {
   fill: color-mix(in srgb, var(--control-accent) 8%, transparent);
 }
@@ -83,7 +72,7 @@
 }
 
 .bookCover {
-  fill: url(#hero-book-cover);
+  fill: color-mix(in srgb, var(--control-accent) 62%, var(--label-secondary));
   stroke: color-mix(in srgb, var(--control-accent) 70%, var(--label-secondary));
   stroke-width: 1;
   stroke-linejoin: round;
@@ -137,7 +126,7 @@
 }
 
 .heroPaper {
-  fill: url(#hero-paper);
+  fill: var(--elevated-bg);
   stroke: var(--window-border);
   stroke-width: 1;
 }
