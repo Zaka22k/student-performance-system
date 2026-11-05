@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { Button, Page, TabBar } from "@ui-kit/components";
 import SettingsHero from "../SettingsHero";
 import {
@@ -89,7 +90,7 @@ export default function AppearancePageView() {
               style={
                 {
                   "--preview-accent": activeAccent.cssVar,
-                } as React.CSSProperties
+                } as CSSProperties
               }
             >
               <aside className={styles.previewSidebar}>
