@@ -50,6 +50,23 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
     ? Math.round((page.selectedCount / total) * 100)
     : 0;
 
+  // Распределяем длинные и короткие карточки по строкам, чтобы высота сетки
+  // менялась постепенно, а не образовывала отдельные высокие и низкие ряды.
+  const sortedGroups = [...page.grouped].sort(
+    (a, b) => b[1].length - a[1].length,
+  );
+  const balancedGroups: typeof page.grouped = [];
+  let first = 0;
+  let last = sortedGroups.length - 1;
+  while (first <= last) {
+    balancedGroups.push(sortedGroups[first]);
+    first += 1;
+    if (first <= last) {
+      balancedGroups.push(sortedGroups[last]);
+      last -= 1;
+    }
+  }
+
   return (
     <Page
       title="Роли и разрешения"
@@ -164,7 +181,7 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
               </section>
 
               <div className={styles.groups}>
-                {page.grouped.map(([category, permissions]) => {
+                {balancedGroups.map(([category, permissions]) => {
                   const label = CATEGORY_LABELS[category] ?? category;
                   const groupSelected = permissions.filter((permission) =>
                     page.selected.includes(permission.permission_id),
