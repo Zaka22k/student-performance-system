@@ -17,17 +17,6 @@ export default function HomeHero() {
         preserveAspectRatio="xMinYMid meet"
         focusable="false"
       >
-        <defs>
-          <linearGradient id="hero-book-cover" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" className={styles.coverStart} />
-            <stop offset="1" className={styles.coverEnd} />
-          </linearGradient>
-          <linearGradient id="hero-paper" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" className={styles.paperStart} />
-            <stop offset="1" className={styles.paperEnd} />
-          </linearGradient>
-        </defs>
-
         {/* Иллюстрация раскрытой книги — остаётся заметной под навигацией. */}
         <circle className={styles.bookAura} cx="132" cy="130" r="112" />
         <circle className={styles.bookRing} cx="132" cy="130" r="91" />
@@ -153,20 +142,20 @@ export default function HomeHero() {
 
         {/* Небольшая печать завершённой ведомости справа от листа. */}
         <g className={styles.statusCard}>
-          <rect x="970" y="78" width="126" height="104" rx="18" />
-          <circle cx="1033" cy="111" r="19" />
-          <path d="m1025 111 6 6 11-13" />
-          <text x="1033" y="150" textAnchor="middle">
+          <rect x="900" y="78" width="126" height="104" rx="18" />
+          <circle cx="963" cy="111" r="19" />
+          <path d="m955 111 6 6 11-13" />
+          <text x="963" y="150" textAnchor="middle">
             РЕЗУЛЬТАТЫ
           </text>
-          <text x="1033" y="165" textAnchor="middle">
+          <text x="963" y="165" textAnchor="middle">
             УЧТЕНЫ
           </text>
         </g>
 
-        <path className={styles.decorativeStroke} d="M1000 44c22-16 47-16 69 0" />
-        <circle className={styles.decorativeDot} cx="1081" cy="205" r="4" />
-        <circle className={styles.decorativeDotSoft} cx="1059" cy="218" r="3" />
+        <path className={styles.decorativeStroke} d="M930 44c22-16 47-16 69 0" />
+        <circle className={styles.decorativeDot} cx="1011" cy="205" r="4" />
+        <circle className={styles.decorativeDotSoft} cx="989" cy="218" r="3" />
       </svg>
     </div>
   );
