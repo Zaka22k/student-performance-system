@@ -6,7 +6,7 @@ import {
   Page,
   SearchField,
   type DataGridColumn,
-  TabBar,
+  SegmentedControl,
 } from "@ui-kit/components";
 import {
   ACTION_LABELS,
@@ -27,12 +27,8 @@ export default function AuditPageView({ initialRows }: AuditPageViewProps) {
   const [activeFilter, setActiveFilter] = useState(page.filter);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      page.setFilter(activeFilter);
-    }, 80);
-
-    return () => clearTimeout(timer);
-  }, [activeFilter]);
+    page.setFilter(activeFilter);
+  }, [activeFilter, page]);
 
   const columns = useMemo<DataGridColumn<AuditEntry>[]>(
     () => [
@@ -112,14 +108,6 @@ export default function AuditPageView({ initialRows }: AuditPageViewProps) {
     <Page
       title="Журнал действий"
       toolbar={{
-        center: (
-          <TabBar
-            value={activeFilter}
-            onValueChange={setActiveFilter}
-            items={AUDIT_FILTERS}
-            aria-label="Тип событий"
-          />
-        ),
         trailing: (
           <SearchField
             className={styles.toolbarSearch}
@@ -131,14 +119,29 @@ export default function AuditPageView({ initialRows }: AuditPageViewProps) {
         ),
       }}
     >
-      <DataGrid
-        aria-label="Журнал аудита"
-        rows={page.rows}
-        columns={columns}
-        getRowId={(row) => row.audit_id}
-        resetKey={`${page.query}|${page.filter}`}
-        emptyContent="События не найдены. Измените запрос или выберите другой тип событий."
-      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+          marginTop: "24px",
+        }}
+      >
+        <SegmentedControl
+          value={activeFilter}
+          onValueChange={setActiveFilter}
+          items={AUDIT_FILTERS}
+          aria-label="Тип событий"
+        />
+        <DataGrid
+          aria-label="Журнал аудита"
+          rows={page.rows}
+          columns={columns}
+          getRowId={(row) => row.audit_id}
+          resetKey={`${page.query}|${page.filter}`}
+          emptyContent="События не найдены. Измените запрос или выберите другой тип событий."
+        />
+      </div>
     </Page>
   );
 }

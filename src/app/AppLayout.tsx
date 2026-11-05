@@ -294,17 +294,17 @@ export default function AppLayout({
           >
             <NavSubItem
               as={Link}
-              href="/settings/appearance"
-              value="/settings/appearance"
-            >
-              Оформление
-            </NavSubItem>
-            <NavSubItem
-              as={Link}
               href="/settings/account"
               value="/settings/account"
             >
               Учётная запись
+            </NavSubItem>
+            <NavSubItem
+              as={Link}
+              href="/settings/appearance"
+              value="/settings/appearance"
+            >
+              Оформление
             </NavSubItem>
           </NavCategory>
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { createElement as h, useMemo } from "react";
 import {
   Button,
   DataGrid,
@@ -8,9 +8,10 @@ import {
   type DataGridColumn,
 } from "@ui-kit/components";
 import { LockIcon, LogOutIcon } from "@/icons";
+import AccountHero from "./AccountHero";
 import { useAccountPage } from "./useAccountPage";
 import type { AccountSessionRecord } from "@/server/account";
-import styles from "../SettingsPage.module.css";
+import styles from "./AccountPage.module.css";
 
 interface AccountPageViewProps {
   username: string;
@@ -42,14 +43,17 @@ export default function AccountPageView({
         id: "session",
         header: "Сессия",
         width: 190,
-        cell: (session) => (
-          <div className={styles.sessionIdentity}>
-            <strong>
-              {session.is_current ? "Это устройство" : "Другое устройство"}
-            </strong>
-            <span>{session.session_id.slice(0, 8)}…</span>
-          </div>
-        ),
+        cell: (session) =>
+          h(
+            "div",
+            { className: styles.sessionIdentity },
+            h(
+              "strong",
+              null,
+              session.is_current ? "Это устройство" : "Другое устройство",
+            ),
+            h("span", null, `${session.session_id.slice(0, 8)}…`),
+          ),
       },
       {
         id: "created",
@@ -73,57 +77,76 @@ export default function AccountPageView({
     [],
   );
 
-  return (
-    <Page title="Учётная запись">
-      <div className={styles.accountLayout}>
-        <section className={styles.accountCard}>
-          <div className={styles.accountAvatar} aria-hidden="true">
-            {username.slice(0, 2).toLocaleUpperCase("ru")}
-          </div>
-          <div className={styles.accountIdentity}>
-            <h2 className="BodyTextBlockStyle BodyStrongTextBlockStyle">
-              {username}
-            </h2>
-            <p className="CaptionTextBlockStyle">
-              {roleName} ·{" "}
-              <span className={styles.accountRoleCode}>{roleCode}</span>
-            </p>
-          </div>
-          <Button appearance="destructive" onClick={page.signOut}>
-            Выйти из системы
-          </Button>
-        </section>
-
-        <section className={styles.accountSessions}>
-          <div className={styles.accountSectionHeader}>
-            <div>
-              <h2 className="SubtitleTextBlockStyle">Активные сессии</h2>
-              <p className="CaptionTextBlockStyle">
-                Все действующие входы в вашу учётную запись. Отозванные сессии
-                немедленно теряют доступ к системе.
-              </p>
-            </div>
-            <span className={styles.sessionCount}>{page.sessions.length}</span>
-          </div>
-
-          <DataGrid
-            aria-label="Активные сессии учётной записи"
-            rows={page.sessions}
-            columns={columns}
-            getRowId={(session) => session.session_id}
-            emptyContent="Активных сессий нет"
-            rowMenu={({ row }) => [
-              {
-                id: "revoke-session",
-                label: row.is_current ? "Выйти" : "Отозвать сессию",
-                icon: row.is_current ? <LogOutIcon /> : <LockIcon />,
-                danger: true,
-                onSelect: () => page.revokeSession(row),
-              },
-            ]}
-          />
-        </section>
-      </div>
-    </Page>
+  return h(
+    Page,
+    { title: "Учётная запись", hero: h(AccountHero) },
+    h(
+      "div",
+      { className: styles.accountLayout },
+      h(
+        "section",
+        { className: styles.accountCard },
+        h(
+          "div",
+          { className: styles.accountAvatar, "aria-hidden": "true" },
+          username.slice(0, 2).toLocaleUpperCase("ru"),
+        ),
+        h(
+          "div",
+          { className: styles.accountIdentity },
+          h(
+            "h2",
+            { className: "BodyTextBlockStyle BodyStrongTextBlockStyle" },
+            username,
+          ),
+          h(
+            "p",
+            { className: "CaptionTextBlockStyle" },
+            `${roleName} · `,
+            h("span", { className: styles.accountRoleCode }, roleCode),
+          ),
+        ),
+        h(
+          Button,
+          { appearance: "destructive", onClick: page.signOut },
+          "Выйти из системы",
+        ),
+      ),
+      h(
+        "section",
+        { className: styles.accountSessions },
+        h(
+          "div",
+          { className: styles.accountSectionHeader },
+          h(
+            "div",
+            null,
+            h("h2", { className: "SubtitleTextBlockStyle" }, "Активные сессии"),
+            h(
+              "p",
+              { className: "CaptionTextBlockStyle" },
+              "Все действующие входы в вашу учётную запись. Отозванные сессии немедленно теряют доступ к системе.",
+            ),
+          ),
+          h("span", { className: styles.sessionCount }, page.sessions.length),
+        ),
+        h(DataGrid<AccountSessionRecord>, {
+          "aria-label": "Активные сессии учётной записи",
+          rows: page.sessions,
+          columns,
+          getRowId: (session) => session.session_id,
+          emptyContent: "Активных сессий нет",
+          rowMenu: ({ row }) => [
+            {
+              id: "revoke-session",
+              label: row.is_current ? "Выйти" : "Отозвать сессию",
+              icon: row.is_current ? h(LogOutIcon) : h(LockIcon),
+              danger: true,
+              onSelect: () => page.revokeSession(row),
+            },
+          ],
+        }),
+      ),
+    ),
   );
 }

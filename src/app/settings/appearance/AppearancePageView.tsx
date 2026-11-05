@@ -1,41 +1,23 @@
 "use client";
 
-import type { ComponentType, CSSProperties } from "react";
-import * as UIKit from "@ui-kit/components";
-import type { Theme } from "@ui-kit/components";
-import { Button, Page } from "@ui-kit/components";
-import SettingsHero from "../SettingsHero";
+import { Button, Page, SegmentedControl } from "@ui-kit/components";
+import AppearanceHero from "./AppearanceHero";
 import {
   ACCENT_OPTIONS,
   THEME_OPTIONS,
   useAppearancePage,
 } from "./useAppearancePage";
-import styles from "../SettingsPage.module.css";
+import styles from "./AppearancePage.module.css";
+import type { Theme } from "@ui-kit/components";
 
+// Подготовка данных для табов
 const THEME_TABS = THEME_OPTIONS.map((item) => ({
   value: item.id,
+  // Сокращаем "Автоматически" до "Авто" для компактности в тулбаре
   label: item.id === "auto" ? "Авто" : item.label,
-  ariaLabel: item.label,
+  tooltip: item.label,
 }));
 
-interface ThemeTabBarProps {
-  value: Theme;
-  onValueChange: (value: Theme) => void;
-  items: typeof THEME_TABS;
-  layout: "inline";
-  "aria-label": string;
-}
-
-const UiKitTabBar = (
-  UIKit as unknown as {
-    TabBar?: ComponentType<ThemeTabBarProps>;
-  }
-).TabBar;
-
-/**
- * Используем TabBar из UI Kit, если он есть в установленном пакете.
- * Локальный fallback сохраняет рабочую страницу со старой собранной версией архива.
- */
 function ThemeToolbarTabs({
   value,
   onValueChange,
@@ -43,53 +25,15 @@ function ThemeToolbarTabs({
   value: Theme;
   onValueChange: (value: Theme) => void;
 }) {
-  if (UiKitTabBar) {
-    return (
-      <UiKitTabBar
-        layout="inline"
-        value={value}
-        onValueChange={onValueChange}
-        items={THEME_TABS}
-        aria-label="Тема приложения"
-      />
-    );
-  }
-
   return (
-    <div
-      className={styles.toolbarThemeTabs}
-      role="tablist"
-      aria-label="Тема приложения"
-      onKeyDown={(event) => {
-        const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
-        if (!keys.includes(event.key)) return;
-        event.preventDefault();
-        const currentIndex = THEME_TABS.findIndex((item) => item.value === value);
-        const nextIndex =
-          event.key === "Home"
-            ? 0
-            : event.key === "End"
-              ? THEME_TABS.length - 1
-              : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + THEME_TABS.length) %
-                THEME_TABS.length;
-        onValueChange(THEME_TABS[nextIndex].value);
-        event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus();
-      }}
-    >
-      {THEME_TABS.map((item) => (
-        <button
-          key={item.value}
-          type="button"
-          role="tab"
-          aria-selected={value === item.value}
-          tabIndex={value === item.value ? 0 : -1}
-          className={styles.toolbarThemeTab}
-          onClick={() => onValueChange(item.value)}
-        >
-          {item.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      variant="glass"
+      layout="inline"
+      value={value}
+      onValueChange={onValueChange}
+      items={THEME_TABS}
+      style={{ minWidth: 240 }}
+    />
   );
 }
 
@@ -97,199 +41,51 @@ export default function AppearancePageView() {
   const page = useAppearancePage();
   const activeAccent =
     ACCENT_OPTIONS.find((item) => item.id === page.accent) ?? ACCENT_OPTIONS[0];
-  const activeThemeLabel =
-    page.resolvedTheme === "dark" ? "Тёмная" : "Светлая";
-  const themeDescription =
-    page.theme === "auto"
-      ? "Синхронизировано с настройками операционной системы"
-      : page.theme === "dark"
-        ? "Тёмный режим включён вручную"
-        : "Светлый режим включён вручную";
 
   return (
     <Page
       title="Оформление"
-      hero={<SettingsHero />}
+      hero={<AppearanceHero />}
       toolbar={{
-        trailing: (
+        center: (
           <ThemeToolbarTabs value={page.theme} onValueChange={page.setTheme} />
         ),
       }}
     >
       <div className={styles.appearanceContainer}>
-        <header className={styles.appearanceIntro}>
-          <div className={styles.appearanceIntroText}>
-            <span className={styles.appearanceEyebrow}>ПЕРСОНАЛИЗАЦИЯ</span>
-            <h1 className={"TitleLargeTextBlockStyle " + styles.appearanceTitle}>
-              Внешний вид
-            </h1>
-            <p className={"BodyTextBlockStyle " + styles.appearanceDescription}>
-              Настройте цветовую палитру и выберите режим, в котором удобнее
-              работать с журналом и отчётами.
+        <section className={styles.accentBlock}>
+          <div className={styles.accentHeader}>
+            <h2 className={styles.appearancePanelTitle}>Цвет акцента</h2>
+            <p className={styles.appearancePanelDescription}>
+              Цвет кнопок, активных пунктов меню и выделения
             </p>
           </div>
 
-          <div className={styles.activeTheme}>
-            <span className={styles.activeThemeMark} aria-hidden="true" />
-            <div className={styles.activeThemeText}>
-              <span>Сейчас используется</span>
-              <strong>{activeThemeLabel} тема</strong>
-            </div>
+          <div
+            className={styles.accentGrid}
+            role="radiogroup"
+            aria-label="Системные цвета акцента"
+          >
+            {ACCENT_OPTIONS.map((item) => {
+              const active = page.accent === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  aria-label={item.name}
+                  title={item.name}
+                  className={
+                    styles.swatch + (active ? " " + styles.swatchActive : "")
+                  }
+                  style={{ backgroundColor: item.cssVar }}
+                  onClick={() => page.setAccent(item.id)}
+                />
+              );
+            })}
           </div>
-        </header>
-
-        <div className={styles.appearanceGrid}>
-          <section className={styles.themeSection}>
-            <div className={styles.appearancePanelHead}>
-              <div>
-                <h2 className={styles.appearancePanelTitle}>
-                  Предпросмотр оформления
-                </h2>
-                <p className={styles.appearancePanelDescription}>
-                  Так выглядит рабочее пространство с выбранной палитрой
-                </p>
-              </div>
-              <span className={styles.themeState}>
-                <span className={styles.themeStateDot} />
-                {activeThemeLabel}
-              </span>
-            </div>
-
-            <div
-              className={styles.themePreview}
-              aria-hidden="true"
-              data-theme-preview={page.resolvedTheme}
-              style={
-                {
-                  "--preview-accent": activeAccent.cssVar,
-                } as CSSProperties
-              }
-            >
-              <aside className={styles.previewSidebar}>
-                <div className={styles.previewBrand}>
-                  <span className={styles.previewBrandMark} />
-                  <span />
-                </div>
-                <div className={styles.previewNavItem}>
-                  <span />
-                  <i />
-                </div>
-                <div className={styles.previewNavItem}>
-                  <span />
-                </div>
-                <div className={styles.previewNavItem}>
-                  <span />
-                </div>
-                <div className={styles.previewNavDivider} />
-                <div className={styles.previewNavItem}>
-                  <span />
-                </div>
-              </aside>
-
-              <div className={styles.previewMain}>
-                <div className={styles.previewToolbar}>
-                  <span className={styles.previewToolbarTitle}>
-                    Успеваемость
-                  </span>
-                  <span className={styles.previewToolbarAction} />
-                </div>
-                <div className={styles.previewContent}>
-                  <div className={styles.previewGreeting}>
-                    <span />
-                    <i />
-                  </div>
-                  <div className={styles.previewMetrics}>
-                    <div className={styles.previewMetric}>
-                      <span>Студенты</span>
-                      <strong>128</strong>
-                    </div>
-                    <div className={styles.previewMetric}>
-                      <span>Средний балл</span>
-                      <strong>4,72</strong>
-                    </div>
-                  </div>
-                  <div className={styles.previewTable}>
-                    <div className={styles.previewTableHead}>
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <div className={styles.previewTableRow}>
-                      <span />
-                      <i />
-                      <b />
-                    </div>
-                    <div className={styles.previewTableRow}>
-                      <span />
-                      <i />
-                      <b />
-                    </div>
-                    <div className={styles.previewTableRow}>
-                      <span />
-                      <i />
-                      <b />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className={styles.themeNote}>{themeDescription}</p>
-          </section>
-
-          <section className={styles.accentSection}>
-            <div className={styles.appearancePanelHead}>
-              <div>
-                <h2 className={styles.appearancePanelTitle}>Цвет акцента</h2>
-                <p className={styles.appearancePanelDescription}>
-                  Цвет кнопок, активных пунктов меню и выделения
-                </p>
-              </div>
-            </div>
-
-            <div className={styles.selectedAccent}>
-              <span
-                className={styles.selectedAccentColor}
-                style={{ backgroundColor: activeAccent.cssVar }}
-              />
-              <div className={styles.selectedAccentText}>
-                <strong>{activeAccent.name}</strong>
-                <span>Выбран для интерфейса приложения</span>
-              </div>
-            </div>
-
-            <div
-              className={styles.accentGrid}
-              role="radiogroup"
-              aria-label="Системные цвета акцента"
-            >
-              {ACCENT_OPTIONS.map((item) => {
-                const active = page.accent === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    aria-label={item.name}
-                    title={item.name}
-                    className={
-                      styles.swatch +
-                      (active ? " " + styles.swatchActive : "")
-                    }
-                    style={{ backgroundColor: item.cssVar }}
-                    onClick={() => page.setAccent(item.id)}
-                  />
-                );
-              })}
-            </div>
-
-            <div className={styles.accentHint}>
-              Цвет применяется ко всем основным элементам интерфейса. Выбор
-              сохраняется автоматически.
-            </div>
-          </section>
-        </div>
+        </section>
 
         <footer className={styles.appearanceFooter}>
           <div>

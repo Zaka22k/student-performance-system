@@ -1,0 +1,450 @@
+/* ───────────── Страница учётной записи ───────────── */
+
+.accountLayout {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.accountCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--window-border);
+  border-radius: var(--ControlCornerRadius);
+  background: var(--elevated-bg);
+  box-shadow: var(--window-inner-glow);
+}
+
+.accountAvatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  border-radius: 15px;
+  background: color-mix(
+    in srgb,
+    var(--control-accent) 15%,
+    var(--fill-tertiary)
+  );
+  color: var(--control-accent);
+  font-size: var(--font-body-large);
+  font-weight: 700;
+}
+
+.accountIdentity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.accountIdentity h2,
+.accountIdentity p {
+  margin: 0;
+}
+
+.accountIdentity p {
+  color: var(--label-secondary);
+}
+
+.accountRoleCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-caption);
+}
+
+.accountSessions {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.accountSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: 4px;
+}
+
+.accountSectionHeader h2,
+.accountSectionHeader p {
+  margin: 0;
+}
+
+.accountSectionHeader p {
+  max-width: 720px;
+  margin-top: 4px;
+  color: var(--label-secondary);
+  line-height: 1.45;
+}
+
+.sessionCount {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: var(--CircularCornerRadius);
+  background: var(--fill-tertiary);
+  color: var(--label-primary);
+  font-size: var(--font-body);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessionIdentity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sessionIdentity strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sessionIdentity span {
+  color: var(--label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .accountCard {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+
+  .accountIdentity {
+    flex-basis: calc(100% - 64px);
+  }
+
+  .accountCard > button {
+    width: 100%;
+  }
+
+  .accountSectionHeader {
+    align-items: flex-start;
+  }
+}
+/* ───────────── Full-bleed Hero учётной записи ───────────── */
+
+.hero {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 260px;
+  padding: var(--page-header-height, 68px) var(--page-padding, 24px) 16px;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: var(--window-bg);
+}
+
+.meshContainer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  filter: blur(60px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.blobAccent,
+.blobCyan,
+.blobTeal,
+.blobIndigoPurple,
+.blobWarm {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.blobAccent {
+  top: -10%;
+  left: 2%;
+  width: 480px;
+  height: 280px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--control-accent) 62%, transparent),
+    transparent 72%
+  );
+  animation: driftSlow 18s ease-in-out infinite alternate;
+}
+
+.blobCyan {
+  top: -20%;
+  left: 30%;
+  width: 440px;
+  height: 260px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--system-cyan) 48%, transparent),
+    transparent 70%
+  );
+  animation: driftMedium 22s ease-in-out infinite alternate;
+}
+
+.blobTeal {
+  bottom: -25%;
+  left: 15%;
+  width: 420px;
+  height: 250px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--system-teal) 45%, transparent),
+    transparent 70%
+  );
+  animation: driftSlow 26s ease-in-out infinite alternate-reverse;
+}
+
+.blobIndigoPurple {
+  top: 5%;
+  right: 15%;
+  width: 500px;
+  height: 320px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--system-indigo) 52%, var(--system-purple)),
+    transparent 72%
+  );
+  animation: driftFast 20s ease-in-out infinite alternate;
+}
+
+.blobWarm {
+  bottom: -20%;
+  right: 2%;
+  width: 380px;
+  height: 240px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--system-pink) 42%, var(--system-orange)),
+    transparent 70%
+  );
+  animation: driftMedium 24s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes driftSlow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(36px, -20px, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-28px, 18px, 0) scale(0.95);
+  }
+}
+
+@keyframes driftMedium {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  50% {
+    transform: translate3d(-40px, 26px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(30px, -16px, 0) scale(1);
+  }
+}
+
+@keyframes driftFast {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+  50% {
+    transform: translate3d(28px, 32px, 0) scale(0.94);
+  }
+  100% {
+    transform: translate3d(-36px, -18px, 0) scale(1.05);
+  }
+}
+
+.fluidSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.waveBack {
+  fill: color-mix(in srgb, var(--system-teal) 26%, transparent);
+}
+
+.waveGlow {
+  stroke: color-mix(in srgb, var(--system-indigo) 45%, var(--control-accent));
+  stroke-width: 68;
+  stroke-linecap: round;
+  filter: blur(26px);
+  opacity: 0.7;
+}
+
+.waveRibbon {
+  stroke: color-mix(in srgb, var(--control-accent) 65%, #ffffff);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.identityGlassCard {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 290px;
+  height: 128px;
+  padding: 18px 22px;
+  border-radius: 20px;
+  border: 1px solid var(--window-border);
+  background: color-mix(in srgb, var(--elevated-bg) 62%, transparent);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  box-shadow:
+    0 20px 40px -10px rgba(0, 0, 0, 0.2),
+    var(--window-inner-glow);
+}
+
+.identityOrbWrapper {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  flex: none;
+}
+
+.identityOrbRing {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px dashed
+    color-mix(in srgb, var(--control-accent) 40%, var(--separator));
+}
+
+.identityOrb {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid
+    color-mix(in srgb, var(--control-accent) 30%, var(--window-border));
+  background: radial-gradient(
+    circle at 30% 25%,
+    color-mix(in srgb, var(--control-accent) 28%, var(--elevated-bg)),
+    color-mix(in srgb, var(--system-indigo) 16%, var(--elevated-bg))
+  );
+  color: var(--control-accent);
+  box-shadow: var(--window-inner-glow);
+}
+
+.identityShieldSvg {
+  width: 28px;
+  height: 28px;
+}
+
+.identityStatusDot {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--system-green);
+  border: 2px solid var(--elevated-bg);
+}
+
+.identityMeta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.identityPrimaryBar {
+  width: 82%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--label-primary);
+  opacity: 0.8;
+}
+
+.identitySecondaryBar {
+  width: 54%;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--fill-secondary);
+}
+
+.identityKeyPills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.identityKeyPillAccent {
+  width: 26px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--control-accent);
+}
+
+.identityKeyPill {
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--fill-tertiary);
+}
+
+.vignetteOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 70%,
+    color-mix(in srgb, var(--window-bg) 35%, transparent) 100%
+  );
+  border-bottom: 1px solid var(--separator);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blobAccent,
+  .blobCyan,
+  .blobTeal,
+  .blobIndigoPurple,
+  .blobWarm {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 220px;
+    justify-content: center;
+  }
+
+  .identityGlassCard {
+    width: 100%;
+    max-width: 268px;
+    height: 112px;
+    padding: 16px 20px;
+  }
+}

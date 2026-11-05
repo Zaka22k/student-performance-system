@@ -44,7 +44,7 @@ export default function AppError({
         className="BodyTextBlockStyle"
         style={{ color: "var(--label-secondary)", maxWidth: 420 }}
       >
-        Проверьте подключение к базе данных и попробуйте снова.
+        Проверьте подключение и попробуйте снова.
       </p>
       <Button disabled={isPending} onClick={handleRetry}>
         Повторить
