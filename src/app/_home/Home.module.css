@@ -5,34 +5,34 @@
   isolation: isolate;
   background:
     radial-gradient(
-      ellipse 470px 250px at 78% 24%,
-      color-mix(in srgb, var(--control-accent) 12%, transparent),
+      ellipse 340px 230px at 11% 48%,
+      color-mix(in srgb, var(--control-accent) 15%, transparent),
       transparent 72%
     ),
     radial-gradient(
-      ellipse 360px 230px at 12% 76%,
-      color-mix(in srgb, var(--control-accent) 8%, transparent),
+      ellipse 420px 260px at 76% 24%,
+      color-mix(in srgb, var(--control-accent) 9%, transparent),
       transparent 74%
     ),
     linear-gradient(
       112deg,
-      color-mix(in srgb, var(--control-accent) 5%, var(--window-bg)),
-      var(--window-bg) 72%
+      color-mix(in srgb, var(--control-accent) 7%, var(--window-bg)),
+      var(--window-bg) 74%
     );
 }
 
 .hero::before {
   content: "";
   position: absolute;
-  top: -178px;
-  right: 7%;
-  width: 360px;
-  height: 360px;
-  border: 1px solid color-mix(in srgb, var(--control-accent) 13%, transparent);
+  top: -120px;
+  left: 52px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid color-mix(in srgb, var(--control-accent) 10%, transparent);
   border-radius: 50%;
   box-shadow:
-    0 0 0 30px color-mix(in srgb, var(--control-accent) 3%, transparent),
-    0 0 0 66px color-mix(in srgb, var(--control-accent) 2%, transparent);
+    0 0 0 22px color-mix(in srgb, var(--control-accent) 3%, transparent),
+    0 0 0 48px color-mix(in srgb, var(--control-accent) 2%, transparent);
   pointer-events: none;
 }
 
@@ -41,77 +41,249 @@
   top: 0;
   left: 0;
   display: block;
-  width: 760px;
+  width: 1120px;
   max-width: none;
   height: 260px;
   pointer-events: none;
 }
 
-.panelShadow {
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.11));
+.coverStart {
+  stop-color: var(--control-accent);
 }
 
-.heroPanel {
-  fill: var(--elevated-bg);
-  fill-opacity: 0.96;
-  stroke: var(--window-border);
+.coverEnd {
+  stop-color: color-mix(in srgb, var(--control-accent) 55%, var(--label-secondary));
+}
+
+.paperStart {
+  stop-color: var(--elevated-bg);
+}
+
+.paperEnd {
+  stop-color: color-mix(in srgb, var(--control-accent) 3%, var(--elevated-bg));
+}
+
+.bookAura {
+  fill: color-mix(in srgb, var(--control-accent) 8%, transparent);
+}
+
+.bookRing,
+.bookRingInner {
+  fill: none;
+  stroke: color-mix(in srgb, var(--control-accent) 18%, transparent);
   stroke-width: 1;
 }
 
-.chartHeader circle {
-  fill: var(--fill-tertiary);
+.bookRingInner {
+  stroke-dasharray: 2 7;
 }
 
-.chartHeader circle:first-child {
-  fill: var(--control-accent);
+.bookShadow {
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.14));
 }
 
-.chartHeader path {
+.bookCover {
+  fill: url(#hero-book-cover);
+  stroke: color-mix(in srgb, var(--control-accent) 70%, var(--label-secondary));
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.bookPages {
+  fill: var(--elevated-bg);
+  stroke: color-mix(in srgb, var(--control-accent) 18%, var(--separator));
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.bookSpine {
   fill: none;
-  stroke: var(--separator-opaque);
-  stroke-width: 3;
+  stroke: color-mix(in srgb, var(--control-accent) 55%, var(--label-primary));
+  stroke-width: 2;
   stroke-linecap: round;
 }
 
-.gridLine {
-  stroke: var(--separator);
-  stroke-width: 1;
-}
-
-.baseLine {
-  stroke: var(--separator-opaque);
-  stroke-width: 1;
-}
-
-.bar {
-  fill: var(--fill-secondary);
-}
-
-.barRecent {
-  fill: color-mix(in srgb, var(--control-accent) 34%, transparent);
-}
-
-.barCurrent {
-  fill: var(--control-accent);
-}
-
-.trend {
+.bookLine {
   fill: none;
-  stroke: var(--label-secondary);
-  stroke-opacity: 0.58;
-  stroke-width: 1.8;
+  stroke: color-mix(in srgb, var(--control-accent) 25%, var(--label-secondary));
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.bookSeal {
+  fill: var(--elevated-bg);
+  stroke: color-mix(in srgb, var(--control-accent) 40%, var(--separator));
+  stroke-width: 1;
+}
+
+.bookSealCheck {
+  fill: none;
+  stroke: var(--control-accent);
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.pointHalo {
-  fill: color-mix(in srgb, var(--control-accent) 19%, transparent);
+.bookDot {
+  fill: var(--control-accent);
 }
 
-.point {
-  fill: var(--window-bg);
+.bookDotSoft {
+  fill: color-mix(in srgb, var(--control-accent) 28%, transparent);
+}
+
+.paperShadow {
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.1));
+}
+
+.heroPaper {
+  fill: url(#hero-paper);
+  stroke: var(--window-border);
+  stroke-width: 1;
+}
+
+.paperCorner {
+  fill: color-mix(in srgb, var(--control-accent) 5%, var(--elevated-bg));
+  opacity: 0.9;
+}
+
+.documentIconBg {
+  fill: color-mix(in srgb, var(--control-accent) 13%, transparent);
+}
+
+.documentIcon,
+.documentIconFold {
+  fill: none;
   stroke: var(--control-accent);
-  stroke-width: 2;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.documentEyebrow {
+  fill: var(--accent-text);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.documentTitle {
+  fill: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.25px;
+}
+
+.semesterChip {
+  fill: color-mix(in srgb, var(--control-accent) 9%, var(--elevated-bg));
+  stroke: color-mix(in srgb, var(--control-accent) 18%, var(--separator));
+  stroke-width: 1;
+}
+
+.semesterDot {
+  fill: var(--control-accent);
+}
+
+.semesterText {
+  fill: var(--accent-text);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.65px;
+}
+
+.documentDivider,
+.tableDivider {
+  stroke: var(--separator);
+  stroke-width: 1;
+}
+
+.tableHeader {
+  fill: var(--label-secondary);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+}
+
+.subjectDot {
+  fill: var(--control-accent);
+  opacity: 0.72;
+}
+
+.subjectName {
+  fill: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.subjectKind {
+  fill: var(--label-secondary);
+  font-size: 10px;
+}
+
+.gradePill {
+  fill: color-mix(in srgb, var(--control-accent) 12%, var(--elevated-bg));
+}
+
+.gradePill[data-tone="good"] {
+  fill: color-mix(in srgb, var(--label-secondary) 12%, var(--elevated-bg));
+}
+
+.gradePill[data-tone="passed"] {
+  fill: color-mix(in srgb, var(--control-accent) 18%, var(--elevated-bg));
+}
+
+.gradeValue {
+  fill: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gradeValue[data-tone="good"] {
+  fill: var(--label-primary);
+}
+
+.statusCard {
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12));
+}
+
+.statusCard rect {
+  fill: var(--elevated-bg);
+  stroke: var(--window-border);
+  stroke-width: 1;
+}
+
+.statusCard circle {
+  fill: color-mix(in srgb, var(--control-accent) 14%, var(--elevated-bg));
+}
+
+.statusCard path {
+  fill: none;
+  stroke: var(--control-accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.statusCard text {
+  fill: var(--label-secondary);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.decorativeStroke {
+  fill: none;
+  stroke: color-mix(in srgb, var(--control-accent) 28%, transparent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.decorativeDot {
+  fill: var(--control-accent);
+}
+
+.decorativeDotSoft {
+  fill: color-mix(in srgb, var(--control-accent) 30%, transparent);
 }
 
 /* ───────────── Тело страницы ───────────── */
