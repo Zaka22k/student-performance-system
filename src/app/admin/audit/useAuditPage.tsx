@@ -40,14 +40,59 @@ export function detailsText(details: unknown): string {
   }
 }
 
+export type AuditFilter = "all" | "auth" | "users" | "roles";
+
+export const AUDIT_FILTERS: { id: AuditFilter; label: string }[] = [
+  { id: "all", label: "Все" },
+  { id: "auth", label: "Вход и сессии" },
+  { id: "users", label: "Пользователи" },
+  { id: "roles", label: "Роли" },
+];
+
+/** Тяжесть события: подсвечиваем то, на что администратору стоит взглянуть. */
+export type AuditTone = "normal" | "warn" | "danger";
+
+const DANGER_ACTIONS = new Set([
+  "users.delete",
+  "users.deactivate",
+  "users.password.reset",
+  "roles.delete",
+]);
+
+export function auditTone(action: string): AuditTone {
+  if (action === "auth.login_failed") return "warn";
+  if (DANGER_ACTIONS.has(action)) return "danger";
+  return "normal";
+}
+
+const matchesFilter = (row: AuditEntry, filter: AuditFilter) =>
+  filter === "all" || row.action.startsWith(`${filter}.`);
+
 export function useAuditPage(initialRows: AuditEntry[]) {
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<AuditFilter>("all");
+
+  const counts = useMemo(() => {
+    const result: Record<AuditFilter, number> = {
+      all: initialRows.length,
+      auth: 0,
+      users: 0,
+      roles: 0,
+    };
+    for (const row of initialRows) {
+      for (const f of ["auth", "users", "roles"] as const) {
+        if (matchesFilter(row, f)) result[f] += 1;
+      }
+    }
+    return result;
+  }, [initialRows]);
 
   const rows = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ru");
-    if (!normalizedQuery) return initialRows;
+    const byFilter = initialRows.filter((row) => matchesFilter(row, filter));
+    if (!normalizedQuery) return byFilter;
 
-    return initialRows.filter((row) =>
+    return byFilter.filter((row) =>
       [
         row.actor,
         row.action,
@@ -60,7 +105,7 @@ export function useAuditPage(initialRows: AuditEntry[]) {
         .toLocaleLowerCase("ru")
         .includes(normalizedQuery),
     );
-  }, [initialRows, query]);
+  }, [initialRows, query, filter]);
 
-  return { query, setQuery, rows };
+  return { query, setQuery, filter, setFilter, counts, rows, total: initialRows.length };
 }

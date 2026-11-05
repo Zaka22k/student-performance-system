@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import {
   Button,
   DataGrid,
@@ -20,6 +20,8 @@ interface UsersPageViewProps {
   teachers: LinkedOption[];
 }
 
+const STATS_COUNT = 4;
+
 export default function UsersPageView({
   initialUsers,
   roles,
@@ -36,11 +38,16 @@ export default function UsersPageView({
         width: 220,
         minWidth: 170,
         cell: (user) => (
-          <div className={styles.cellMain}>
-            <span className={styles.cellTitle}>{user.username}</span>
-            <span className={styles.cellMeta}>
-              Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
+          <div className={styles.account}>
+            <span className={styles.avatar} aria-hidden="true">
+              {user.username.charAt(0).toLocaleUpperCase("ru")}
             </span>
+            <div className={styles.cellMain}>
+              <span className={styles.cellTitle}>{user.username}</span>
+              <span className={styles.cellMeta}>
+                Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -109,6 +116,30 @@ export default function UsersPageView({
         ),
       }}
     >
+      <div className={styles.stack}>
+      <div className={styles.statsWrap}>
+        <section
+          aria-label="Сводка по пользователям"
+          className={styles.stats}
+          style={{ "--cols": STATS_COUNT } as CSSProperties}
+        >
+          {[
+            ["Всего", page.users.length],
+            ["Активных", page.activeCount],
+            ["Заблокированных", page.blockedCount],
+            ["Активных сессий", page.sessionCount],
+          ].map(([label, value]) => (
+            <div key={label} className={styles.stat}>
+              <span className={`TitleTextBlockStyle ${styles.statValue}`}>
+                {value}
+              </span>
+              <span className={`CaptionTextBlockStyle ${styles.statLabel}`}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </section>
+      </div>
       <DataGrid
         striped
         aria-label="Учётные записи пользователей"
@@ -116,7 +147,7 @@ export default function UsersPageView({
         columns={columns}
         getRowId={(user) => user.user_id}
         resetKey={page.query}
-        emptyContent="Пользователи не найдены. Измени поисковый запрос или создай новую учётную запись."
+        emptyContent="Пользователи не найдены. Измените запрос или создайте новую учётную запись."
         onRowActivate={page.openChangeRole}
         rowMenu={({ row }) => [
           {
@@ -149,6 +180,7 @@ export default function UsersPageView({
           },
         ]}
       />
+      </div>
     </Page>
   );
 }

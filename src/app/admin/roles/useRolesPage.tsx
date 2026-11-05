@@ -90,7 +90,7 @@ export function useRolesPage({ initialData }: UseRolesPageOptions) {
             setActiveRoleId(role.role_id);
             setSelected([]);
             toast.success("Роль создана", {
-              description: "Теперь настрой разрешения для новой роли.",
+              description: "Теперь настройте разрешения для новой роли.",
             });
             router.refresh();
           }}

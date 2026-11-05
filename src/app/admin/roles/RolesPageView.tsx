@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, ComboBox, Page } from "@ui-kit/components";
+import { Button, Checkbox, Page } from "@ui-kit/components";
 import { PlusIcon, TrashIcon, CheckIcon } from "@/icons";
 import type { AdminPermission } from "./useRolesPage";
 import { useRolesPage } from "./useRolesPage";
@@ -32,8 +32,19 @@ interface RolesPageViewProps {
   };
 }
 
+/** «1 разрешение», «2 разрешения», «5 разрешений». */
+function permissionsWord(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} разрешение`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14))
+    return `${n} разрешения`;
+  return `${n} разрешений`;
+}
+
 export default function RolesPageView({ initialData }: RolesPageViewProps) {
   const page = useRolesPage({ initialData });
+  const total = page.permissions.length;
 
   return (
     <Page
@@ -57,96 +68,116 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
         ),
       }}
     >
-      <div className={styles.roleLayout}>
+      <div className={styles.rolesWrap}>
         {page.activeRole ? (
-          <>
-            <section className={styles.roleHeader}>
-              <div className={styles.roleMeta}>
-                <h2 className="SubtitleTextBlockStyle">
-                  {page.activeRole.role_name}
-                </h2>
-                <span className={styles.roleCode}>
-                  {page.activeRole.role_code}
-                </span>
-                <p className={styles.description}>
-                  {page.activeRole.description ||
-                    "Описание для этой роли пока не задано."}
-                </p>
-              </div>
+          <div className={styles.roles}>
+            <ul className={styles.rail} aria-label="Роли">
+              {page.roles.map((role) => {
+                const isActive = role.role_id === page.activeRoleId;
+                const count = isActive
+                  ? page.selectedCount
+                  : role.permission_ids.length;
+                return (
+                  <li key={role.role_id}>
+                    <button
+                      type="button"
+                      className={styles.roleItem}
+                      aria-current={isActive}
+                      onClick={() => page.changeActiveRole(role.role_id)}
+                    >
+                      <span className={styles.roleItemName}>
+                        {role.role_name}
+                      </span>
+                      <span className={styles.roleItemMeta}>
+                        {permissionsWord(count)}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-              <div className={styles.roleControls}>
-                <ComboBox
-                  className={styles.roleSelector}
-                  label="Выбранная роль"
-                  options={page.roles}
-                  getOptionValue={(role) => role.role_id}
-                  getOptionLabel={(role) =>
-                    `${role.role_name} · ${role.role_code}`
-                  }
-                  value={page.activeRoleId}
-                  onChange={(value, option) => {
-                    // ComboBox сообщает null, пока пользователь редактирует текст.
-                    // Меняем роль только при выборе существующей записи.
-                    if (option) page.changeActiveRole(option.role_id);
-                  }}
-                />
+            <div className={styles.detail}>
+              <section className={styles.roleHead}>
+                <div>
+                  <h2 className={`TitleTextBlockStyle ${styles.roleTitle}`}>
+                    {page.activeRole.role_name}
+                  </h2>
+                  <p className={styles.roleCodeLine}>
+                    <span className={styles.code}>
+                      {page.activeRole.role_code}
+                    </span>
+                    {page.builtInRole && (
+                      <span className={styles.badge}>Встроенная</span>
+                    )}
+                  </p>
+                  <p className={styles.description}>
+                    {page.activeRole.description ||
+                      "Описание для этой роли пока не задано."}
+                  </p>
+                </div>
                 {!page.builtInRole && (
                   <Button
                     appearance="destructive"
                     icon={<TrashIcon />}
-                    aria-label="Удалить роль"
                     onClick={page.confirmDelete}
-                  />
+                  >
+                    Удалить роль
+                  </Button>
                 )}
-              </div>
-            </section>
+              </section>
 
-            <div className={styles.permissionSummary}>
-              <span>
-                Выбрано разрешений: {page.selectedCount} из{" "}
-                {page.permissions.length}
-              </span>
               {page.isDirty && (
-                <span className={styles.unsaved}>
-                  Есть несохранённые изменения
-                </span>
+                <div className={styles.notice} role="status">
+                  <p className={styles.noticeText}>
+                    Есть несохранённые изменения. После сохранения активные
+                    сессии пользователей этой роли будут отозваны, им придётся
+                    войти заново.
+                  </p>
+                  <Button
+                    appearance="primary"
+                    icon={<CheckIcon />}
+                    onClick={page.savePermissions}
+                  >
+                    Сохранить изменения
+                  </Button>
+                </div>
               )}
-            </div>
 
-            <div className={styles.permissionGroups}>
-              {page.grouped.map(([category, permissions]) => {
-                const groupSelected = permissions.filter((permission) =>
-                  page.selected.includes(permission.permission_id),
-                ).length;
-                const allChecked = groupSelected === permissions.length;
-                const someChecked = groupSelected > 0 && !allChecked;
-                const permissionIds = permissions.map(
-                  (permission) => permission.permission_id,
-                );
+              <div className={styles.coverage}>
+                <div className={styles.coverageText}>
+                  <span>Выбрано разрешений</span>
+                  <span>
+                    {page.selectedCount} из {total}
+                  </span>
+                </div>
+                <div className={styles.meter} aria-hidden="true">
+                  <span
+                    className={styles.meterFill}
+                    style={{
+                      width: `${total ? (page.selectedCount / total) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
 
-                return (
-                  <section key={category} className={styles.permissionGroup}>
-                    <header className={styles.permissionGroupHeader}>
-                      <h3 className={styles.permissionGroupTitle}>
-                        {CATEGORY_LABELS[category] ?? category}
-                      </h3>
-                      <span className={styles.permissionCount}>
-                        {groupSelected} / {permissions.length}
-                      </span>
-                    </header>
+              <div className={styles.groups}>
+                {page.grouped.map(([category, permissions]) => {
+                  const label = CATEGORY_LABELS[category] ?? category;
+                  const groupSelected = permissions.filter((permission) =>
+                    page.selected.includes(permission.permission_id),
+                  ).length;
+                  const allChecked = groupSelected === permissions.length;
+                  const someChecked = groupSelected > 0 && !allChecked;
+                  const permissionIds = permissions.map(
+                    (permission) => permission.permission_id,
+                  );
 
-                    <div className={styles.permissionList}>
-                      <div className={styles.permissionItem}>
-                        <div className={styles.permissionText}>
-                          <span className={styles.permissionName}>
-                            Все разрешения раздела
-                          </span>
-                          <span className={styles.permissionCode}>
-                            Выбрать группу целиком
-                          </span>
-                        </div>
+                  return (
+                    <section key={category} className={styles.group}>
+                      <header className={styles.groupHead}>
                         <Checkbox
-                          aria-label={`Выбрать все разрешения раздела ${category}`}
+                          aria-label={`Выбрать все разрешения раздела «${label}»`}
                           checked={allChecked}
                           indeterminate={someChecked}
                           onChange={(event) =>
@@ -156,52 +187,60 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                             )
                           }
                         />
-                      </div>
+                        <h3 className={styles.groupTitle}>{label}</h3>
+                        <span className={styles.groupCount}>
+                          {groupSelected} / {permissions.length}
+                        </span>
+                      </header>
 
-                      {permissions.map((permission) => (
-                        <div
-                          key={permission.permission_id}
-                          className={styles.permissionItem}
-                        >
-                          <div className={styles.permissionText}>
-                            <span className={styles.permissionName}>
-                              {permission.permission_name}
+                      <ul className={styles.perms}>
+                        {permissions.map((permission) => (
+                          <li
+                            key={permission.permission_id}
+                            className={styles.perm}
+                          >
+                            <span className={styles.permLabel}>
+                              <span className={styles.permName}>
+                                {permission.permission_name}
+                              </span>
+                              <span className={styles.permCode}>
+                                {permission.permission_code}
+                              </span>
                             </span>
-                            <span className={styles.permissionCode}>
-                              {permission.permission_code}
-                            </span>
-                          </div>
-                          <Checkbox
-                            aria-label={permission.permission_name}
-                            checked={page.selected.includes(
-                              permission.permission_id,
-                            )}
-                            onChange={(event) =>
-                              page.togglePermission(
+                            <Checkbox
+                              aria-label={permission.permission_name}
+                              checked={page.selected.includes(
                                 permission.permission_id,
-                                event.target.checked,
-                              )
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+                              )}
+                              onChange={(event) =>
+                                page.togglePermission(
+                                  permission.permission_id,
+                                  event.target.checked,
+                                )
+                              }
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  );
+                })}
+              </div>
             </div>
-
-            {page.isDirty && (
-              <p className={styles.formHint}>
-                При сохранении набора прав активные сессии пользователей этой
-                роли будут отозваны. Им потребуется войти повторно.
-              </p>
-            )}
-          </>
+          </div>
         ) : (
-          <div className={styles.emptyState}>
-            <strong>Ролей пока нет</strong>
-            <span>Создай первую роль, чтобы настроить для неё разрешения.</span>
+          <div className={styles.empty}>
+            <h2 className={styles.emptyTitle}>Ролей пока нет</h2>
+            <p className={styles.emptyText}>
+              Создайте первую роль, чтобы настроить для неё разрешения.
+            </p>
+            <Button
+              appearance="primary"
+              icon={<PlusIcon />}
+              onClick={page.openCreate}
+            >
+              Новая роль
+            </Button>
           </div>
         )}
       </div>

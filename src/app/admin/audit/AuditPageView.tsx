@@ -9,6 +9,8 @@ import {
 } from "@ui-kit/components";
 import {
   ACTION_LABELS,
+  AUDIT_FILTERS,
+  auditTone,
   detailsText,
   useAuditPage,
   type AuditEntry,
@@ -52,11 +54,18 @@ export default function AuditPageView({ initialRows }: AuditPageViewProps) {
       header: "Событие",
       width: 230,
       cell: (row) => (
-        <div className={styles.cellMain}>
-          <span className={styles.cellTitle}>
-            {ACTION_LABELS[row.action] ?? row.action}
-          </span>
-          <span className={styles.cellMeta}>{row.action}</span>
+        <div className={styles.eventCell}>
+          <span
+            className={styles.mark}
+            data-tone={auditTone(row.action)}
+            aria-hidden="true"
+          />
+          <div className={styles.cellMain}>
+            <span className={styles.cellTitle}>
+              {ACTION_LABELS[row.action] ?? row.action}
+            </span>
+            <span className={styles.cellMeta}>{row.action}</span>
+          </div>
         </div>
       ),
     },
@@ -98,15 +107,34 @@ export default function AuditPageView({ initialRows }: AuditPageViewProps) {
         ),
       }}
     >
-      <DataGrid
-        striped
-        aria-label="Журнал аудита"
-        rows={page.rows}
-        columns={columns}
-        getRowId={(row) => row.audit_id}
-        resetKey={page.query}
-        emptyContent="События не найдены. Попробуй изменить поисковый запрос."
-      />
+      <div className={styles.stack}>
+        <div className={styles.filters} role="group" aria-label="Тип событий">
+          {AUDIT_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={styles.filter}
+              aria-pressed={page.filter === f.id}
+              onClick={() => page.setFilter(f.id)}
+            >
+              {f.label}
+              <span className={styles.filterCount}>{page.counts[f.id]}</span>
+            </button>
+          ))}
+          <span className={styles.auditMeta} aria-live="polite">
+            Показано {page.rows.length} из {page.total}
+          </span>
+        </div>
+        <DataGrid
+          striped
+          aria-label="Журнал аудита"
+          rows={page.rows}
+          columns={columns}
+          getRowId={(row) => row.audit_id}
+          resetKey={`${page.query}|${page.filter}`}
+          emptyContent="События не найдены. Измените запрос или выберите другой тип событий."
+        />
+      </div>
     </Page>
   );
 }
