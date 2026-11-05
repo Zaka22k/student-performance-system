@@ -146,6 +146,7 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
 
                 {!page.builtInRole && (
                   <Button
+                    className={styles.deleteRoleButton}
                     appearance="destructive"
                     onClick={page.confirmDelete}
                   >
