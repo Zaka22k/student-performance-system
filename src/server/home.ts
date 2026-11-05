@@ -11,6 +11,10 @@ export interface UpcomingEvent {
 }
 
 export interface HomeSummary {
+  /** Разрешения пользователя: по ним главная решает, какие блоки показывать. */
+  permissions: string[];
+  /** `own`: показатели относятся только к самому студенту. */
+  scope: "all" | "own";
   students: number;
   groups: number;
   semester: { academic_year_start: number; term_number: number } | null;
@@ -23,11 +27,24 @@ const UPCOMING_LIMIT = 5;
 
 export async function getHomeSummary(): Promise<HomeSummary> {
   const auth = await requirePermission("home.view");
-  const ownStudentOnly =
-    auth.studentId !== null &&
-    !auth.permissions.has("grades.read.all");
+  const has = (code: string) => auth.permissions.has(code);
+  const hasAny = (...codes: string[]) => codes.some(has);
+
+  // Данные считаются только для тех блоков, которые роль видит на главной.
+  const canGrades = hasAny("grades.read.all", "grades.read.own");
+  const canSchedule = hasAny(
+    "session.schedule.read.all",
+    "session.schedule.read.own",
+  );
+  const canCounts = has("dictionaries.read");
+  const gradesOwn = !has("grades.read.all");
+  const scheduleOwn = !has("session.schedule.read.all");
+
+  // Без привязки к студенту «только свои» данные пусты, а не общие.
+  const needsOwnStudent =
+    (canGrades && gradesOwn) || (canSchedule && scheduleOwn);
   const ownStudent =
-    ownStudentOnly && auth.studentId
+    needsOwnStudent && auth.studentId
       ? await prisma.students.findUnique({
           where: { student_id: auth.studentId },
           select: { student_id: true, group_id: true },
@@ -38,47 +55,44 @@ export async function getHomeSummary(): Promise<HomeSummary> {
   today.setUTCHours(0, 0, 0, 0);
 
   const [students, groups, semester, upcomingRows] = await Promise.all([
-    ownStudentOnly
-      ? Promise.resolve(ownStudent ? 1 : 0)
-      : prisma.students.count({ where: { status: "active" } }),
-    ownStudentOnly
-      ? Promise.resolve(ownStudent ? 1 : 0)
-      : prisma.student_groups.count(),
+    canCounts ? prisma.students.count({ where: { status: "active" } }) : 0,
+    canCounts ? prisma.student_groups.count() : 0,
     prisma.semesters.findFirst({
       orderBy: [{ academic_year_start: "desc" }, { term_number: "desc" }],
     }),
-    prisma.student_performance.findMany({
-      where: {
-        assessment_date: { gte: today },
-        ...(ownStudentOnly && ownStudent
-          ? { students: { group_id: ownStudent.group_id } }
-          : {}),
-        ...(ownStudentOnly && !ownStudent ? { performance_id: -1n } : {}),
-      },
-      orderBy: { assessment_date: "asc" },
-      take: 500,
-      select: {
-        assessment_date: true,
-        assessment_type: true,
-        subjects: { select: { subject_id: true, subject_name: true } },
-        students: {
-          select: {
-            student_groups: { select: { group_id: true, group_code: true } },
+    canSchedule && (!scheduleOwn || ownStudent)
+      ? prisma.student_performance.findMany({
+          where: {
+            assessment_date: { gte: today },
+            ...(scheduleOwn && ownStudent
+              ? { students: { group_id: ownStudent.group_id } }
+              : {}),
           },
-        },
-      },
-    }),
+          orderBy: { assessment_date: "asc" },
+          take: 500,
+          select: {
+            assessment_date: true,
+            assessment_type: true,
+            subjects: { select: { subject_id: true, subject_name: true } },
+            students: {
+              select: {
+                student_groups: {
+                  select: { group_id: true, group_code: true },
+                },
+              },
+            },
+          },
+        })
+      : [],
   ]);
 
   let averageGrade: number | null = null;
   let successRate: number | null = null;
-  if (semester) {
+  if (semester && canGrades && (!gradesOwn || ownStudent)) {
     const rows = await prisma.student_performance.findMany({
       where: {
         semester_id: semester.semester_id,
-        ...(ownStudentOnly
-          ? { student_id: ownStudent?.student_id ?? -1n }
-          : {}),
+        ...(gradesOwn && ownStudent ? { student_id: ownStudent.student_id } : {}),
       },
       select: {
         student_id: true,
@@ -112,6 +126,8 @@ export async function getHomeSummary(): Promise<HomeSummary> {
   }
 
   return {
+    permissions: [...auth.permissions],
+    scope: gradesOwn ? "own" : "all",
     students,
     groups,
     semester: semester
