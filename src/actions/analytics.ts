@@ -100,15 +100,20 @@ export async function getRating(q?: string): Promise<RatingItem[]> {
         a.student_number.localeCompare(b.student_number, "ru") ||
         a.student_id.localeCompare(b.student_id, "en", { numeric: true }),
     )
-    .map(({ graded_count: _gradedCount, ...item }, index) => ({
-      ...item,
+    .map((item, index) => ({
       place: index + 1,
+      student_id: item.student_id,
+      student_number: item.student_number,
+      student_name: item.student_name,
+      group_code: item.group_code,
+      summ_balls: item.summ_balls,
+      average_grade: item.average_grade,
     })) satisfies RatingItem[];
 
   const tokens = String(q ?? "")
     .trim()
     .toLowerCase()
-    .split(/\\s+/)
+    .split(/\s+/)
     .filter(Boolean);
   if (tokens.length === 0) return ranked;
 
