@@ -64,13 +64,6 @@ export function useUsersPage({
     );
   }, [query, users]);
 
-  const activeCount = users.filter((user) => user.is_active).length;
-  const blockedCount = users.length - activeCount;
-  const sessionCount = users.reduce(
-    (total, user) => total + user.active_sessions,
-    0,
-  );
-
   const openCreate = () => {
     openModal({
       title: "Новая учётная запись",
@@ -87,9 +80,11 @@ export function useUsersPage({
             const created = await createUser(data);
             const role = roles.find((item) => item.role_id === data.role_id);
             const linkedName = data.student_id
-              ? students.find((item) => item.id === data.student_id)?.label ?? null
+              ? (students.find((item) => item.id === data.student_id)?.label ??
+                null)
               : data.teacher_id
-                ? teachers.find((item) => item.id === data.teacher_id)?.label ?? null
+                ? (teachers.find((item) => item.id === data.teacher_id)
+                    ?.label ?? null)
                 : null;
 
             const nextUser: AdminUser = {
@@ -139,13 +134,14 @@ export function useUsersPage({
 
             const role = roles.find((item) => item.role_id === roleId);
             const studentId =
-              role?.role_code === "student" ? linkedEntityId ?? null : null;
+              role?.role_code === "student" ? (linkedEntityId ?? null) : null;
             const teacherId =
-              role?.role_code === "teacher" ? linkedEntityId ?? null : null;
+              role?.role_code === "teacher" ? (linkedEntityId ?? null) : null;
             const linkedName = studentId
-              ? students.find((item) => item.id === studentId)?.label ?? null
+              ? (students.find((item) => item.id === studentId)?.label ?? null)
               : teacherId
-                ? teachers.find((item) => item.id === teacherId)?.label ?? null
+                ? (teachers.find((item) => item.id === teacherId)?.label ??
+                  null)
                 : null;
 
             setUsers((current) =>
@@ -263,9 +259,7 @@ export function useUsersPage({
           ),
         );
         toast.success(
-          nextActive
-            ? "Пользователь активирован"
-            : "Пользователь заблокирован",
+          nextActive ? "Пользователь активирован" : "Пользователь заблокирован",
         );
         router.refresh();
       },
@@ -305,9 +299,7 @@ export function useUsersPage({
     filteredUsers,
     query,
     setQuery,
-    activeCount,
-    blockedCount,
-    sessionCount,
+
     openCreate,
     openChangeRole,
     openResetPassword,

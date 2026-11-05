@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type CSSProperties } from "react";
+import { useMemo } from "react";
 import {
   Button,
   DataGrid,
@@ -101,7 +101,6 @@ export default function UsersPageView({
         trailing: (
           <>
             <SearchField
-              className={styles.toolbarSearch}
               placeholder="Поиск пользователей"
               aria-label="Поиск по логину, роли или привязке"
               value={page.query}
@@ -116,30 +115,6 @@ export default function UsersPageView({
         ),
       }}
     >
-      <div className={styles.stack}>
-      <div className={styles.statsWrap}>
-        <section
-          aria-label="Сводка по пользователям"
-          className={styles.stats}
-          style={{ "--cols": STATS_COUNT } as CSSProperties}
-        >
-          {[
-            ["Всего", page.users.length],
-            ["Активных", page.activeCount],
-            ["Заблокированных", page.blockedCount],
-            ["Активных сессий", page.sessionCount],
-          ].map(([label, value]) => (
-            <div key={label} className={styles.stat}>
-              <span className={`TitleTextBlockStyle ${styles.statValue}`}>
-                {value}
-              </span>
-              <span className={`CaptionTextBlockStyle ${styles.statLabel}`}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </section>
-      </div>
       <DataGrid
         striped
         aria-label="Учётные записи пользователей"
@@ -180,7 +155,6 @@ export default function UsersPageView({
           },
         ]}
       />
-      </div>
     </Page>
   );
 }

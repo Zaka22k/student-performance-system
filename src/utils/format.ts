@@ -10,7 +10,6 @@ export const fullName = (p: {
 }): string =>
   [p.last_name, p.first_name, p.middle_name].filter(Boolean).join(" ");
 
-// «2026/2027, 1 семестр»
 export const semesterLabel = (s: {
   academic_year_start: number;
   term_number: number;

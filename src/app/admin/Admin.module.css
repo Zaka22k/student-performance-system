@@ -56,61 +56,6 @@
   white-space: nowrap;
 }
 
-.toolbarSearch {
-  width: min(30vw, 320px);
-}
-
-/* ───────────── Сводка (полоса) ───────────── */
-
-.statsWrap {
-  container-type: inline-size;
-}
-
-.stats {
-  --cols: 4;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  max-width: min(100%, calc(var(--cols) * 240px));
-  padding: 1px;
-  overflow: hidden;
-  border-radius: 12px;
-  background:
-    linear-gradient(var(--separator), var(--separator)), var(--elevated-bg);
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 18px;
-  background: var(--elevated-bg);
-}
-
-.stat:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-}
-
-.statValue {
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.statLabel {
-  color: var(--label-secondary);
-}
-
-@container (min-width: 560px) {
-  .stats {
-    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-  }
-
-  .stat:last-child:nth-child(odd) {
-    grid-column: auto;
-  }
-}
-
 /* ───────────── Пользователи ───────────── */
 
 .account {
