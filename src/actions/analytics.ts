@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/server/lib";
-import { GRADES, assignPlaces, finalResults, summarize } from "@/server";
+import { GRADES, finalResults, summarize } from "@/server";
 import type { GroupStat, RatingItem, SubjectsResponse } from "@/models";
 import { requirePermission } from "@/server/auth/session";
 
@@ -55,49 +55,67 @@ const groupBy = <T>(records: T[], keyOf: (r: T) => unknown) => {
 
 export async function getRating(q?: string): Promise<RatingItem[]> {
   await requirePermission("analytics.read");
-  const [students, rating, performance] = await Promise.all([
+  const [students, performance] = await Promise.all([
     prisma.students.findMany({ include: { student_groups: true } }),
-    prisma.reyting.findMany(),
     prisma.student_performance.findMany({ select: PERFORMANCE_SELECT }),
   ]);
 
-  const sums = new Map(
-    rating.map((r) => [String(r.idstudent), r.summ_balls ?? 0]),
-  );
+  // Все показатели рейтинга строятся по одним и тем же итоговым результатам:
+  // для каждой дисциплины, семестра и вида контроля учитывается последняя попытка.
   const byStudent = groupBy(
     finalResults(performance),
-    (r: any) => r.student_id,
+    (r) => r.student_id,
   );
 
-  const items = students
-    .map((s) => ({
-      student_id: String(s.student_id),
-      student_number: s.student_number,
-      student_name: fullName(s),
-      group_code: s.student_groups.group_code,
-      summ_balls: sums.get(String(s.student_id)) ?? 0,
-      average_grade: summarize(byStudent.get(String(s.student_id)) ?? [])
-        .average_grade,
-    }))
+  const ranked = students
+    .map((student) => {
+      const records = byStudent.get(String(student.student_id)) ?? [];
+      const stats = summarize(records);
+      const summBalls = records.reduce(
+        (sum, record) => sum + (record.grade ?? 0),
+        0,
+      );
+
+      return {
+        student_id: String(student.student_id),
+        student_number: student.student_number,
+        student_name: fullName(student),
+        group_code: student.student_groups.group_code,
+        summ_balls: summBalls,
+        average_grade: stats.average_grade,
+        graded_count: stats.graded,
+      };
+    })
     .sort(
       (a, b) =>
+        // Основной критерий оставляем прежним: сумма итоговых оценок.
         b.summ_balls - a.summ_balls ||
-        a.student_name.localeCompare(b.student_name, "ru"),
-    );
-
-  const ranked = assignPlaces(items, (i: any) => i.summ_balls) as RatingItem[];
+        // При равной сумме выше студент с большим средним баллом.
+        (b.average_grade ?? -1) - (a.average_grade ?? -1) ||
+        // Если средний балл также совпадает, учитываем количество оценок.
+        b.graded_count - a.graded_count ||
+        // Полностью равные показатели не дают одинаковое место:
+        // порядок окончательно фиксируется данными студента.
+        a.student_name.localeCompare(b.student_name, "ru") ||
+        a.student_number.localeCompare(b.student_number, "ru") ||
+        a.student_id.localeCompare(b.student_id, "en", { numeric: true }),
+    )
+    .map(({ graded_count: _gradedCount, ...item }, index) => ({
+      ...item,
+      place: index + 1,
+    })) satisfies RatingItem[];
 
   const tokens = String(q ?? "")
     .trim()
     .toLowerCase()
-    .split(/\s+/)
+    .split(/\\s+/)
     .filter(Boolean);
   if (tokens.length === 0) return ranked;
 
-  return ranked.filter((i) => {
+  return ranked.filter((item) => {
     const haystack =
-      `${i.student_name} ${i.student_number} ${i.group_code}`.toLowerCase();
-    return tokens.every((t) => haystack.includes(t));
+      `${item.student_name} ${item.student_number} ${item.group_code}`.toLowerCase();
+    return tokens.every((token) => haystack.includes(token));
   });
 }
 export async function getGroupsAnalytics(
