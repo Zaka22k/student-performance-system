@@ -1,7 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { Button, Page, TabBar } from "@ui-kit/components";
+import type { ComponentType, CSSProperties } from "react";
+import * as UIKit from "@ui-kit/components";
+import type { Theme } from "@ui-kit/components";
+import { Button, Page } from "@ui-kit/components";
 import SettingsHero from "../SettingsHero";
 import {
   ACCENT_OPTIONS,
@@ -15,6 +17,62 @@ const THEME_TABS = THEME_OPTIONS.map((item) => ({
   label: item.id === "auto" ? "Авто" : item.label,
   ariaLabel: item.label,
 }));
+
+interface ThemeTabBarProps {
+  value: Theme;
+  onValueChange: (value: Theme) => void;
+  items: typeof THEME_TABS;
+  layout: "inline";
+  "aria-label": string;
+}
+
+const UiKitTabBar = (
+  UIKit as unknown as {
+    TabBar?: ComponentType<ThemeTabBarProps>;
+  }
+).TabBar;
+
+/**
+ * Используем TabBar из UI Kit, если он есть в установленном пакете.
+ * Локальный fallback сохраняет рабочую страницу со старой собранной версией архива.
+ */
+function ThemeToolbarTabs({
+  value,
+  onValueChange,
+}: {
+  value: Theme;
+  onValueChange: (value: Theme) => void;
+}) {
+  if (UiKitTabBar) {
+    return (
+      <UiKitTabBar
+        layout="inline"
+        value={value}
+        onValueChange={onValueChange}
+        items={THEME_TABS}
+        aria-label="Тема приложения"
+      />
+    );
+  }
+
+  return (
+    <div className={styles.toolbarThemeTabs} role="tablist" aria-label="Тема приложения">
+      {THEME_TABS.map((item) => (
+        <button
+          key={item.value}
+          type="button"
+          role="tab"
+          aria-selected={value === item.value}
+          tabIndex={value === item.value ? 0 : -1}
+          className={styles.toolbarThemeTab}
+          onClick={() => onValueChange(item.value)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function AppearancePageView() {
   const page = useAppearancePage();
@@ -35,13 +93,7 @@ export default function AppearancePageView() {
       hero={<SettingsHero />}
       toolbar={{
         trailing: (
-          <TabBar
-            layout="inline"
-            value={page.theme}
-            onValueChange={page.setTheme}
-            items={THEME_TABS}
-            aria-label="Тема приложения"
-          />
+          <ThemeToolbarTabs value={page.theme} onValueChange={page.setTheme} />
         ),
       }}
     >
