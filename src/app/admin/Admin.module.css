@@ -256,6 +256,11 @@
   line-height: 1.2;
 }
 
+.deleteRoleButton {
+  flex: none;
+  margin-left: auto;
+}
+
 .description {
   max-width: 72ch;
   margin: 0;
@@ -428,7 +433,7 @@
   line-height: 1.35;
 }
 
-.perm[data-checked="true"] .permName {
+.perm:has(input:checked) .permName {
   font-weight: 600;
 }
 
@@ -469,8 +474,9 @@
     align-items: stretch;
   }
 
-  .roleHead > button {
+  .deleteRoleButton {
     width: 100%;
+    margin-left: 0;
   }
 
   .coverageText {
@@ -510,16 +516,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .meterFill,
-  .filter,
-  .roleItem {
+  .filter {
     transition: none;
   }
 }
 
-.perm {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
