@@ -3,19 +3,11 @@ import type { RatingItem } from "@/models";
 import { formatAverage } from "../../format";
 import styles from "./columns.module.css";
 
-// Тройка лидеров выделена одним оттенком акцента разной насыщенности, остальные места без плашки
 const PLACE_CLASS: Record<number, string> = {
   1: styles.place1,
   2: styles.place2,
   3: styles.place3,
 };
-
-// Оценки лежат в диапазоне 2–5: шкала показывает, где средний балл между ними
-const MIN_GRADE = 2;
-const MAX_GRADE = 5;
-
-const scaleShare = (avg: number): number =>
-  Math.min(1, Math.max(0, (avg - MIN_GRADE) / (MAX_GRADE - MIN_GRADE)));
 
 export const ratingColumns: DataGridColumn<RatingItem>[] = [
   {
@@ -35,18 +27,12 @@ export const ratingColumns: DataGridColumn<RatingItem>[] = [
     header: "Студент",
     width: 320,
     cell: (r) => (
-      <div
-        className={styles.stackCell}
-        title={`${r.student_name} (${r.group_code}, № ${r.student_number})`}
-      >
+      <div className={styles.stackCell}>
         <span
           className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.studentName}`}
         >
-          {r.student_name}
-        </span>
-        <span className={`CaptionTextBlockStyle ${styles.subtext}`}>
+          {r.student_name}{" "}
           <span className={styles.groupTag}>{r.group_code}</span>
-          <span>№ {r.student_number}</span>
         </span>
       </div>
     ),
@@ -57,7 +43,9 @@ export const ratingColumns: DataGridColumn<RatingItem>[] = [
     width: 150,
     align: "end",
     cell: (r) => (
-      <span className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.sum}`}>
+      <span
+        className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.sum}`}
+      >
         {r.summ_balls}
       </span>
     ),
@@ -72,17 +60,11 @@ export const ratingColumns: DataGridColumn<RatingItem>[] = [
           {formatAverage(r.average_grade)}
         </span>
       ) : (
-        <div className={styles.average}>
-          <span className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.averageValue}`}>
-            {formatAverage(r.average_grade)}
-          </span>
-          <span className={styles.track} aria-hidden="true">
-            <span
-              className={`${styles.fill} ${r.average_grade < 3 ? styles.fillLow : ""}`}
-              style={{ width: `${scaleShare(r.average_grade) * 100}%` }}
-            />
-          </span>
-        </div>
+        <span
+          className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.averageValue}`}
+        >
+          {formatAverage(r.average_grade)}
+        </span>
       ),
   },
 ];

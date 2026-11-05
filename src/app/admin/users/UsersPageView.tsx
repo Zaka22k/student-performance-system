@@ -6,6 +6,7 @@ import {
   DataGrid,
   Page,
   SearchField,
+  PersonPicture,
   type DataGridColumn,
 } from "@ui-kit/components";
 import { EditIcon, LockIcon, PlusIcon, RefreshIcon, TrashIcon } from "@/icons";
@@ -19,8 +20,6 @@ interface UsersPageViewProps {
   students: LinkedOption[];
   teachers: LinkedOption[];
 }
-
-const STATS_COUNT = 4;
 
 export default function UsersPageView({
   initialUsers,
@@ -38,17 +37,12 @@ export default function UsersPageView({
         width: 220,
         minWidth: 170,
         cell: (user) => (
-          <div className={styles.account}>
-            <span className={styles.avatar} aria-hidden="true">
-              {user.username.charAt(0).toLocaleUpperCase("ru")}
-            </span>
-            <div className={styles.cellMain}>
-              <span className={styles.cellTitle}>{user.username}</span>
-              <span className={styles.cellMeta}>
-                Создана {new Date(user.created_at).toLocaleDateString("ru-RU")}
-              </span>
-            </div>
-          </div>
+          <PersonPicture
+            size={28}
+            showLabel
+            displayName={user.username}
+            secondaryLabel={`Создана ${new Date(user.created_at).toLocaleDateString("ru-RU")}`}
+          />
         ),
       },
       {

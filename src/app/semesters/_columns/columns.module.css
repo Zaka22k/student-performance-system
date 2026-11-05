@@ -1,7 +1,6 @@
 .stackCell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 
@@ -61,22 +60,4 @@
 
 .dotUpcoming {
   border: 1.5px solid var(--system-gray-2);
-}
-
-/* ───────────── Шкала текущего семестра ───────────── */
-
-.track {
-  display: block;
-  width: 120px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 999px;
-  background-color: var(--fill-primary);
-}
-
-.fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background-color: var(--control-accent);
 }

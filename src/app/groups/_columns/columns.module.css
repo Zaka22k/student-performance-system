@@ -57,9 +57,9 @@
   justify-content: center;
   box-sizing: border-box;
   min-width: 32px;
-  height: 26px;
+  height: 32px;
   padding: 0 8px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  border-radius: var(--CircularCornerRadius);
   background-color: var(--fill-secondary);
   color: var(--label-primary);
   font-weight: 600;

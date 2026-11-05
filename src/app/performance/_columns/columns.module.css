@@ -7,7 +7,6 @@
 .stackCell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 
@@ -29,24 +28,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-
-/* ───────────── Студент ───────────── */
-
-/* Группа: тихая плашка, чтобы код читался отдельно от номера */
-.groupTag {
-  flex: none;
-  padding: 0 6px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
-  background-color: var(--fill-secondary);
-  color: var(--label-primary);
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.number {
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ───────────── Вид контроля ───────────── */
@@ -161,38 +142,6 @@
 .result_fail {
   background-color: color-mix(in srgb, var(--system-red) 14%, transparent);
   color: var(--system-red);
-}
-
-/* ───────────── Преподаватель ───────────── */
-
-.person {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-/* Монограмма: нейтральный круг, разбивает сплошной текст и помогает найти строку глазами */
-.avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: var(--fill-secondary);
-  color: var(--label-secondary);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.personName {
-  display: block;
-  color: var(--label-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ───────────── Дата ───────────── */

@@ -1,8 +1,7 @@
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  height: calc(100vh - 100px);
+  gap: 48px;
 }
 
 .params {
@@ -20,11 +19,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
-  background-color: var(--elevated-bg);
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
 }
 
 .cardTitle {
@@ -33,11 +27,4 @@
 
 .hint {
   color: var(--label-secondary);
-}
-
-.grid {
-  background-color: var(--elevated-bg);
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
 }

@@ -58,19 +58,16 @@ export default function GroupsAnalyticsPageView({
           </p>
         </section>
 
-        <div className={styles.grid}>
-          <DataGrid
-            aria-label="Успеваемость по группам"
-            rows={p.rows}
-            height={"max-content"}
-            columns={groupStatColumns}
-            getRowId={(g) => g.group_id}
-            resetKey={p.semesterId}
-            emptyContent={
-              p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"
-            }
-          />
-        </div>
+        <DataGrid
+          aria-label="Успеваемость по группам"
+          rows={p.rows}
+          columns={groupStatColumns}
+          getRowId={(g) => g.group_id}
+          resetKey={p.semesterId}
+          emptyContent={
+            p.loadFailed ? "Не удалось загрузить данные" : "Групп нет"
+          }
+        />
       </div>
     </Page>
   );

@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@ui-kit/components";
+import { type DataGridColumn, PersonPicture } from "@ui-kit/components";
 import type { Performance } from "@/models";
 import { formatDate, semesterLabel } from "@/utils";
 import { ASSESSMENT_LABELS, formatResult } from "../constants";
@@ -9,21 +9,13 @@ import styles from "./columns.module.css";
 type ResultTone = "excellent" | "good" | "satisfactory" | "passed" | "fail";
 
 function getResultTone(p: Performance): ResultTone {
-  if (p.assessment_type === "credit") return p.passed === true ? "passed" : "fail";
+  if (p.assessment_type === "credit")
+    return p.passed === true ? "passed" : "fail";
   if (p.grade === 5) return "excellent";
   if (p.grade === 4) return "good";
   if (p.grade === 3) return "satisfactory";
   return "fail";
 }
-
-// «Иванов Иван Иванович» → «ИИ»
-const initials = (name: string): string =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join("");
 
 // 2027-01-11 → «пн»
 const weekday = (iso: string): string =>
@@ -38,20 +30,12 @@ export const performanceColumns: DataGridColumn<Performance>[] = [
     header: "Студент",
     width: 260,
     cell: (p) => (
-      <div
-        className={styles.stackCell}
-        title={`${p.student_name} (${p.group_code}, № ${p.student_number})`}
-      >
-        <span
-          className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.primaryText}`}
-        >
-          {p.student_name}
-        </span>
-        <span className={`CaptionTextBlockStyle ${styles.subtext}`}>
-          <span className={styles.groupTag}>{p.group_code}</span>
-          <span className={styles.number}>№ {p.student_number}</span>
-        </span>
-      </div>
+      <PersonPicture
+        size={26}
+        showLabel
+        displayName={p.student_name}
+        secondaryLabel={`${p.group_code} | ${p.student_number}`}
+      />
     ),
   },
   {
@@ -121,17 +105,7 @@ export const performanceColumns: DataGridColumn<Performance>[] = [
     header: "Преподаватель",
     width: 240,
     cell: (p) => (
-      <div className={styles.person} title={p.teacher_name}>
-        <span
-          className={`CaptionTextBlockStyle ${styles.avatar}`}
-          aria-hidden="true"
-        >
-          {initials(p.teacher_name)}
-        </span>
-        <span className={`BodyTextBlockStyle ${styles.personName}`}>
-          {p.teacher_name}
-        </span>
-      </div>
+      <PersonPicture size={26} showLabel displayName={p.teacher_name} />
     ),
   },
   {

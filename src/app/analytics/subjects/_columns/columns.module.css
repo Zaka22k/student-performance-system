@@ -1,26 +1,4 @@
-/* Колонки «Успеваемость по дисциплинам».
-   Цвета нет, кроме одного оттенка акцента у шкал и красного у двоек и тревожных значений. */
-
 /* ───────────── Дисциплина ───────────── */
-
-.subjectCell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.codeTag {
-  flex: none;
-  padding: 0 8px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
-  background-color: var(--fill-secondary);
-  color: var(--label-primary);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.6;
-  white-space: nowrap;
-}
 
 .subjectName {
   overflow: hidden;

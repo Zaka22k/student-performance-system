@@ -19,10 +19,9 @@ const PHASE_DOT: Record<Phase, string> = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Даты приходят строками YYYY-MM-DD, их можно сравнивать как строки.
-// Сегодня берём в часовом поясе пользователя (toISOString дал бы дату по UTC)
 const todayISO = (): string => new Date().toLocaleDateString("sv-SE");
-const dayNumber = (iso: string): number => Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
+const dayNumber = (iso: string): number =>
+  Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
 
 function getPhase(s: Semester): Phase {
   const today = todayISO();
@@ -31,22 +30,18 @@ function getPhase(s: Semester): Phase {
   return "current";
 }
 
-// Число дней от начала до конца включительно
 const lengthInDays = (s: Semester): number =>
   dayNumber(s.end_date) - dayNumber(s.start_date) + 1;
 
-const weeksCount = (s: Semester): number => Math.max(1, Math.round(lengthInDays(s) / 7));
+const weeksCount = (s: Semester): number =>
+  Math.max(1, Math.round(lengthInDays(s) / 7));
 
-// Какая доля семестра уже прошла, от 0 до 1
-const progress = (s: Semester): number =>
-  Math.min(1, Math.max(0, (dayNumber(todayISO()) - dayNumber(s.start_date) + 1) / lengthInDays(s)));
-
-// 1 неделя, 2–4 недели, 5–20 недель, 21 неделя ...
 function weeksLabel(n: number): string {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 === 1 && mod100 !== 11) return `${n} неделя`;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} недели`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14))
+    return `${n} недели`;
   return `${n} недель`;
 }
 
@@ -69,7 +64,10 @@ export const semesterColumns: DataGridColumn<Semester>[] = [
               phase === "current" ? styles.statusCurrent : ""
             }`}
           >
-            <span className={`${styles.dot} ${PHASE_DOT[phase]}`} aria-hidden="true" />
+            <span
+              className={`${styles.dot} ${PHASE_DOT[phase]}`}
+              aria-hidden="true"
+            />
             {PHASE_LABEL[phase]}
           </span>
         </div>
@@ -115,25 +113,10 @@ export const semesterColumns: DataGridColumn<Semester>[] = [
     id: "length",
     header: "Длительность",
     cell: (s) => {
-      const isCurrent = getPhase(s) === "current";
       return (
-        <div className={styles.stackCell}>
-          <span className={`BodyTextBlockStyle ${styles.primaryText}`}>
-            {weeksLabel(weeksCount(s))}
-          </span>
-          {isCurrent && (
-            <span
-              className={styles.track}
-              role="progressbar"
-              aria-label="Прошло от семестра"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(progress(s) * 100)}
-            >
-              <span className={styles.fill} style={{ width: `${progress(s) * 100}%` }} />
-            </span>
-          )}
-        </div>
+        <span className={`BodyTextBlockStyle ${styles.primaryText}`}>
+          {weeksLabel(weeksCount(s))}
+        </span>
       );
     },
   },

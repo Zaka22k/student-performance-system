@@ -34,7 +34,7 @@ export function detailsText(details: unknown): string {
   try {
     return typeof details === "string"
       ? details
-      : JSON.stringify(details) ?? "—";
+      : (JSON.stringify(details) ?? "—");
   } catch {
     return "Детали недоступны";
   }
@@ -42,14 +42,13 @@ export function detailsText(details: unknown): string {
 
 export type AuditFilter = "all" | "auth" | "users" | "roles";
 
-export const AUDIT_FILTERS: { id: AuditFilter; label: string }[] = [
-  { id: "all", label: "Все" },
-  { id: "auth", label: "Вход и сессии" },
-  { id: "users", label: "Пользователи" },
-  { id: "roles", label: "Роли" },
+export const AUDIT_FILTERS: { value: AuditFilter; label: string }[] = [
+  { value: "all", label: "Все" },
+  { value: "auth", label: "Cессии" },
+  { value: "users", label: "Пользователи" },
+  { value: "roles", label: "Роли" },
 ];
 
-/** Тяжесть события: подсвечиваем то, на что администратору стоит взглянуть. */
 export type AuditTone = "normal" | "warn" | "danger";
 
 const DANGER_ACTIONS = new Set([
@@ -107,5 +106,13 @@ export function useAuditPage(initialRows: AuditEntry[]) {
     );
   }, [initialRows, query, filter]);
 
-  return { query, setQuery, filter, setFilter, counts, rows, total: initialRows.length };
+  return {
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    counts,
+    rows,
+    total: initialRows.length,
+  };
 }

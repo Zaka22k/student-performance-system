@@ -22,9 +22,7 @@ interface QuickAction {
   title: string;
   text: string;
   icon: ComponentType<{ size?: number | string }>;
-  /** Карточка видна, если у пользователя есть любое из этих разрешений. */
   needs: readonly string[];
-  /** Другой текст для тех, у кого нет `fullAccess` (например, «свои» данные). */
   limitedText?: string;
   fullAccess?: string;
 }
@@ -113,13 +111,7 @@ const MONTHS = [
 const formatNumber = (value: number | null, digits = 0) =>
   value === null ? "—" : value.toFixed(digits).replace(".", ",");
 
-function QuickCard({
-  action,
-  text,
-}: {
-  action: QuickAction;
-  text: string;
-}) {
+function QuickCard({ action, text }: { action: QuickAction; text: string }) {
   const Icon = action.icon;
   return (
     <Link href={action.href} className={styles.card}>

@@ -1,6 +1,3 @@
-/* Колонки рейтинга студентов.
-   Цвета нет, кроме одного оттенка акцента у тройки лидеров и красного у среднего балла ниже 3. */
-
 /* ───────────── Место ───────────── */
 
 .place {
@@ -8,34 +5,31 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-width: 32px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
-  font-weight: 600;
+  min-width: 28px;
+  height: 28px;
+  border-radius: var(--CircularCornerRadius);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-/* Остальные места: просто число, но в тех же габаритах, чтобы цифры стояли в одну линию */
 .placeOther {
   color: var(--label-secondary);
   font-weight: 500;
 }
 
-/* Тройка лидеров: один оттенок, разная насыщенность */
 .place1 {
-  background-color: color-mix(in srgb, var(--control-accent) 26%, transparent);
-  color: var(--control-accent);
+  background-color: color-mix(in srgb, var(--system-yellow) 26%, transparent);
+  color: var(--system-yellow);
 }
 
 .place2 {
-  background-color: color-mix(in srgb, var(--control-accent) 15%, transparent);
-  color: var(--control-accent);
+  background-color: color-mix(in srgb, var(--system-gray) 15%, transparent);
+  color: var(--system-gray);
 }
 
 .place3 {
-  background-color: color-mix(in srgb, var(--control-accent) 8%, transparent);
-  color: var(--control-accent);
+  background-color: color-mix(in srgb, var(--system-brown) 8%, transparent);
+  color: var(--system-brown);
 }
 
 /* ───────────── Студент ───────────── */
@@ -55,23 +49,12 @@
   white-space: nowrap;
 }
 
-.subtext {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--label-secondary);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 .groupTag {
   flex: none;
   padding: 0 6px;
   border-radius: calc(var(--ControlCornerRadius) - 2px);
   background-color: var(--fill-secondary);
   color: var(--label-primary);
-  font-weight: 600;
-  line-height: 1.5;
 }
 
 /* ───────────── Сумма ───────────── */
@@ -83,37 +66,9 @@
 
 /* ───────────── Средний балл ───────────── */
 
-.average {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
 .averageValue {
   color: var(--label-primary);
   font-variant-numeric: tabular-nums;
-}
-
-.track {
-  display: block;
-  width: 64px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 999px;
-  background-color: var(--fill-primary);
-}
-
-.fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background-color: color-mix(in srgb, var(--control-accent) 75%, transparent);
-}
-
-/* ниже 3: красный несёт смысл */
-.fillLow {
-  background-color: var(--system-red);
 }
 
 .empty {

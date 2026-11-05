@@ -2,11 +2,10 @@ import type { DataGridColumn } from "@ui-kit/components";
 import type { Group } from "@/models";
 import styles from "./columns.module.css";
 
-// Курс группы по году набора: учебный год начинается в сентябре.
-// Для давно выпущенных и будущих групп курс не показываем
 function getCourse(admissionYear: number): number | null {
   const now = new Date();
-  const academicYearStart = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  const academicYearStart =
+    now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
   const course = academicYearStart - admissionYear + 1;
   return course >= 1 && course <= 6 ? course : null;
 }

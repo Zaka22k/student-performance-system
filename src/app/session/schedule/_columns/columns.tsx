@@ -1,4 +1,4 @@
-import type { DataGridColumn } from "@ui-kit/components";
+import { type DataGridColumn, PersonPicture } from "@ui-kit/components";
 import type { ScheduleItem } from "@/models";
 import { formatDate } from "@/utils";
 import { ASSESSMENT_LABELS } from "../../../performance/constants";
@@ -16,20 +16,18 @@ export const scheduleRowId = (r: ScheduleItem) =>
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Даты приходят строками YYYY-MM-DD. Сегодня берём в часовом поясе пользователя
-// (toISOString дал бы дату по UTC)
 const todayISO = (): string => new Date().toLocaleDateString("sv-SE");
-const dayNumber = (iso: string): number => Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
+const dayNumber = (iso: string): number =>
+  Date.parse(`${iso}T00:00:00Z`) / DAY_MS;
 
-// 2027-01-11 → «пн»
 const weekday = (iso: string): string =>
   new Date(`${iso}T00:00:00Z`).toLocaleDateString("ru-RU", {
     weekday: "short",
     timeZone: "UTC",
   });
 
-// Сколько дней до события: отрицательное значение значит, что оно уже прошло
-const daysUntil = (iso: string): number => dayNumber(iso) - dayNumber(todayISO());
+const daysUntil = (iso: string): number =>
+  dayNumber(iso) - dayNumber(todayISO());
 
 function relativeLabel(days: number): string {
   if (days === 0) return "сегодня";
@@ -37,15 +35,6 @@ function relativeLabel(days: number): string {
   if (days === -1) return "вчера";
   return days > 0 ? `через ${days} дн.` : `${-days} дн. назад`;
 }
-
-// «Иванов Иван Иванович» → «ИИ»
-const initials = (name: string): string =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join("");
 
 export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
   {
@@ -121,17 +110,7 @@ export const scheduleColumns: DataGridColumn<ScheduleItem>[] = [
     header: "Преподаватель",
     width: 240,
     cell: (r) => (
-      <div className={styles.person} title={r.teacher_name}>
-        <span
-          className={`CaptionTextBlockStyle ${styles.avatar}`}
-          aria-hidden="true"
-        >
-          {initials(r.teacher_name)}
-        </span>
-        <span className={`BodyTextBlockStyle ${styles.personName}`}>
-          {r.teacher_name}
-        </span>
-      </div>
+      <PersonPicture size={28} showLabel displayName={r.teacher_name} />
     ),
   },
   {

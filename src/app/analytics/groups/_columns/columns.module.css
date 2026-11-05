@@ -1,26 +1,4 @@
-/* Колонки «Успеваемость по группам».
-   Цвета нет, кроме одного оттенка акцента у шкал и красного у тревожных значений. */
-
 /* ───────────── Группа ───────────── */
-
-.groupCell {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.groupTag {
-  flex: none;
-  padding: 0 8px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
-  background-color: var(--fill-secondary);
-  color: var(--label-primary);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.6;
-  white-space: nowrap;
-}
 
 .groupName {
   overflow: hidden;
@@ -38,40 +16,7 @@
 
 /* ───────────── Показатели: число и шкала ───────────── */
 
-.metric {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
 .metricValue {
   color: var(--label-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.track {
-  display: block;
-  width: 64px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 999px;
-  background-color: var(--fill-primary);
-}
-
-.fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background-color: color-mix(in srgb, var(--control-accent) 75%, transparent);
-}
-
-/* тревожное значение: красный несёт смысл */
-.fillLow {
-  background-color: var(--system-red);
-}
-
-.empty {
-  color: var(--label-secondary);
   font-variant-numeric: tabular-nums;
 }

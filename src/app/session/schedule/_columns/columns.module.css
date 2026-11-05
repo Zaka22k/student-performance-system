@@ -1,10 +1,6 @@
-/* Колонки расписания сессии.
-   Цвет только у слова «сегодня». Остальное: иерархия шрифта, серые плашки и значки-формы, как в журнале. */
-
 .stackCell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 
@@ -25,7 +21,6 @@
 
 /* ───────────── Дата ───────────── */
 
-/* Прошедшие события тише, чтобы ближайшие читались первыми */
 .past .primaryText {
   color: var(--label-secondary);
 }
@@ -57,7 +52,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  color: var(--label-secondary); /* цвет значка берётся отсюда */
+  color: var(--label-secondary);
 }
 
 .typeLabel {
@@ -74,7 +69,6 @@
   white-space: nowrap;
 }
 
-/* Виды различаются формой, а не цветом */
 .marker {
   flex: none;
   box-sizing: border-box;
@@ -102,37 +96,6 @@
   background-color: currentColor;
 }
 
-/* ───────────── Преподаватель ───────────── */
-
-.person {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.avatar {
-  flex: none;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: var(--fill-secondary);
-  color: var(--label-secondary);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.personName {
-  display: block;
-  color: var(--label-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* ───────────── Число студентов ───────────── */
 
 .count {
@@ -143,9 +106,8 @@
   min-width: 32px;
   height: 26px;
   padding: 0 8px;
-  border-radius: calc(var(--ControlCornerRadius) - 2px);
+  border-radius: var(--CircularCornerRadius);
   background-color: var(--fill-secondary);
   color: var(--label-primary);
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }

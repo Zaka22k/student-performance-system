@@ -36,14 +36,13 @@
 
 .cellMain {
   display: grid;
-  gap: 3px;
   min-width: 0;
 }
 
 .cellTitle {
   overflow: hidden;
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -58,26 +57,6 @@
 
 /* ───────────── Пользователи ───────────── */
 
-.account {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.avatar {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--control-accent) 13%, transparent);
-  color: var(--accent-text);
-  font-size: var(--font-caption);
-  font-weight: 700;
-}
-
 .status {
   display: inline-flex;
   align-items: center;
@@ -89,14 +68,6 @@
   font-size: var(--font-caption);
   font-weight: 600;
   white-space: nowrap;
-}
-
-.status::before {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  content: "";
 }
 
 .statusActive {
@@ -113,62 +84,6 @@
 
 /* ───────────── Журнал действий ───────────── */
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: var(--ControlCornerRadius);
-  background: var(--fill-tertiary);
-  box-shadow: inset 0 0 0 1px var(--separator);
-  color: var(--label-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: var(--font-body);
-  transition:
-    background-color var(--ControlAnimationDuration)
-      var(--ControlAnimationEasing),
-    color var(--ControlAnimationDuration) var(--ControlAnimationEasing);
-}
-
-.filter[aria-pressed="true"] {
-  background: var(--selected-content-bg);
-  box-shadow: none;
-  color: var(--text-selected);
-}
-
-.filter:focus-visible {
-  outline: 2px solid var(--keyboard-focus-indicator);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) {
-  .filter[aria-pressed="false"]:hover {
-    background: var(--fill-secondary);
-  }
-}
-
-.filterCount {
-  font-size: var(--font-caption);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.75;
-}
-
-.auditMeta {
-  margin-inline-start: auto;
-  color: var(--label-secondary);
-  font-size: var(--font-caption);
-}
-
 .eventCell {
   display: flex;
   align-items: center;
@@ -176,12 +91,11 @@
   min-width: 0;
 }
 
-/* Метка тяжести: серая обычное событие, оранжевая тревожное, красная опасное. */
 .mark {
   flex: none;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--CircularCornerRadius);
   background: var(--system-gray-2);
 }
 

@@ -81,17 +81,14 @@ export default function SubjectsAnalyticsPageView({
           </p>
         </section>
 
-        <div className={styles.grid}>
-          <DataGrid
-            aria-label="Успеваемость по дисциплинам"
-            rows={p.rows}
-            height={"max-content"}
-            columns={subjectStatColumns}
-            getRowId={(s) => s.subject_id}
-            resetKey={`${p.semesterId}|${p.groupId}`}
-            emptyContent={emptyText}
-          />
-        </div>
+        <DataGrid
+          aria-label="Успеваемость по дисциплинам"
+          rows={p.rows}
+          columns={subjectStatColumns}
+          getRowId={(s) => s.subject_id}
+          resetKey={`${p.semesterId}|${p.groupId}`}
+          emptyContent={emptyText}
+        />
       </div>
     </Page>
   );
