@@ -593,7 +593,7 @@
   border-radius: 6px;
 }
 
-.previewNavItem:first-of-type {
+.previewNavItem:nth-of-type(2) {
   background: color-mix(in srgb, var(--preview-accent) 17%, transparent);
 }
 
@@ -605,7 +605,7 @@
   opacity: 0.55;
 }
 
-.previewNavItem:first-of-type span {
+.previewNavItem:nth-of-type(2) span {
   background: var(--preview-accent);
   opacity: 1;
 }
@@ -861,6 +861,9 @@
   margin-top: -2px;
   border-bottom: 2px solid #fff;
   border-left: 2px solid #fff;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   transform: rotate(-45deg);
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 35%));
 }
