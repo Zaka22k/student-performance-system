@@ -55,7 +55,7 @@ export default function HomeHero() {
       >
         <g className={styles.panelShadow}>
           <rect
-            className={styles.panel}
+            className={styles.heroPanel}
             x="26"
             y="34"
             width="670"
