@@ -56,7 +56,26 @@ function ThemeToolbarTabs({
   }
 
   return (
-    <div className={styles.toolbarThemeTabs} role="tablist" aria-label="Тема приложения">
+    <div
+      className={styles.toolbarThemeTabs}
+      role="tablist"
+      aria-label="Тема приложения"
+      onKeyDown={(event) => {
+        const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        const currentIndex = THEME_TABS.findIndex((item) => item.value === value);
+        const nextIndex =
+          event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? THEME_TABS.length - 1
+              : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + THEME_TABS.length) %
+                THEME_TABS.length;
+        onValueChange(THEME_TABS[nextIndex].value);
+        event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus();
+      }}
+    >
       {THEME_TABS.map((item) => (
         <button
           key={item.value}
@@ -138,6 +157,7 @@ export default function AppearancePageView() {
 
             <div
               className={styles.themePreview}
+              aria-hidden="true"
               data-theme-preview={page.resolvedTheme}
               style={
                 {
