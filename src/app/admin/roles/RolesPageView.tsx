@@ -43,6 +43,16 @@ function permissionsWord(n: number) {
   return n + " разрешений";
 }
 
+function rolesWord(n: number) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return n + " роль доступна";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return n + " роли доступны";
+  }
+  return n + " ролей доступно";
+}
+
 export default function RolesPageView({ initialData }: RolesPageViewProps) {
   const page = useRolesPage({ initialData });
   const total = page.permissions.length;
@@ -119,7 +129,7 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                   style={{ width: "100%" }}
                 />
                 <span className={styles.roleSelectorMeta}>
-                  {permissionsWord(page.roles.length)} в системе
+                  {rolesWord(page.roles.length)}
                 </span>
               </div>
             </section>
