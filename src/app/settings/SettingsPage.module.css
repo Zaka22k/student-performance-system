@@ -952,3 +952,48 @@
     width: 100%;
   }
 }
+
+
+.toolbarThemeTabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--separator);
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+}
+
+.toolbarThemeTab {
+  min-width: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--label-secondary);
+  font: inherit;
+  font-size: var(--font-caption);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing),
+    color var(--ControlAnimationDuration) var(--ControlAnimationEasing);
+}
+
+.toolbarThemeTab[aria-selected="true"] {
+  background: var(--fill-primary);
+  color: var(--text-primary);
+  box-shadow: var(--window-inner-glow);
+}
+
+.toolbarThemeTab:hover:not([aria-selected="true"]) {
+  color: var(--text-primary);
+}
+
+.toolbarThemeTab:focus-visible {
+  outline: 2px solid var(--keyboard-focus-indicator);
+  outline-offset: 2px;
+}
