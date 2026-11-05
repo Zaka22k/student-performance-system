@@ -72,14 +72,125 @@
   stroke-width: 2;
 }
 
+.hero {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      ellipse 470px 250px at 78% 24%,
+      color-mix(in srgb, var(--control-accent) 12%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 360px 230px at 12% 76%,
+      color-mix(in srgb, var(--control-accent) 8%, transparent),
+      transparent 74%
+    ),
+    linear-gradient(
+      112deg,
+      color-mix(in srgb, var(--control-accent) 5%, var(--window-bg)),
+      var(--window-bg) 72%
+    );
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -178px;
+  right: 7%;
+  width: 360px;
+  height: 360px;
+  border: 1px solid color-mix(in srgb, var(--control-accent) 13%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 30px color-mix(in srgb, var(--control-accent) 3%, transparent),
+    0 0 0 66px color-mix(in srgb, var(--control-accent) 2%, transparent);
+  pointer-events: none;
+}
+
+.heroSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 760px;
+  max-width: none;
+  height: 260px;
+  pointer-events: none;
+}
+
+.panelShadow {
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.11));
+}
+
+.heroPanel {
+  fill: var(--elevated-bg);
+  fill-opacity: 0.96;
+  stroke: var(--window-border);
+  stroke-width: 1;
+}
+
+.chartHeader circle {
+  fill: var(--fill-tertiary);
+}
+
+.chartHeader circle:first-child {
+  fill: var(--control-accent);
+}
+
+.chartHeader path {
+  fill: none;
+  stroke: var(--separator-opaque);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.gridLine {
+  stroke: var(--separator);
+  stroke-width: 1;
+}
+
+.baseLine {
+  stroke: var(--separator-opaque);
+  stroke-width: 1;
+}
+
+.bar {
+  fill: var(--fill-secondary);
+}
+
+.barRecent {
+  fill: color-mix(in srgb, var(--control-accent) 34%, transparent);
+}
+
+.barCurrent {
+  fill: var(--control-accent);
+}
+
+.trend {
+  fill: none;
+  stroke: var(--label-secondary);
+  stroke-opacity: 0.58;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pointHalo {
+  fill: color-mix(in srgb, var(--control-accent) 19%, transparent);
+}
+
+.point {
+  fill: var(--window-bg);
+  stroke: var(--control-accent);
+  stroke-width: 2;
+}
+
 /* ───────────── Тело страницы ───────────── */
 
-/*
- * Раскладка зависит от ширины самой страницы, а не окна: рядом может быть
- * боковая панель NavigationView, поэтому используем container queries.
- */
 .content {
-  /* Акцент для мелкого текста и значков: темнее, чтобы хватало контраста. */
   --accent-text: color-mix(
     in srgb,
     var(--control-accent) 72%,
@@ -88,8 +199,9 @@
 
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
   padding: 24px 0 40px;
+  container-type: inline-size;
 }
 
 .intro {
@@ -119,50 +231,130 @@
   margin-top: 4px;
 }
 
-/* Показатели: одна полоса с разделителями, как итоговая строка ведомости */
+/* Сводка: отдельные KPI-карточки с одинаковой визуальной иерархией. */
+
+.statsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.statsHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px;
+}
+
+.statsHeadingMark {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--control-accent);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--control-accent) 12%, transparent);
+}
+
+.statsTitle {
+  margin: 0;
+  color: var(--label-primary);
+  font-weight: 600;
+}
 
 .stats {
   --cols: 4;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  max-width: min(100%, calc(var(--cols) * 320px));
-  padding: 1px;
-  overflow: hidden;
-  border-radius: 12px;
-  background:
-    linear-gradient(var(--separator), var(--separator)), var(--elevated-bg);
+  gap: 12px;
+  width: 100%;
+  max-width: min(100%, calc(var(--cols) * 300px));
 }
 
 .stat {
+  position: relative;
   display: flex;
+  min-width: 0;
+  min-height: 126px;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 20px;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px 17px 20px;
+  overflow: hidden;
+  border: 1px solid var(--separator);
+  border-radius: 16px;
   background: var(--elevated-bg);
+  transition:
+    border-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing),
+    background-color var(--ControlAnimationDuration)
+      var(--ControlAnimationEasing);
 }
 
-.stat:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
+.stat::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--control-accent);
+  opacity: 0.42;
 }
 
-.statValue {
-  font-weight: 700;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
+.stat[data-kind="average"] {
+  border-color: color-mix(in srgb, var(--control-accent) 30%, var(--separator));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--control-accent) 10%, var(--elevated-bg)),
+    var(--elevated-bg) 78%
+  );
+}
+
+.statTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .statLabel {
+  min-width: 0;
+  color: var(--label-secondary);
+  font-size: var(--font-caption);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.statIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--fill-quaternary);
   color: var(--label-secondary);
 }
 
-@container (min-width: 560px) {
+.stat[data-kind="average"] .statIcon {
+  background: color-mix(in srgb, var(--control-accent) 14%, transparent);
+  color: var(--accent-text);
+}
+
+.statValue {
+  color: var(--text-primary);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+@container (min-width: 680px) {
   .stats {
     grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-  }
-
-  .stat:last-child:nth-child(odd) {
-    grid-column: auto;
   }
 }
 
