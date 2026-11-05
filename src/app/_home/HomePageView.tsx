@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Page } from "@ui-kit/components";
 import {
   AnalyticsIcon,
+  CheckIcon,
   DictionariesIcon,
   PlusIcon,
   ReportsIcon,
@@ -25,6 +26,14 @@ interface QuickAction {
   needs: readonly string[];
   limitedText?: string;
   fullAccess?: string;
+}
+
+interface HomeStat {
+  id: string;
+  kind: "students" | "groups" | "average" | "success";
+  label: string;
+  value: string;
+  icon: ComponentType<{ size?: number | string }>;
 }
 
 // Порядок карточек: сначала то, что делают чаще, затем отчёты и справочники.
@@ -120,11 +129,11 @@ function QuickCard({ action, text }: { action: QuickAction; text: string }) {
       </span>
       <span className={styles.cardBody}>
         <span
-          className={`BodyTextBlockStyle BodyStrongTextBlockStyle ${styles.cardTitle}`}
+          className={"BodyTextBlockStyle BodyStrongTextBlockStyle " + styles.cardTitle}
         >
           {action.title}
         </span>
-        <span className={`CaptionTextBlockStyle ${styles.cardText}`}>
+        <span className={"CaptionTextBlockStyle " + styles.cardText}>
           {text}
         </span>
       </span>
@@ -149,10 +158,10 @@ function UpcomingRow({ event }: { event: UpcomingEvent }) {
         </span>
       </time>
       <span className={styles.eventMain}>
-        <span className={`BodyTextBlockStyle ${styles.eventTitle}`}>
+        <span className={"BodyTextBlockStyle " + styles.eventTitle}>
           {event.subjectName}
         </span>
-        <span className={`CaptionTextBlockStyle ${styles.eventText}`}>
+        <span className={"CaptionTextBlockStyle " + styles.eventText}>
           {event.groupCode}, {type}
         </span>
       </span>
@@ -163,7 +172,7 @@ function UpcomingRow({ event }: { event: UpcomingEvent }) {
 export default function HomePageView({ summary }: { summary: HomeSummary }) {
   const router = useRouter();
   const permissions = new Set(summary.permissions);
-  const can = (...codes: string[]) => codes.some((c) => permissions.has(c));
+  const can = (...codes: string[]) => codes.some((code) => permissions.has(code));
   const own = summary.scope === "own";
 
   const canJournal = can("grades.read.all", "grades.read.own");
@@ -172,34 +181,56 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
     "session.schedule.read.own",
   );
 
-  const actions = QUICK_ACTIONS.filter((a) => can(...a.needs)).map((a) => ({
-    action: a,
-    text:
-      a.limitedText && a.fullAccess && !permissions.has(a.fullAccess)
-        ? a.limitedText
-        : a.text,
-  }));
+  const actions = QUICK_ACTIONS.filter((action) => can(...action.needs)).map(
+    (action) => ({
+      action,
+      text:
+        action.limitedText &&
+        action.fullAccess &&
+        !permissions.has(action.fullAccess)
+          ? action.limitedText
+          : action.text,
+    }),
+  );
 
-  // Показатели: только те, что считаются для роли и не вводят в заблуждение.
-  const stats: { label: string; value: string }[] = [];
+  // Показываем только те показатели, на которые у пользователя есть доступ.
+  const stats: HomeStat[] = [];
   if (can("dictionaries.read")) {
     stats.push(
-      { label: "Студентов учится", value: formatNumber(summary.students) },
-      { label: "Групп", value: formatNumber(summary.groups) },
+      {
+        id: "students",
+        kind: "students",
+        label: "Студентов учится",
+        value: formatNumber(summary.students),
+        icon: DictionariesIcon,
+      },
+      {
+        id: "groups",
+        kind: "groups",
+        label: "Учебных групп",
+        value: formatNumber(summary.groups),
+        icon: DictionariesIcon,
+      },
     );
   }
   if (canJournal) {
     stats.push(
       {
+        id: "average",
+        kind: "average",
         label: own ? "Ваш средний балл" : "Средний балл семестра",
         value: formatNumber(summary.averageGrade, 2),
+        icon: AnalyticsIcon,
       },
       {
+        id: "success",
+        kind: "success",
         label: own ? "Ваша успеваемость" : "Успеваемость",
         value:
           summary.successRate === null
             ? "—"
-            : `${formatNumber(summary.successRate, 1)}%`,
+            : formatNumber(summary.successRate, 1) + "%",
+        icon: CheckIcon,
       },
     );
   }
@@ -225,10 +256,10 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
     <Page title="Главная" hero={<HomeHero />}>
       <div className={styles.content}>
         <section className={styles.intro}>
-          <h1 className={`TitleLargeTextBlockStyle ${styles.title}`}>
+          <h1 className={"TitleLargeTextBlockStyle " + styles.title}>
             Учёт успеваемости студентов
           </h1>
-          <p className={`BodyLargeTextBlockStyle ${styles.lead}`}>
+          <p className={"BodyLargeTextBlockStyle " + styles.lead}>
             {lead}
             {summary.semester && !isEmpty && (
               <> Последний семестр в базе: {semesterLabel(summary.semester)}.</>
@@ -248,20 +279,43 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
 
         {stats.length > 0 && (
           <section
-            aria-label="Показатели"
-            className={styles.stats}
-            style={{ "--cols": stats.length } as CSSProperties}
+            aria-labelledby="home-stats-title"
+            className={styles.statsSection}
           >
-            {stats.map((s) => (
-              <div key={s.label} className={styles.stat}>
-                <span className={`TitleTextBlockStyle ${styles.statValue}`}>
-                  {s.value}
-                </span>
-                <span className={`CaptionTextBlockStyle ${styles.statLabel}`}>
-                  {s.label}
-                </span>
-              </div>
-            ))}
+            <div className={styles.statsHeading}>
+              <span className={styles.statsHeadingMark} aria-hidden="true" />
+              <h2
+                id="home-stats-title"
+                className={"SubtitleTextBlockStyle " + styles.statsTitle}
+              >
+                Ключевые показатели
+              </h2>
+            </div>
+            <div
+              className={styles.stats}
+              style={{ "--cols": stats.length } as CSSProperties}
+            >
+              {stats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <article
+                    key={stat.id}
+                    className={styles.stat}
+                    data-kind={stat.kind}
+                  >
+                    <div className={styles.statTop}>
+                      <span className={styles.statLabel}>{stat.label}</span>
+                      <span className={styles.statIcon} aria-hidden="true">
+                        <Icon size={18} />
+                      </span>
+                    </div>
+                    <span className={"TitleTextBlockStyle " + styles.statValue}>
+                      {stat.value}
+                    </span>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         )}
 
@@ -274,7 +328,7 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
               >
                 <h2
                   id="home-actions"
-                  className={`SubtitleTextBlockStyle ${styles.sectionTitle}`}
+                  className={"SubtitleTextBlockStyle " + styles.sectionTitle}
                 >
                   Быстрый переход
                 </h2>
@@ -293,25 +347,25 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
               >
                 <h2
                   id="home-upcoming"
-                  className={`SubtitleTextBlockStyle ${styles.sectionTitle}`}
+                  className={"SubtitleTextBlockStyle " + styles.sectionTitle}
                 >
                   Ближайшие экзамены и зачёты
                 </h2>
                 <div className={styles.panel}>
                   {summary.upcoming.length > 0 ? (
                     <ol className={styles.events}>
-                      {summary.upcoming.map((e) => (
-                        <UpcomingRow key={e.id} event={e} />
+                      {summary.upcoming.map((event) => (
+                        <UpcomingRow key={event.id} event={event} />
                       ))}
                     </ol>
                   ) : (
-                    <p className={`BodyTextBlockStyle ${styles.empty}`}>
+                    <p className={"BodyTextBlockStyle " + styles.empty}>
                       Ближайших экзаменов и зачётов нет
                     </p>
                   )}
                   <Link
                     href="/session/schedule"
-                    className={`BodyTextBlockStyle ${styles.panelLink}`}
+                    className={"BodyTextBlockStyle " + styles.panelLink}
                   >
                     Всё расписание
                   </Link>
