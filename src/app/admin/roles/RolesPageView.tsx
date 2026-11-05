@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Checkbox, ComboBox, Page } from "@ui-kit/components";
-import { PlusIcon, TrashIcon } from "@/icons";
+import { PlusIcon } from "@/icons";
 import type { AdminPermission } from "./useRolesPage";
 import { useRolesPage } from "./useRolesPage";
 import styles from "../Admin.module.css";
@@ -147,7 +147,6 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                 {!page.builtInRole && (
                   <Button
                     appearance="destructive"
-                    icon={<TrashIcon />}
                     onClick={page.confirmDelete}
                   >
                     Удалить роль
@@ -231,29 +230,27 @@ export default function RolesPageView({ initialData }: RolesPageViewProps) {
                               key={permission.permission_id}
                               className={styles.permItem}
                             >
-                              <label
+                              <Checkbox
                                 className={styles.perm}
-                                data-checked={checked ? "true" : undefined}
-                              >
-                                <span className={styles.permLabel}>
-                                  <span className={styles.permName}>
-                                    {permission.permission_name}
+                                labelPlacement="start"
+                                label={
+                                  <span className={styles.permLabel}>
+                                    <span className={styles.permName}>
+                                      {permission.permission_name}
+                                    </span>
+                                    <span className={styles.permCode}>
+                                      {permission.permission_code}
+                                    </span>
                                   </span>
-                                  <span className={styles.permCode}>
-                                    {permission.permission_code}
-                                  </span>
-                                </span>
-                                <Checkbox
-                                  aria-label={permission.permission_name}
-                                  checked={checked}
-                                  onChange={(event) =>
-                                    page.togglePermission(
-                                      permission.permission_id,
-                                      event.target.checked,
-                                    )
-                                  }
-                                />
-                              </label>
+                                }
+                                checked={checked}
+                                onChange={(event) =>
+                                  page.togglePermission(
+                                    permission.permission_id,
+                                    event.target.checked,
+                                  )
+                                }
+                              />
                             </li>
                           );
                         })}
