@@ -129,7 +129,9 @@ function QuickCard({ action, text }: { action: QuickAction; text: string }) {
       </span>
       <span className={styles.cardBody}>
         <span
-          className={"BodyTextBlockStyle BodyStrongTextBlockStyle " + styles.cardTitle}
+          className={
+            "BodyTextBlockStyle BodyStrongTextBlockStyle " + styles.cardTitle
+          }
         >
           {action.title}
         </span>
@@ -172,7 +174,8 @@ function UpcomingRow({ event }: { event: UpcomingEvent }) {
 export default function HomePageView({ summary }: { summary: HomeSummary }) {
   const router = useRouter();
   const permissions = new Set(summary.permissions);
-  const can = (...codes: string[]) => codes.some((code) => permissions.has(code));
+  const can = (...codes: string[]) =>
+    codes.some((code) => permissions.has(code));
   const own = summary.scope === "own";
 
   const canJournal = can("grades.read.all", "grades.read.own");
@@ -193,7 +196,6 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
     }),
   );
 
-  // Показываем только те показатели, на которые у пользователя есть доступ.
   const stats: HomeStat[] = [];
   if (can("dictionaries.read")) {
     stats.push(
@@ -240,7 +242,6 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
   const isEmpty =
     !canJournal && !canSchedule && !hasActions && stats.length === 0;
 
-  // Вводный текст описывает только то, что роль действительно видит.
   let lead = "Журнал, сессия, аналитика и отчёты в одном месте.";
   if (isEmpty) {
     lead = "Доступные вам разделы открываются в меню слева.";
@@ -282,15 +283,12 @@ export default function HomePageView({ summary }: { summary: HomeSummary }) {
             aria-labelledby="home-stats-title"
             className={styles.statsSection}
           >
-            <div className={styles.statsHeading}>
-              <span className={styles.statsHeadingMark} aria-hidden="true" />
-              <h2
-                id="home-stats-title"
-                className={"SubtitleTextBlockStyle " + styles.statsTitle}
-              >
-                Ключевые показатели
-              </h2>
-            </div>
+            <h2
+              id="home-stats-title"
+              className={"SubtitleTextBlockStyle " + styles.statsTitle}
+            >
+              Ключевые показатели
+            </h2>
             <div
               className={styles.stats}
               style={{ "--cols": stats.length } as CSSProperties}

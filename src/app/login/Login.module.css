@@ -261,7 +261,6 @@
   padding: 10px 12px 10px 14px;
   border-radius: 8px;
   background: color-mix(in srgb, var(--system-red) 9%, transparent);
-  box-shadow: inset 3px 0 0 var(--system-red);
   color: var(--text-primary);
   font-size: var(--font-body);
   line-height: 1.45;

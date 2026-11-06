@@ -11,6 +11,7 @@
 .accountCard {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
   min-width: 0;
   padding: 18px;
@@ -18,44 +19,6 @@
   border-radius: var(--ControlCornerRadius);
   background: var(--elevated-bg);
   box-shadow: var(--window-inner-glow);
-}
-
-.accountAvatar {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  place-items: center;
-  border-radius: 15px;
-  background: color-mix(
-    in srgb,
-    var(--control-accent) 15%,
-    var(--fill-tertiary)
-  );
-  color: var(--control-accent);
-  font-size: var(--font-body-large);
-  font-weight: 700;
-}
-
-.accountIdentity {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.accountIdentity h2,
-.accountIdentity p {
-  margin: 0;
-}
-
-.accountIdentity p {
-  color: var(--label-secondary);
-}
-
-.accountRoleCode {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--font-caption);
 }
 
 .accountSessions {

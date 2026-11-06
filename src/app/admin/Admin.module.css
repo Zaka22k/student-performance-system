@@ -382,7 +382,11 @@
 }
 
 .groupCount[data-active="true"] {
-  background: color-mix(in srgb, var(--control-accent) 12%, var(--fill-tertiary));
+  background: color-mix(
+    in srgb,
+    var(--control-accent) 12%,
+    var(--fill-tertiary)
+  );
   color: var(--accent-text);
 }
 
@@ -519,4 +523,3 @@
     transition: none;
   }
 }
-
