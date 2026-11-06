@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict tBRTqXLPUbChKUDEdElyk8HnWbIeT7sScSILJ9b9srfrPfwaDn7aNgLWlYch2Ad
+\restrict cpf3pYj4l6lmUPsQBPhXsMjod40vFj5973TX0gOeovTA5Klfdrm69cGHWYscehC
 
 -- Dumped from database version 18.6
 -- Dumped by pg_dump version 18.6
 
--- Started on 2026-11-05 00:14:20
+-- Started on 2026-11-06 14:29:47
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1364,9 +1364,68 @@ INSERT INTO analytics.fact_performance VALUES (448, 22, 6, 6, 1, 20270123, 'exam
 -- Data for Name: audit_logs; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (1, 1, 'users.bootstrap_admin', 'user', '1', '{"username": "admin"}', '2026-11-05 00:07:50.016036+03');
-INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (2, 1, 'auth.login', 'session', '1c42b51e-bca7-49ca-83ee-829d7793e72c', '{"username": "admin"}', '2026-11-04 21:08:50.823+03');
-INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (3, 1, 'users.create', 'user', '2', '{"username": "pristegins", "role_code": "student"}', '2026-11-04 21:09:48.012+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (7, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-04 21:42:27.243+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (8, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-04 21:42:48.339+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (2, NULL, 'auth.login', 'session', '1c42b51e-bca7-49ca-83ee-829d7793e72c', '{"username": "admin"}', '2026-11-04 21:08:50.823+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (3, NULL, 'users.create', 'user', '2', '{"username": "pristegins", "role_code": "student"}', '2026-11-04 21:09:48.012+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (4, NULL, 'auth.logout', 'session', '1c42b51e-bca7-49ca-83ee-829d7793e72c', NULL, '2026-11-04 21:21:13.434+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (1, NULL, 'users.bootstrap_admin', 'user', '1', '{"username": "admin"}', '2026-11-05 00:07:50.016036+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (5, NULL, 'auth.login', 'session', 'd32398e4-c935-423e-9ff9-91010fa6429c', '{"username": "pristegins"}', '2026-11-04 21:21:30.188+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (6, NULL, 'auth.logout', 'session', 'd32398e4-c935-423e-9ff9-91010fa6429c', NULL, '2026-11-04 21:41:30.175+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (9, 1, 'users.bootstrap_admin', 'user', '1', '{"username": "admin"}', '2026-11-05 00:45:03.905727+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (10, 1, 'auth.login', 'session', '02d21933-101a-4cd6-aad2-317d9254b5ce', '{"username": "admin"}', '2026-11-04 21:45:30.876+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (11, 1, 'auth.logout', 'session', '02d21933-101a-4cd6-aad2-317d9254b5ce', NULL, '2026-11-04 21:58:27.965+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (12, 1, 'auth.login', 'session', '761cde5c-6a84-4586-b9fb-e6ebc2e32b7d', '{"username": "admin"}', '2026-11-04 22:03:21.214+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (13, 1, 'users.create', 'user', '2', '{"username": "pristegins", "role_code": "student"}', '2026-11-04 22:07:03.922+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (14, 1, 'auth.logout', 'session', '761cde5c-6a84-4586-b9fb-e6ebc2e32b7d', NULL, '2026-11-04 22:08:10.694+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (17, 1, 'auth.login', 'session', '5ba24f03-37bb-4c9a-8cf0-de4c653c31f4', '{"username": "admin"}', '2026-11-04 22:09:50.211+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (18, 1, 'roles.permissions.replace', 'role', '3', '{"role_code": "student", "permission_ids": ["1", "11", "14", "17", "2", "4"]}', '2026-11-04 22:13:09.363+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (19, 1, 'auth.logout', 'session', '5ba24f03-37bb-4c9a-8cf0-de4c653c31f4', NULL, '2026-11-04 22:13:15.083+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (22, 1, 'auth.login', 'session', '35d9c611-f76c-4e7e-b109-1b2351d39507', '{"username": "admin"}', '2026-11-04 22:22:23.065+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (23, 1, 'users.deactivate', 'user', '2', NULL, '2026-11-04 22:22:40.002+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (24, 1, 'users.activate', 'user', '2', NULL, '2026-11-04 22:22:47.326+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (25, 1, 'roles.permissions.replace', 'role', '3', '{"role_code": "student", "permission_ids": ["1", "11", "17", "2", "4"]}', '2026-11-04 22:23:26.065+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (26, 1, 'users.password.reset', 'user', '2', NULL, '2026-11-04 22:29:44.299+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (27, 1, 'users.deactivate', 'user', '2', NULL, '2026-11-04 22:39:35.962+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (15, NULL, 'auth.login', 'session', 'caaa6e84-e18f-430b-9fae-22c0261a4fbb', '{"username": "pristegins"}', '2026-11-04 22:08:20.149+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (16, NULL, 'auth.logout', 'session', 'caaa6e84-e18f-430b-9fae-22c0261a4fbb', NULL, '2026-11-04 22:09:36.651+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (20, NULL, 'auth.login', 'session', 'aff5680b-3422-4f74-83fd-baee02fbfa16', '{"username": "pristegins"}', '2026-11-04 22:13:25.167+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (21, NULL, 'auth.logout', 'session', 'aff5680b-3422-4f74-83fd-baee02fbfa16', NULL, '2026-11-04 22:22:06.026+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (28, 1, 'users.delete', 'user', '2', '{"username": "pristegins", "role_code": "student"}', '2026-11-04 22:49:43.303+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (29, 1, 'auth.logout', 'session', '35d9c611-f76c-4e7e-b109-1b2351d39507', NULL, '2026-11-04 22:59:59.597+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (30, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-04 23:16:49.27+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (31, 1, 'auth.login', 'session', 'b0d0af8d-5c47-473a-b93a-94ea99e3d2f9', '{"username": "admin"}', '2026-11-04 23:16:58.029+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (32, 1, 'auth.logout', 'session', 'b0d0af8d-5c47-473a-b93a-94ea99e3d2f9', NULL, '2026-11-04 23:19:14.686+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (33, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-04 23:23:46.442+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (34, 1, 'auth.login', 'session', '32e3f3c1-1248-42f0-a015-c2df815c9a59', '{"username": "admin"}', '2026-11-04 23:23:49.289+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (35, 1, 'auth.logout', 'session', '32e3f3c1-1248-42f0-a015-c2df815c9a59', NULL, '2026-11-04 23:27:28.301+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (36, 1, 'auth.login', 'session', '812124e2-96c5-417a-a4ec-ad1588950302', '{"username": "admin"}', '2026-11-05 06:38:43.889+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (37, 1, 'auth.login', 'session', 'f11ba50b-41e0-4978-8cd1-5579ee0bdede', '{"username": "admin"}', '2026-11-05 11:22:14.464+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (38, 1, 'roles.create', 'role', '4', '{"role_code": "curator"}', '2026-11-05 11:30:05.058+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (39, 1, 'roles.delete', 'role', '4', '{"role_code": "curator"}', '2026-11-05 11:30:40.463+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (40, 1, 'auth.session.revoke', 'session', '812124e2-96c5-417a-a4ec-ad1588950302', '{"current_session": false}', '2026-11-05 11:41:01.1+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (41, 1, 'auth.logout', 'session', 'f11ba50b-41e0-4978-8cd1-5579ee0bdede', NULL, '2026-11-05 19:49:52.532+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (42, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-05 19:50:08.639+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (43, 1, 'auth.login', 'session', 'ab77e354-be00-44fb-afa5-8c84da7cdbee', '{"username": "admin"}', '2026-11-05 19:50:16.072+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (44, 1, 'auth.logout', 'session', 'ab77e354-be00-44fb-afa5-8c84da7cdbee', NULL, '2026-11-05 20:47:15.712+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (45, NULL, 'auth.login_failed', 'user', 'admin', NULL, '2026-11-05 20:55:46.685+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (46, 1, 'auth.login', 'session', '8bf81660-c2d4-489c-bed6-b5ac6e43cb2b', '{"username": "admin"}', '2026-11-05 20:55:52.817+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (47, 1, 'auth.login', 'session', '5a5366b6-6eac-403f-9974-1d4e83d2fe72', '{"username": "admin"}', '2026-11-06 07:46:55.064+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (48, 1, 'roles.create', 'role', '5', '{"role_code": "curator"}', '2026-11-06 10:06:24.926+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (49, 1, 'roles.delete', 'role', '5', '{"role_code": "curator"}', '2026-11-06 10:06:35.813+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (50, 1, 'auth.session.revoke', 'session', '5a5366b6-6eac-403f-9974-1d4e83d2fe72', '{"current_session": false}', '2026-11-06 10:19:32.969+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (51, 1, 'auth.logout', 'session', '8bf81660-c2d4-489c-bed6-b5ac6e43cb2b', NULL, '2026-11-06 10:43:51.584+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (52, NULL, 'auth.login_failed', 'user', 'asd', NULL, '2026-11-06 10:43:55.539+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (53, NULL, 'auth.login_failed', 'user', 'd', NULL, '2026-11-06 10:44:30.032+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (54, 1, 'auth.login', 'session', '8f694653-1db7-4e42-a0d5-62710e2ef1ec', '{"username": "admin"}', '2026-11-06 10:47:17.315+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (55, 1, 'auth.logout', 'session', '8f694653-1db7-4e42-a0d5-62710e2ef1ec', NULL, '2026-11-06 11:10:13.893+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (56, 1, 'auth.login', 'session', '7f628e13-25ad-4d18-8cf1-0e9c4993ff01', '{"username": "admin"}', '2026-11-06 11:11:20.258+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (57, 1, 'users.create', 'user', '3', '{"username": "pristegins", "role_code": "student"}', '2026-11-06 11:11:54.378+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (58, 1, 'auth.logout', 'session', '7f628e13-25ad-4d18-8cf1-0e9c4993ff01', NULL, '2026-11-06 11:12:01.277+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (59, 3, 'auth.login', 'session', '16f69c29-d354-4aaf-9db7-afcf737f83aa', '{"username": "pristegins"}', '2026-11-06 11:12:09.941+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (60, 3, 'auth.logout', 'session', '16f69c29-d354-4aaf-9db7-afcf737f83aa', NULL, '2026-11-06 11:12:56.856+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (61, 1, 'auth.login', 'session', 'd92c8d54-bbcc-4c63-afdc-7773a2ec3608', '{"username": "admin"}', '2026-11-06 11:13:03.307+03');
+INSERT INTO public.audit_logs OVERRIDING SYSTEM VALUE VALUES (62, 1, 'users.create', 'user', '4', '{"username": "rusaks", "role_code": "teacher"}', '2026-11-06 11:14:30.3+03');
 
 
 --
@@ -1419,7 +1478,6 @@ INSERT INTO public.reyting VALUES (29, 22);
 INSERT INTO public.reyting VALUES (4, 25);
 INSERT INTO public.reyting VALUES (34, 24);
 INSERT INTO public.reyting VALUES (51, 21);
-INSERT INTO public.reyting VALUES (52, 22);
 INSERT INTO public.reyting VALUES (10, 20);
 INSERT INTO public.reyting VALUES (35, 24);
 INSERT INTO public.reyting VALUES (45, 22);
@@ -1475,6 +1533,7 @@ INSERT INTO public.reyting VALUES (58, 25);
 INSERT INTO public.reyting VALUES (56, 26);
 INSERT INTO public.reyting VALUES (55, 25);
 INSERT INTO public.reyting VALUES (60, 28);
+INSERT INTO public.reyting VALUES (52, 22);
 
 
 --
@@ -1545,7 +1604,7 @@ INSERT INTO public.semesters OVERRIDING SYSTEM VALUE VALUES (1, 2026, 1, '2026-0
 -- Data for Name: sessions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.sessions VALUES ('1c42b51e-bca7-49ca-83ee-829d7793e72c', '9d912459004154f4bc64e3a114deaccdb2537724c731e571e5b3bbeba94acc0c', 1, 'admin', '{analytics.read,audit.read,dictionaries.manage,dictionaries.read,grades.create,grades.delete,grades.read.all,grades.update,home.view,reports.group_sheet,reports.group_summary,reports.student_book.all,roles.manage,session.schedule.manage,session.schedule.read.all,session.sheet.form,settings.use,users.manage}', NULL, NULL, '2026-11-04 21:08:50.815+03', '2026-11-04 21:08:50.815+03', '2026-12-04 21:08:50.796+03');
+INSERT INTO public.sessions VALUES ('d92c8d54-bbcc-4c63-afdc-7773a2ec3608', '88cc12a8270f4f1d08cf5779a4fbcc703879ead91d9822d33a32eb9b31359f6d', 1, 'admin', '{analytics.read,audit.read,dictionaries.manage,dictionaries.read,grades.create,grades.delete,grades.read.all,grades.update,home.view,reports.group_sheet,reports.group_summary,reports.student_book.all,roles.manage,session.schedule.manage,session.schedule.read.all,session.sheet.form,settings.use,users.manage}', NULL, NULL, '2026-11-06 11:13:03.305+03', '2026-11-06 11:13:03.305+03', '2026-12-06 11:13:03.29+03');
 
 
 --
@@ -2034,7 +2093,6 @@ INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (474, 48, 
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (475, 49, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (476, 50, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (477, 51, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
-INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (478, 52, 1, 1, 1, 'exam', 3, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (479, 53, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (483, 57, 1, 1, 1, 'exam', 3, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (490, 1, 3, 3, 1, 'exam', 5, NULL, 2, '2026-10-10');
@@ -2046,6 +2104,7 @@ INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (484, 58, 
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (482, 56, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (481, 55, 1, 1, 1, 'exam', 4, NULL, 1, '2027-01-23');
 INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (486, 60, 1, 1, 1, 'exam', 5, NULL, 1, '2027-01-23');
+INSERT INTO public.student_performance OVERRIDING SYSTEM VALUE VALUES (478, 52, 1, 1, 1, 'exam', 3, NULL, 1, '2027-01-23');
 
 
 --
@@ -2150,8 +2209,9 @@ INSERT INTO public.teachers OVERRIDING SYSTEM VALUE VALUES (1, 'Бурда', 'А
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (1, 'admin', 'scrypt$16384$8$1$d5477d47690af88901a35a9ec35edb31$c68b176b2c2bd67f8082c66184ead209444f547bbeee040dd3b168bf0a34db9ce88283f6d58c7603a582d0a52445ffe79583f73e24d5df31f2964b07916aac4a', 1, NULL, NULL, true, '2026-11-05 00:07:50.016036+03');
-INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (2, 'pristegins', 'scrypt$16384$8$1$b144323112d18d991cbd0327971a2798$5517b198af679720ce5223c47ece98f2c704068c3c727f39ee14c800f719067521a687338055502b77a97f567154b11ed69fb511756310c1a8173ccf5f7a17f1', 3, 51, NULL, true, '2026-11-04 21:09:48.006+03');
+INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (1, 'admin', 'scrypt$16384$8$1$44577e25dd8070a731469cfac52ce4a1$ca8ee8945d5960894c4428f4dda7ac41e27dccb919245dcc0e66d16051f083db8231f0a16f125a930b89613da8c23b15699c3b61136d9f98cd905f42d66fd772', 1, NULL, NULL, true, '2026-11-05 00:45:03.905727+03');
+INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (3, 'pristegins', 'scrypt$16384$8$1$7b898f9ded104b1603d15fad86bda4b4$8be85acae26215bb7fc2e8154057eff1ccfc67e0258ee12ac2c96e6cd51869703b3e086db9bd6de129b05a55452bce462872ff2864a44238f9a3dc6229ac2fb9', 3, 51, NULL, true, '2026-11-06 11:11:54.366+03');
+INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (4, 'rusaks', 'scrypt$16384$8$1$739bff5f4e3bf1a9cbe149829f52fdba$175e7fceb104b14f4be02e1ed66349992812c4806274a7e75ae25f1421d57f99d07616136d887736b12a2cc562b8b68e77e249e10726743d1b4c49e8a21722e3', 2, NULL, 3, true, '2026-11-06 11:14:30.292+03');
 
 
 --
@@ -2160,7 +2220,7 @@ INSERT INTO public.users OVERRIDING SYSTEM VALUE VALUES (2, 'pristegins', 'scryp
 -- Name: audit_logs_audit_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.audit_logs_audit_id_seq', 3, true);
+SELECT pg_catalog.setval('public.audit_logs_audit_id_seq', 62, true);
 
 
 --
@@ -2178,7 +2238,7 @@ SELECT pg_catalog.setval('public.permissions_permission_id_seq', 21, true);
 -- Name: roles_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.roles_role_id_seq', 3, true);
+SELECT pg_catalog.setval('public.roles_role_id_seq', 5, true);
 
 
 --
@@ -2241,7 +2301,7 @@ SELECT pg_catalog.setval('public.teachers_teacher_id_seq', 7, true);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 2, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 4, true);
 
 
 --
@@ -2916,11 +2976,11 @@ ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(teacher_id) ON DELETE SET NULL;
 
 
--- Completed on 2026-11-05 00:14:20
+-- Completed on 2026-11-06 14:29:48
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict tBRTqXLPUbChKUDEdElyk8HnWbIeT7sScSILJ9b9srfrPfwaDn7aNgLWlYch2Ad
+\unrestrict cpf3pYj4l6lmUPsQBPhXsMjod40vFj5973TX0gOeovTA5Klfdrm69cGHWYscehC
 
